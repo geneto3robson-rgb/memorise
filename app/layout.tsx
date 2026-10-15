@@ -27,6 +27,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Le layout racine pour l'application, incluant le ThemeProvider et le FavorisProvider
   return (
     <html lang="fr" className={`${sora.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="antialiased">
