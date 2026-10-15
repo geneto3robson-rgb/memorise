@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 type Mode = "login" | "signup";
 type Status = "idle" | "loading" | "error" | "success";
@@ -22,8 +24,11 @@ function GoogleIcon() {
   );
 }
 
-export default function ConnexionPage() {
-  const [mode, setMode] = useState<Mode>("login");
+function ConnexionContent() {
+  const searchParams = useSearchParams();
+  const [mode, setMode] = useState<Mode>(
+    searchParams.get("mode") === "signup" ? "signup" : "login"
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [name, setName] = useState("");
@@ -32,7 +37,6 @@ export default function ConnexionPage() {
   const [confirm, setConfirm] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
-
   const isLogin = mode === "login";
 
   const switchMode = (next: Mode) => {
@@ -69,16 +73,24 @@ export default function ConnexionPage() {
 
     setStatus("loading");
     try {
-      await new Promise((r) => setTimeout(r, 1200));
+      const res = isLogin
+        ? await authClient.signIn.email({ email, password })
+        : await authClient.signUp.email({ email, password, name });
+
+      if (res.error) {
+        setStatus("error");
+        setMessage(res.error.message ?? "Une erreur est survenue.");
+        return;
+      }
+
       setStatus("success");
-      setMessage(
-        isLogin
-          ? "Connexion réussie. Redirection…"
-          : "Compte créé. Vous pouvez vous connecter."
-      );
+      setMessage(isLogin ? "Connexion réussie." : "Compte créé.");
+      setTimeout(() => {
+        window.location.href = "/tableau-de-bord";
+      }, 800);
     } catch {
       setStatus("error");
-      setMessage("Une erreur est survenue. Veuillez réessayer.");
+      setMessage("Impossible de contacter le serveur.");
     }
   };
 
@@ -93,10 +105,9 @@ export default function ConnexionPage() {
           }`}
         >
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="MemoRise" width={40} height={40} />
+            <Image src="/logo.svg" alt="MemoRise" width={40} height={40} unoptimized />
             <span className="text-xl font-bold text-white font-heading">MemoRise</span>
           </Link>
-
           <div>
             <h2 className="text-3xl font-bold text-white font-heading mb-3 leading-tight">
               {isLogin ? "Bon retour parmi nous !" : "Bienvenue sur MemoRise !"}
@@ -115,7 +126,7 @@ export default function ConnexionPage() {
           }`}
         >
           <Link href="/" className="flex lg:hidden items-center gap-2 mb-6">
-            <Image src="/logo.svg" alt="MemoRise" width={32} height={32} />
+            <Image src="/logo.svg" alt="MemoRise" width={32} height={32} unoptimized />
             <span className="text-lg font-bold text-primary-900 font-heading">MemoRise</span>
           </Link>
 
@@ -183,11 +194,7 @@ export default function ConnexionPage() {
             )}
 
             {message && (
-              <p
-                className={`text-xs text-center ${
-                  status === "error" ? "text-error-500" : "text-success-600"
-                }`}
-              >
+              <p className={`text-xs text-center ${status === "error" ? "text-error-500" : "text-success-600"}`}>
                 {message}
               </p>
             )}
@@ -198,11 +205,7 @@ export default function ConnexionPage() {
               className="w-full flex items-center justify-center gap-2 bg-cta-500 hover:bg-cta-400 disabled:opacity-60 disabled:cursor-not-allowed text-primary-900 font-semibold rounded-full py-3 transition-colors"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {loading
-                ? "Chargement…"
-                : isLogin
-                ? "Se connecter"
-                : "Créer mon compte"}
+              {loading ? "Chargement…" : isLogin ? "Se connecter" : "Créer mon compte"}
             </button>
           </form>
 
@@ -233,5 +236,13 @@ export default function ConnexionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConnexionPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-neutral-500">Chargement…</div>}>
+      <ConnexionContent />
+    </Suspense>
   );
 }
