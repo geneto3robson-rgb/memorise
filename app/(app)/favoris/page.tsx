@@ -1,0 +1,48 @@
+"use client";
+
+import Link from "next/link";
+import { Container } from "@/components/layout/Container";
+import { ProjectCard } from "@/components/landing/ProjectCard";
+import { projects } from "@/lib/data/projects";
+import { useFavoris } from "@/lib/favoris-context";
+
+export default function FavorisPage() {
+  const { favoris: ids } = useFavoris();
+  const favoris = projects.filter((p) => ids.includes(p.id));
+
+  return (
+    <Container className="py-10 md:py-14">
+      <div className="w-16 h-1 bg-cta-500 mb-4 rounded-full" />
+      <h1 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-3">
+        Mes favoris
+      </h1>
+      <p className="text-neutral-600 dark:text-neutral-400 mb-8">
+        {favoris.length} mémoire{favoris.length > 1 ? "s" : ""} enregistré
+        {favoris.length > 1 ? "s" : ""}
+      </p>
+
+      {favoris.length === 0 ? (
+        <div className="rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-white dark:bg-primary-900 p-12 text-center">
+          <h3 className="text-lg font-semibold text-primary-900 dark:text-white mb-2">
+            Aucun favori pour le moment
+          </h3>
+          <p className="text-neutral-500 dark:text-neutral-400 mb-6">
+            Enregistrez des mémoires depuis Explorer pour les retrouver ici.
+          </p>
+          <Link
+            href="/explorer"
+            className="inline-block px-5 py-2 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold transition-colors"
+          >
+            Explorer les mémoires
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {favoris.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+      )}
+    </Container>
+  );
+}
