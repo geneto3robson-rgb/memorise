@@ -7,13 +7,19 @@ import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
-import { projects } from "@/lib/data/projects";
 import { filieres } from "@/lib/data/filieres";
+import { trpc } from "@/trpc/client";
 
-const PER_PAGE = 12;
 const niveaux = ["L3", "M2"];
 const annees = [2026, 2025, 2024, 2023, 2022];
 const CURRENT_YEAR = new Date().getFullYear();
+
+const filiereColorMap: Record<string, string> = {
+  TCO: "bg-primary-500",
+  EN: "bg-warning-500",
+  GE: "bg-success-500",
+  BTP: "bg-purple-600",
+};
 
 export default function ExplorerPage() {
   const searchParams = useSearchParams();
@@ -23,35 +29,13 @@ export default function ExplorerPage() {
   const [niveau, setNiveau] = useState("");
   const [annee, setAnnee] = useState<number | "">("");
   const [showCustomYear, setShowCustomYear] = useState(false);
-  const [sort, setSort] = useState("pertinence");
-  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    setPage(1);
-  }, [search, filiereCode, niveau, annee, sort]);
-
-  const filtered = projects.filter((p) => {
-    const q = search.toLowerCase().trim();
-    const matchSearch =
-      q === "" ||
-      p.title.toLowerCase().includes(q) ||
-      p.author.toLowerCase().includes(q) ||
-      p.keywords.some((k) => k.toLowerCase().includes(q));
-    const matchFiliere = filiereCode === "" || p.filiereCode === filiereCode;
-    const matchNiveau = niveau === "" || p.niveau === niveau;
-    const matchAnnee = annee === "" || p.year === annee;
-    return matchSearch && matchFiliere && matchNiveau && matchAnnee;
+  const { data: memoires = [], isLoading } = trpc.memoire.list.useQuery({
+    search,
+    filiere: filiereCode,
+    niveau,
+    annee: typeof annee === "number" ? annee : undefined,
   });
-
-  const sorted = [...filtered];
-  if (sort === "recent") sorted.sort((a, b) => b.year - a.year);
-  else if (sort === "ancien") sorted.sort((a, b) => a.year - b.year);
-  else if (sort === "titre") sorted.sort((a, b) => a.title.localeCompare(b.title));
-  else if (sort === "auteur") sorted.sort((a, b) => a.author.localeCompare(b.author));
-
-  const totalPages = Math.max(1, Math.ceil(sorted.length / PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
-  const paginated = sorted.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
 
   const resetFilters = () => {
     setSearch("");
@@ -59,8 +43,6 @@ export default function ExplorerPage() {
     setNiveau("");
     setAnnee("");
     setShowCustomYear(false);
-    setSort("pertinence");
-    setPage(1);
   };
 
   const handleYearInput = (raw: string) => {
@@ -69,10 +51,26 @@ export default function ExplorerPage() {
       return;
     }
     const n = Number(raw);
-    if (Number.isInteger(n) && n > 0) {
-      setAnnee(n);
-    }
+    if (Number.isInteger(n) && n > 0) setAnnee(n);
   };
+
+  const formatted = memoires.map((m) => ({
+    id: String(m.id),
+    slug: m.slug,
+    title: m.title,
+    summary: m.summary,
+    image: m.image ?? "/images/projects/telecom.jpg",
+    filiere: m.filiereName ?? "",
+    filiereCode: m.filiereCode ?? "",
+    filiereColor: filiereColorMap[m.filiereCode ?? ""] ?? "bg-primary-500",
+    author: m.authorName ?? "Auteur",
+    authorAvatar: m.authorImage ?? "/images/authors/authors1.jpg",
+    niveau: m.niveau,
+    year: m.annee,
+    pages: 0,
+    encadreur: m.encadreur,
+    keywords: [] as string[],
+  }));
 
   return (
     <div>
@@ -116,18 +114,6 @@ export default function ExplorerPage() {
 
       <Container className="py-8 md:py-12">
         <div className="flex flex-wrap items-center gap-3 mb-6">
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="px-4 py-2 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 text-sm text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500"
-          >
-            <option value="pertinence">Trier par : Pertinence</option>
-            <option value="recent">Plus récents</option>
-            <option value="ancien">Plus anciens</option>
-            <option value="titre">Titre (A → Z)</option>
-            <option value="auteur">Auteur (A → Z)</option>
-          </select>
-
           <select
             value={niveau}
             onChange={(e) => setNiveau(e.target.value)}
@@ -229,11 +215,13 @@ export default function ExplorerPage() {
         </div>
 
         <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
-          {sorted.length} mémoire{sorted.length > 1 ? "s" : ""} trouvé
-          {sorted.length > 1 ? "s" : ""}
+          {formatted.length} mémoire{formatted.length > 1 ? "s" : ""} trouvé
+          {formatted.length > 1 ? "s" : ""}
         </p>
 
-        {paginated.length === 0 ? (
+        {isLoading ? (
+          <p className="text-center text-neutral-500 py-12">Chargement…</p>
+        ) : formatted.length === 0 ? (
           <div className="rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-white dark:bg-primary-900 p-12 text-center">
             <h3 className="text-lg font-semibold text-primary-900 dark:text-white mb-2">
               Aucun mémoire trouvé
@@ -258,41 +246,9 @@ export default function ExplorerPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {paginated.map((project) => (
+            {formatted.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
-          </div>
-        )}
-
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-10">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="w-9 h-9 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-primary-900 dark:text-white disabled:opacity-40 hover:border-cta-500 transition-colors"
-            >
-              ‹
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-              <button
-                key={n}
-                onClick={() => setPage(n)}
-                className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                  n === currentPage
-                    ? "bg-cta-500 text-primary-900"
-                    : "border border-neutral-200 dark:border-neutral-700 text-primary-900 dark:text-white hover:border-cta-500"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="w-9 h-9 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-primary-900 dark:text-white disabled:opacity-40 hover:border-cta-500 transition-colors"
-            >
-              ›
-            </button>
           </div>
         )}
       </Container>
