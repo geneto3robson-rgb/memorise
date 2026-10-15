@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, ArrowRight, Plus, Bookmark } from "lucide-react";
@@ -8,6 +9,7 @@ import { ProjectCard } from "@/components/landing/ProjectCard";
 import { projects } from "@/lib/data/projects";
 import { useFavoris } from "@/lib/favoris-context";
 
+
 const parcoursParFiliere: Record<string, string[]> = {
   TCO: ["STI", "RS", "RC"],
 };
@@ -15,6 +17,8 @@ const parcoursParFiliere: Record<string, string[]> = {
 const MAX_PUBLICATIONS = 3;
 
 export default function TableauDeBordPage() {
+  const { data: session } = authClient.useSession();
+  const prenom = session?.user?.name?.split(" ")[0] ?? "";
   const { favoris: ids } = useFavoris();
   const nbFavoris = ids.length;
   const mesPublications = projects.slice(0, 2);
@@ -26,7 +30,7 @@ export default function TableauDeBordPage() {
     <Container className="py-6 md:py-10 max-w-6xl">
       <div className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-2">
-          Bonjour, Herry !
+          Bonjour, {prenom} !
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400">
           Que souhaitez-vous explorer aujourd&apos;hui ?

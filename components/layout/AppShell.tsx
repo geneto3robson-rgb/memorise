@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Search, Plus, Bookmark, FileText, Settings,
   Bell, ChevronDown, User,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 const navLinks = [
   { href: "/tableau-de-bord", label: "Tableau de bord", short: "Accueil", icon: LayoutDashboard },
@@ -90,6 +91,8 @@ export function Sidebar() {
 
 export function AppHeader() {
   const [open, setOpen] = useState(false);
+  const { data: session } = authClient.useSession();
+  const userName = session?.user?.name ?? "Mon compte";
 
   return (
     <header className="sticky top-0 z-30 bg-neutral-50/80 dark:bg-primary-950/80 backdrop-blur border-b border-neutral-200 dark:border-neutral-800">
@@ -111,7 +114,7 @@ export function AppHeader() {
               <Image src="/images/authors/authors1.jpg" alt="Profil" fill sizes="32px" className="object-cover" />
             </div>
             <span className="hidden sm:block text-sm font-medium text-primary-900 dark:text-white">
-              Herry Flavina
+              {userName}
             </span>
             <ChevronDown className={`w-3.5 h-3.5 text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
@@ -128,7 +131,14 @@ export function AppHeader() {
                   <User className="w-4 h-4" />
                   Mon profil
                 </Link>
-                <button className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20 border-t border-neutral-100 dark:border-neutral-800">
+                <button
+                  onClick={() => {
+                    authClient.signOut().then(() => {
+                      window.location.href = "/";
+                    });
+                  }}
+                  className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20 border-t border-neutral-100 dark:border-neutral-800"
+                >
                   Se déconnecter
                 </button>
               </div>
