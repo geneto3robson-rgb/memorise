@@ -3,6 +3,7 @@ import { Sora, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-context";
 import { FavorisProvider } from "@/lib/favoris-context";
+import { TRPCReactProvider } from "@/trpc/client";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -32,7 +33,9 @@ export default function RootLayout({
     <html lang="fr" className={`${sora.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider>
-          <FavorisProvider>{children}</FavorisProvider>
+          <TRPCReactProvider>
+            <FavorisProvider>{children}</FavorisProvider>
+          </TRPCReactProvider>
         </ThemeProvider>
       </body>
     </html>
