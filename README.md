@@ -15,13 +15,17 @@ existants, notamment la Bibliothèque et Archives Universitaires (BAU).
 
 ## Fonctionnalités
 
+- Catalogue public consultable sans connexion
 - Recherche par titre, auteur, mots-clés
-- Filtres par filière et année
-- Consultation de fiches descriptives
-- Publication volontaire de métadonnées par les membres connectés
-- Enregistrement de notices dans une liste personnelle (favoris)
-- Authentification par email et mot de passe
+- Filtres par filière, domaine, niveau et année
+- Pagination automatique du catalogue
+- Consultation détaillée d'une notice (résumé, encadreur, contacts de l'auteur)
+- Publication volontaire de métadonnées par les membres connectés (limite : 3 par compte)
+- Enregistrement de mémoires dans une liste de favoris personnelle
 - Gestion du profil : filière, parcours, statut, contacts
+- Authentification par email/mot de passe
+- Interface responsive (mobile, tablette, ordinateur)
+- Thème clair et sombre
 
 ## Stack technique
 
@@ -40,49 +44,24 @@ existants, notamment la Bibliothèque et Archives Universitaires (BAU).
 git clone https://github.com/geneto3robson-rgb/memorise.git
 cd memorise
 npm install
-```
 
-Crée un fichier `.env` à la racine du projet :
-
-```env
-DATABASE_URL=postgresql://...
-BETTER_AUTH_SECRET=
-BETTER_AUTH_URL=http://localhost:3000
-```
-
-Applique le schéma sur la base :
-
-```bash
-npx drizzle-kit push
-```
-
-Remplis la base avec les données initiales (pôles, filières, un utilisateur
-de test, mémoires d'exemple) :
-
-```bash
-npm run db:seed
-```
-
-Lance le serveur de développement :
-
-```bash
-npm run dev
-```
-
-L'application est accessible sur `http://localhost:3000`.
-
-## Structure du projet
-
-```
 app/                Routes Next.js (App Router)
-├─ (app)/           Pages connectées (dashboard, explorer, publier…)
-├─ api/             Routes API (tRPC, auth)
-├─ connexion/       Page d'authentification (login + inscription)
+├─ (app)/           Pages connectées (tableau de bord, publier, favoris…)
+│  ├─ tableau-de-bord/
+│  ├─ publier/
+│  ├─ favoris/
+│  ├─ publication/
+│  └─ parametres/
+├─ api/             Routes API (tRPC + authentification)
+├─ connexion/       Page d'authentification
+├─ explorer/        Catalogue public avec layout adaptatif
+├─ memoires/        Détail d'un mémoire (route [slug])
 └─ page.tsx         Landing page publique
 
 components/         Composants React réutilisables
 ├─ landing/         Sections de la landing
-├─ layout/          Navbar, sidebar, footer, containers
+├─ layout/          Navbar, sidebar, footer, modals
+├─ memoire/         Détail et modal de mémoire
 └─ ui/              Composants d'interface de base
 
 db/                 Schéma et accès base de données
@@ -95,15 +74,14 @@ lib/                Utilitaires
 ├─ auth.ts          Configuration Better Auth
 ├─ auth-client.ts   Client d'authentification
 ├─ theme-context.tsx Gestion du thème clair/sombre
-└─ favoris-context.tsx Gestion des favoris
+└─ data/            Référentiels statiques (filières, domaines…)
 
 trpc/               Configuration tRPC
 ├─ init.ts          Initialisation + procédures (public, protégé)
 ├─ client.tsx       Client React
-└─ routers/         Routeurs (memoire, etc.)
+└─ routers/         Routeurs (memoire, favori…)
 
 public/             Ressources statiques (images, logo)
-```
 
 ## Périmètre
 
