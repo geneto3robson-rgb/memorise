@@ -8,7 +8,7 @@ import { filieres } from "@/lib/data/filieres";
 import { useTheme } from "@/lib/theme-context";
 
 const inputClass =
-  "w-full px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-primary-950 text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500";
+  "w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-primary-900 text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500 focus:border-cta-500 transition-colors shadow-sm";
 const labelClass = "block text-xs font-medium text-neutral-500 mb-1.5";
 const btnPrimary =
   "px-6 py-2.5 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold transition-colors";
@@ -152,7 +152,7 @@ function ProfilSection({
             type="email"
             value="herry@espa.mg"
             readOnly
-            className={inputClass + " opacity-70 cursor-not-allowed"}
+            className={inputClass + " bg-neutral-100 dark:bg-primary-950 cursor-not-allowed"}
           />
         </div>
 

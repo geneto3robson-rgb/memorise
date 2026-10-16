@@ -6,7 +6,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Search, Plus, Bookmark, FileText, Settings,
-  Bell, ChevronDown, User,
+  Bell, ChevronDown, User, LogOut,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
@@ -15,7 +15,7 @@ const navLinks = [
   { href: "/explorer", label: "Explorer", short: "Explorer", icon: Search },
   { href: "/publier", label: "Publier", short: "Publier", icon: Plus },
   { href: "/favoris", label: "Enregistrements", short: "Favoris", icon: Bookmark },
-  { href: "/publications", label: "Publications", short: "Publi.", icon: FileText },
+  { href: "/publication", label: "Publications", short: "Publi.", icon: FileText },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -122,11 +122,11 @@ export function AppHeader() {
           {open && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-xl overflow-hidden z-50">
+              <div className="absolute right-0 top-full mt-2 w-56 bg-primary-900/70 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl overflow-hidden z-50">
                 <Link
                   href="/parametres"
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-sm text-primary-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-primary-800"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 hover:text-cta-400 transition-colors border-b border-white/5"
                 >
                   <User className="w-4 h-4" />
                   Mon profil
@@ -137,8 +137,9 @@ export function AppHeader() {
                       window.location.href = "/";
                     });
                   }}
-                  className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20 border-t border-neutral-100 dark:border-neutral-800"
+                  className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-error-400 hover:bg-white/10 transition-colors"
                 >
+                  <LogOut className="w-4 h-4" />
                   Se déconnecter
                 </button>
               </div>

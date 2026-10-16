@@ -13,7 +13,7 @@ import { authClient } from "@/lib/auth-client";
 const MAX_WORDS = 500;
 
 const inputClass =
-  "w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500";
+  "w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-primary-900 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 focus:border-cta-500 transition-colors shadow-sm";
 const labelClass = "block text-sm font-medium text-primary-900 dark:text-white mb-2";
 
 export default function PublierPage() {

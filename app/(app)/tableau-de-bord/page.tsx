@@ -6,7 +6,7 @@ import { Search, ArrowRight, Plus, Bookmark } from "lucide-react";
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 import { projects } from "@/lib/data/projects";
-import { useFavoris } from "@/lib/favoris-context";
+import { trpc } from "@/trpc/client";
 import { authClient } from "@/lib/auth-client";
 
 const parcoursParFiliere: Record<string, string[]> = {
@@ -19,7 +19,7 @@ export default function TableauDeBordPage() {
   const { data: session } = authClient.useSession();
   const prenom = session?.user?.name?.split(" ")[0] ?? "";
 
-  const { favoris: ids } = useFavoris();
+  const { data: ids = [] } = trpc.favori.ids.useQuery();
   const nbFavoris = ids.length;
   const mesPublications = projects.slice(0, 2);
   const maFiliere = "TCO";

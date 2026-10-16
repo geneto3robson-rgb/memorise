@@ -32,11 +32,11 @@ export default function ExplorerLayout({ children }: { children: React.ReactNode
     );
   }
 
-  return (
-    <>
-      <Navbar />
-      <main className="pt-20">{children}</main>
-      <Footer />
-    </>
-  );
+return (
+  <div className="min-h-screen bg-white dark:bg-primary-950">
+    <Navbar />
+    <main>{children}</main>
+    <Footer />
+  </div>
+);
 }
