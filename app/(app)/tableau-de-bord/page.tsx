@@ -1,6 +1,5 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, ArrowRight, Plus, Bookmark } from "lucide-react";
@@ -8,7 +7,7 @@ import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 import { projects } from "@/lib/data/projects";
 import { useFavoris } from "@/lib/favoris-context";
-
+import { authClient } from "@/lib/auth-client";
 
 const parcoursParFiliere: Record<string, string[]> = {
   TCO: ["STI", "RS", "RC"],
@@ -19,6 +18,7 @@ const MAX_PUBLICATIONS = 3;
 export default function TableauDeBordPage() {
   const { data: session } = authClient.useSession();
   const prenom = session?.user?.name?.split(" ")[0] ?? "";
+
   const { favoris: ids } = useFavoris();
   const nbFavoris = ids.length;
   const mesPublications = projects.slice(0, 2);
@@ -89,7 +89,7 @@ export default function TableauDeBordPage() {
               Mes publications
             </h2>
             <Link
-              href="/publications"
+              href="/publication"
               className="text-xs font-semibold bg-cta-500 text-primary-900 px-3 py-1 rounded-full"
             >
               Voir tout
@@ -168,23 +168,6 @@ export default function TableauDeBordPage() {
           <ProjectCard key={p.id} project={p} />
         ))}
       </div>
-
-      <footer className="mt-16 pt-8 border-t border-neutral-200 dark:border-neutral-800">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-500">
-          <p>© 2026 MemoRise. Tous droits réservés.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/mentions-legales" className="hover:text-cta-600 transition-colors">
-              Mentions légales
-            </Link>
-            <Link href="/confidentialite" className="hover:text-cta-600 transition-colors">
-              Confidentialité
-            </Link>
-            <Link href="/contact" className="hover:text-cta-600 transition-colors">
-              Contact
-            </Link>
-          </div>
-        </div>
-      </footer>
     </Container>
   );
 }

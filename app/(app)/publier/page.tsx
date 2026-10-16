@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Info, Upload } from "lucide-react";
 import { Container } from "@/components/layout/Container";
 import { filieres } from "@/lib/data/filieres";
+import { domainesParFiliere } from "@/lib/data/domaines";
+import { trpc } from "@/trpc/client";
+import { authClient } from "@/lib/auth-client";
 
-const isAuthenticated = false;
 const MAX_WORDS = 500;
 
 const inputClass =
@@ -14,17 +17,32 @@ const inputClass =
 const labelClass = "block text-sm font-medium text-primary-900 dark:text-white mb-2";
 
 export default function PublierPage() {
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [filiereCode, setFiliereCode] = useState("");
+  const [domaine, setDomaine] = useState("");
   const [niveau, setNiveau] = useState("L3");
   const [year, setYear] = useState(2026);
   const [encadreur, setEncadreur] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState("");
 
   const wordCount = summary.trim().split(/\s+/).filter(Boolean).length;
+  const domainesDisponibles = filiereCode ? (domainesParFiliere[filiereCode] ?? []) : [];
+
+  const createMutation = trpc.memoire.create.useMutation({
+    onSuccess: () => {
+      router.push("/publication");
+    },
+    onError: (err) => {
+      setFeedback(err.message || "Erreur lors de la publication.");
+    },
+  });
 
   const addKeyword = () => {
     const k = keywordInput.trim();
@@ -39,7 +57,38 @@ export default function PublierPage() {
     if (file) setPhoto(URL.createObjectURL(file));
   };
 
-  if (!isAuthenticated) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedback("");
+    if (!title || !summary || !filiereCode || !encadreur) {
+      setFeedback("Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+    if (wordCount > MAX_WORDS) {
+      setFeedback(`La description dépasse ${MAX_WORDS} mots.`);
+      return;
+    }
+    createMutation.mutate({
+      title,
+      summary,
+      filiereCode,
+      domaine,
+      niveau,
+      annee: year,
+      encadreur,
+      keywords,
+    });
+  };
+
+  if (isPending) {
+    return (
+      <Container className="py-20 text-center text-neutral-500">
+        Chargement…
+      </Container>
+    );
+  }
+
+  if (!session) {
     return (
       <Container className="py-20 text-center">
         <h1 className="text-2xl font-bold text-primary-900 dark:text-white font-heading mb-3">
@@ -58,6 +107,8 @@ export default function PublierPage() {
     );
   }
 
+  const loading = createMutation.isPending;
+
   return (
     <Container className="py-10 md:py-14">
       <div className="w-16 h-1 bg-cta-500 mb-4 rounded-full" />
@@ -75,7 +126,7 @@ export default function PublierPage() {
         </p>
       </div>
 
-      <form className="max-w-3xl space-y-6" onSubmit={(e) => e.preventDefault()}>
+      <form className="max-w-3xl space-y-6" onSubmit={handleSubmit}>
         <div>
           <label className={labelClass}>Photo de couverture</label>
           <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl p-6 cursor-pointer hover:border-cta-500 transition-colors">
@@ -97,6 +148,7 @@ export default function PublierPage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            disabled={loading}
             className={inputClass}
           />
         </div>
@@ -104,39 +156,85 @@ export default function PublierPage() {
         <div className="grid sm:grid-cols-2 gap-6">
           <div>
             <label className={labelClass}>Filière *</label>
-            <select value={filiereCode} onChange={(e) => setFiliereCode(e.target.value)} className={inputClass}>
+            <select
+              value={filiereCode}
+              onChange={(e) => {
+                setFiliereCode(e.target.value);
+                setDomaine("");
+              }}
+              disabled={loading}
+              className={inputClass}
+            >
               <option value="">Sélectionner…</option>
               {filieres.map((f) => (
                 <option key={f.id} value={f.code}>{f.code} — {f.name}</option>
               ))}
             </select>
           </div>
+
+          <div>
+            <label className={labelClass}>Domaine</label>
+            <select
+              value={domaine}
+              onChange={(e) => setDomaine(e.target.value)}
+              disabled={loading || !filiereCode || domainesDisponibles.length === 0}
+              className={inputClass}
+            >
+              <option value="">
+                {!filiereCode
+                  ? "Choisir une filière d'abord"
+                  : domainesDisponibles.length === 0
+                  ? "Aucun domaine disponible"
+                  : "Sélectionner…"}
+              </option>
+              {domainesDisponibles.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label className={labelClass}>Niveau *</label>
-            <select value={niveau} onChange={(e) => setNiveau(e.target.value)} className={inputClass}>
+            <select
+              value={niveau}
+              onChange={(e) => setNiveau(e.target.value)}
+              disabled={loading}
+              className={inputClass}
+            >
               <option value="L3">L3</option>
               <option value="M2">M2</option>
             </select>
           </div>
+
           <div>
             <label className={labelClass}>Année de soutenance *</label>
-            <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className={inputClass} />
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              disabled={loading}
+              className={inputClass}
+            />
           </div>
-          <div>
+
+          <div className="sm:col-span-2">
             <label className={labelClass}>Encadreur *</label>
-            <input type="text" value={encadreur} onChange={(e) => setEncadreur(e.target.value)} className={inputClass} />
+            <input
+              type="text"
+              value={encadreur}
+              onChange={(e) => setEncadreur(e.target.value)}
+              disabled={loading}
+              className={inputClass}
+            />
           </div>
         </div>
 
         <div>
-          <label className={labelClass}>Description *</label>
+          <label className={labelClass}>Description * (max {MAX_WORDS} mots)</label>
           <textarea
             value={summary}
-            onChange={(e) => {
-              const v = e.target.value;
-              const c = v.trim().split(/\s+/).filter(Boolean).length;
-              if (c <= MAX_WORDS) setSummary(v);
-            }}
+            onChange={(e) => setSummary(e.target.value)}
+            disabled={loading}
             rows={5}
             className={inputClass}
           />
@@ -159,14 +257,23 @@ export default function PublierPage() {
             onKeyDown={(e) => {
               if (e.key === "Enter") { e.preventDefault(); addKeyword(); }
             }}
+            disabled={loading}
             placeholder="Tapez un mot-clé puis Entrée"
             className={inputClass}
           />
         </div>
 
+        {feedback && (
+          <p className="text-sm text-error-500 text-center">{feedback}</p>
+        )}
+
         <div className="flex justify-end">
-          <button type="submit" className="bg-cta-500 hover:bg-cta-400 text-primary-900 font-semibold rounded-full px-8 py-3">
-            Publier le mémoire
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-cta-500 hover:bg-cta-400 disabled:opacity-60 disabled:cursor-not-allowed text-primary-900 font-semibold rounded-full px-8 py-3"
+          >
+            {loading ? "Publication…" : "Publier le mémoire"}
           </button>
         </div>
       </form>

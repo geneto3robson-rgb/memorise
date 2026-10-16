@@ -26,7 +26,6 @@ export function Footer() {
             title="Explorer"
             links={[
               { label: "Tous les travaux", href: "/explorer" },
-              { label: "Par domaine", href: "/domaines" },
               { label: "Par filière", href: "/filieres" },
               { label: "Par année", href: "/annees" },
             ]}
