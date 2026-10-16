@@ -110,8 +110,11 @@
 
 body {
   font-family: var(--font-body);
-  background-color: #FFFFFF;
-  color: var(--color-neutral-900);
+}
+
+html.dark body {
+  background-color: var(--color-primary-950);
+  color: #FFFFFF;
 }
 
 :root {

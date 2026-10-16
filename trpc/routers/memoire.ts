@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc } from "drizzle-orm";
 import { publicProcedure, protectedProcedure, router } from "../init";
 import { db } from "@/db";
-import { memoires, filieres, keywords, memoireKeywords } from "@/db/schema";
+import { memoires, filieres, keywords, memoireKeywords, profiles } from "@/db/schema";
 import { user } from "@/db/auth-schema";
 
 function slugify(text: string) {
@@ -57,6 +57,79 @@ export const memoireRouter = router({
         if (input.annee && r.annee !== input.annee) return false;
         return true;
       });
+    }),
+
+  recent: publicProcedure.query(async () => {
+    const rows = await db
+      .select({
+        id: memoires.id,
+        slug: memoires.slug,
+        title: memoires.title,
+        summary: memoires.summary,
+        image: memoires.image,
+        annee: memoires.annee,
+        niveau: memoires.niveau,
+        encadreur: memoires.encadreur,
+        domaine: memoires.domaine,
+        filiereName: filieres.name,
+        filiereCode: filieres.code,
+        authorName: user.name,
+        authorImage: user.image,
+      })
+      .from(memoires)
+      .leftJoin(filieres, eq(memoires.filiereId, filieres.id))
+      .leftJoin(user, eq(memoires.userId, user.id))
+      .orderBy(desc(memoires.createdAt))
+      .limit(4);
+
+    return rows;
+  }),
+
+  bySlug: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ input }) => {
+      const [row] = await db
+        .select({
+          id: memoires.id,
+          slug: memoires.slug,
+          title: memoires.title,
+          summary: memoires.summary,
+          image: memoires.image,
+          annee: memoires.annee,
+          niveau: memoires.niveau,
+          encadreur: memoires.encadreur,
+          domaine: memoires.domaine,
+          filiereName: filieres.name,
+          filiereCode: filieres.code,
+          authorName: user.name,
+          authorImage: user.image,
+          authorId: user.id,
+        })
+        .from(memoires)
+        .leftJoin(filieres, eq(memoires.filiereId, filieres.id))
+        .leftJoin(user, eq(memoires.userId, user.id))
+        .where(eq(memoires.slug, input.slug));
+
+      if (!row) return null;
+
+      const kws = await db
+        .select({ name: keywords.name })
+        .from(memoireKeywords)
+        .leftJoin(keywords, eq(memoireKeywords.keywordId, keywords.id))
+        .where(eq(memoireKeywords.memoireId, row.id));
+
+      const [profile] = await db
+        .select()
+        .from(profiles)
+        .where(eq(profiles.userId, row.authorId));
+
+      return {
+        ...row,
+        keywords: kws.map((k) => k.name ?? "").filter(Boolean),
+        contacts: profile
+          ? { facebook: profile.facebook, linkedin: profile.linkedin, whatsapp: profile.whatsapp }
+          : null,
+      };
     }),
 
   create: protectedProcedure
