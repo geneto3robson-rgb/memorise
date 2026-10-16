@@ -8,7 +8,6 @@ import { ThemeToggle } from "./ThemeToggle";
 
 const explorerLinks = [
   { label: "Tous les travaux", href: "/explorer" },
-  { label: "Par domaine", href: "/explorer" },
   { label: "Par filière", href: "/explorer" },
   { label: "Par année", href: "/explorer" },
 ];

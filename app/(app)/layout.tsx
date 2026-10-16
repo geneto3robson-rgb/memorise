@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar, AppHeader } from "@/components/layout/AppShell";
+import { AppFooter } from "@/components/layout/AppFooter";
 import { authClient } from "@/lib/auth-client";
 
 export default function AppLayout({
@@ -32,7 +33,10 @@ export default function AppLayout({
       <Sidebar />
       <div className="lg:pl-60">
         <AppHeader />
-        <main className="px-4 md:px-8 py-6 pb-24 lg:pb-10">{children}</main>
+        <main className="px-4 md:px-8 py-6 pb-24 lg:pb-10">
+          {children}
+          <AppFooter />
+        </main>
       </div>
     </div>
   );

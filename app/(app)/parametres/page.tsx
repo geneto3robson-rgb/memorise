@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { User, Lock, Bell, Palette, Shield } from "lucide-react";
+import { User, Lock, Bell, Palette, Shield, Moon, Sun } from "lucide-react";
 import { Container } from "@/components/layout/Container";
 import { filieres } from "@/lib/data/filieres";
 import { useTheme } from "@/lib/theme-context";
@@ -295,7 +295,13 @@ function AffichageSection({ theme, toggle }: { theme: string; toggle: () => void
             </p>
             <p className="text-xs text-neutral-500">Basculer entre clair et sombre.</p>
           </div>
-          <button onClick={toggle} className={btnPrimary}>Changer</button>
+          <button
+            onClick={toggle}
+            aria-label="Changer de thème"
+            className="p-3 rounded-full border border-neutral-200 dark:border-neutral-700 text-primary-900 dark:text-white hover:border-cta-500 transition-colors"
+          >
+            {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          </button>
         </div>
 
         <div>
