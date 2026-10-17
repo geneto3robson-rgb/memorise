@@ -38,6 +38,10 @@ export const memoires = pgTable("memoires", {
   pages: integer("pages"),
   userId: text("user_id").notNull(),
   filiereId: integer("filiere_id").notNull().references(() => filieres.id),
+  parcours: text("parcours"),
+  facebook: text("facebook"),
+  linkedin: text("linkedin"),
+  whatsapp: text("whatsapp"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

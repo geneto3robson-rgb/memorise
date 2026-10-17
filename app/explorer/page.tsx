@@ -108,7 +108,14 @@ export default function ExplorerPage() {
       {!isConnected ? (
         <section className="relative">
           <div className="relative min-h-[320px] rounded-b-[34px] overflow-hidden">
-            <Image src="/images/hero-bg.jpg" alt="Étudiants à l'ESPA" fill priority sizes="100vw" className="object-cover" />
+            <Image
+              src="/images/hero-bg.jpg"
+              alt="Étudiants à l'ESPA"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-r from-primary-900/80 via-primary-900/50 to-primary-900/20" />
             <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-28 pb-16">
               <div className="w-16 h-1 bg-cta-500 mb-4 rounded-full" />
@@ -168,7 +175,9 @@ export default function ExplorerPage() {
           >
             <option value="">Tous les niveaux</option>
             {niveaux.map((n) => (
-              <option key={n} value={n}>{n}</option>
+              <option key={n} value={n}>
+                {n}
+              </option>
             ))}
           </select>
 
@@ -177,15 +186,24 @@ export default function ExplorerPage() {
               value={annee}
               onChange={(e) => {
                 const v = e.target.value;
-                if (v === "") { setAnnee(""); setShowCustomYear(false); }
-                else if (v === "autre") { setAnnee(""); setShowCustomYear(true); }
-                else { setAnnee(Number(v)); setShowCustomYear(false); }
+                if (v === "") {
+                  setAnnee("");
+                  setShowCustomYear(false);
+                } else if (v === "autre") {
+                  setAnnee("");
+                  setShowCustomYear(true);
+                } else {
+                  setAnnee(Number(v));
+                  setShowCustomYear(false);
+                }
               }}
               className="px-4 py-2 rounded-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-primary-900 text-sm text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-sm"
             >
               <option value="">Toutes les années</option>
               {annees.map((a) => (
-                <option key={a} value={a}>{a}</option>
+                <option key={a} value={a}>
+                  {a}
+                </option>
               ))}
               <option value="autre">Autre année…</option>
             </select>
@@ -199,11 +217,22 @@ export default function ExplorerPage() {
                 step={1}
                 value={annee}
                 onChange={(e) => handleYearInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "-" || e.key === "." || e.key === ",") e.preventDefault(); }}
+                onKeyDown={(e) => {
+                  if (e.key === "-" || e.key === "." || e.key === ",") e.preventDefault();
+                }}
                 placeholder="Ex : 2018"
                 className="w-24 bg-transparent text-sm text-primary-900 dark:text-white focus:outline-none"
               />
-              <button type="button" onClick={() => { setAnnee(""); setShowCustomYear(false); }} className="text-xs text-neutral-500 hover:text-error-500">✕</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAnnee("");
+                  setShowCustomYear(false);
+                }}
+                className="text-xs text-neutral-500 hover:text-error-500"
+              >
+                ✕
+              </button>
             </div>
           )}
 
@@ -221,7 +250,7 @@ export default function ExplorerPage() {
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               filiereCode === ""
                 ? "bg-primary-900 dark:bg-cta-500 text-white dark:text-primary-900"
-                : "bg-white dark:bg-primary-900 text-primary-900 dark:text-white border border-neutral-300 dark:border-neutral-600 hover:border-cta-500 shadow-sm"
+                : "bg-white dark:bg-primary-900 text-primary-900 dark:text-white border border-neutral-300 dark:border-neutral-600 hover:border-cta-500 dark:hover:bg-white/10 shadow-sm"
             }`}
           >
             Toutes les filières
@@ -233,7 +262,7 @@ export default function ExplorerPage() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 filiereCode === f.code
                   ? "bg-primary-900 dark:bg-cta-500 text-white dark:text-primary-900"
-                  : "bg-white dark:bg-primary-900 text-primary-900 dark:text-white border border-neutral-300 dark:border-neutral-600 hover:border-cta-500 shadow-sm"
+                  : "bg-white dark:bg-primary-900 text-primary-900 dark:text-white border border-neutral-300 dark:border-neutral-600 hover:border-cta-500 dark:hover:bg-white/10 shadow-sm"
               }`}
             >
               {f.code}
@@ -249,7 +278,7 @@ export default function ExplorerPage() {
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 domaine === ""
                   ? "bg-cta-500 text-primary-900"
-                  : "bg-white dark:bg-primary-900 text-primary-900 dark:text-white border border-neutral-300 dark:border-neutral-600 hover:border-cta-500 shadow-sm"
+                  : "bg-white dark:bg-primary-900 text-primary-900 dark:text-white border border-neutral-300 dark:border-neutral-600 hover:border-cta-500 dark:hover:bg-white/10 shadow-sm"
               }`}
             >
               Tous
@@ -261,7 +290,7 @@ export default function ExplorerPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                   domaine === d
                     ? "bg-cta-500 text-primary-900"
-                    : "bg-white dark:bg-primary-900 text-primary-900 dark:text-white border border-neutral-300 dark:border-neutral-600 hover:border-cta-500 shadow-sm"
+                    : "bg-white dark:bg-primary-900 text-primary-900 dark:text-white border border-neutral-300 dark:border-neutral-600 hover:border-cta-500 dark:hover:bg-white/10 shadow-sm"
                 }`}
               >
                 {d}
@@ -271,8 +300,8 @@ export default function ExplorerPage() {
         )}
 
         <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
-        {formatted.length} mémoire{formatted.length > 1 ? "s" : ""} trouvé
-        {formatted.length > 1 ? "s" : ""}
+          {formatted.length} mémoire{formatted.length > 1 ? "s" : ""} trouvé
+          {formatted.length > 1 ? "s" : ""}
         </p>
         {isLoading ? (
           <p className="text-center text-neutral-500 py-12">Chargement…</p>
