@@ -1,5 +1,5 @@
 import {
-  pgTable, serial, text, integer, timestamp, primaryKey,
+  pgTable, serial, text, integer, timestamp, primaryKey, boolean
 } from "drizzle-orm/pg-core";
 
 export const poles = pgTable("poles", {
@@ -23,6 +23,8 @@ export const profiles = pgTable("profiles", {
   facebook: text("facebook"),
   linkedin: text("linkedin"),
   whatsapp: text("whatsapp"),
+  notifyNews: boolean("notify_news").default(true).notNull(),
+  notifyPublications: boolean("notify_publications").default(true).notNull(),
 });
 
 export const memoires = pgTable("memoires", {
@@ -64,3 +66,12 @@ export const favoris = pgTable("favoris", {
 }, (t) => ({
   pk: primaryKey({ columns: [t.userId, t.memoireId] }),
 }));
+
+export const notifications = pgTable("notifications", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  userId: text("user_id").notNull(),
+  message: text("message").notNull(),
+  link: text("link"),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
