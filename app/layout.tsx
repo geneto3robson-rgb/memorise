@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Sora, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-context";
-import { FavorisProvider } from "@/lib/favoris-context";
 import { TRPCReactProvider } from "@/trpc/client";
 
 const sora = Sora({
@@ -28,14 +27,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Le layout racine pour l'application, incluant le ThemeProvider et le FavorisProvider
   return (
     <html lang="fr" className={`${sora.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="antialiased">
+      <body className="antialiased bg-white dark:bg-primary-950 text-neutral-900 dark:text-white">
         <ThemeProvider>
-          <TRPCReactProvider>
-            <FavorisProvider>{children}</FavorisProvider>
-          </TRPCReactProvider>
+          <TRPCReactProvider>{children}</TRPCReactProvider>
         </ThemeProvider>
       </body>
     </html>

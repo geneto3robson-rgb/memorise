@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Eye, EyeOff, Loader2, X } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/trpc/client";
 
 type Mode = "login" | "signup";
 type Status = "idle" | "loading" | "error" | "success";
 
 const inputClass =
-  "w-full px-4 py-3 rounded-full bg-neutral-50 border border-neutral-200 text-primary-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 focus:bg-white transition-colors";
+  "w-full px-4 py-3 rounded-full bg-white border border-neutral-300 text-primary-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 focus:border-cta-500 transition-colors shadow-sm";
 
 function GoogleIcon() {
   return (
@@ -22,8 +25,11 @@ function GoogleIcon() {
   );
 }
 
-export default function ConnexionPage() {
-  const [mode, setMode] = useState<Mode>("login");
+function ConnexionContent() {
+  const searchParams = useSearchParams();
+  const [mode, setMode] = useState<Mode>(
+    searchParams.get("mode") === "signup" ? "signup" : "login"
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [name, setName] = useState("");
@@ -32,13 +38,22 @@ export default function ConnexionPage() {
   const [confirm, setConfirm] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
-
   const isLogin = mode === "login";
+
+  const toggleFavori = trpc.favori.toggle.useMutation();
 
   const switchMode = (next: Mode) => {
     setMode(next);
     setStatus("idle");
     setMessage("");
+  };
+
+  const handleClose = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = "/";
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,23 +84,59 @@ export default function ConnexionPage() {
 
     setStatus("loading");
     try {
-      await new Promise((r) => setTimeout(r, 1200));
+      const res = isLogin
+        ? await authClient.signIn.email({ email, password })
+        : await authClient.signUp.email({ email, password, name });
+
+      if (res.error) {
+        setStatus("error");
+        setMessage(res.error.message ?? "Une erreur est survenue.");
+        return;
+      }
+
+      await new Promise((r) => setTimeout(r, 400));
+
+      const saveId = searchParams.get("save");
+      if (saveId && !Number.isNaN(Number(saveId))) {
+        try {
+          await toggleFavori.mutateAsync({ memoireId: Number(saveId) });
+        } catch {
+          // ignore
+        }
+      }
+
+      const rawRedirect = searchParams.get("redirect");
+      const target =
+        rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+          ? rawRedirect
+          : "/tableau-de-bord";
+
       setStatus("success");
-      setMessage(
-        isLogin
-          ? "Connexion réussie. Redirection…"
-          : "Compte créé. Vous pouvez vous connecter."
-      );
+      setMessage(isLogin ? "Connexion réussie." : "Compte créé.");
+
+      await new Promise((r) => setTimeout(r, 600));
+      window.location.href = target;
     } catch {
       setStatus("error");
-      setMessage("Une erreur est survenue. Veuillez réessayer.");
+      setMessage("Impossible de contacter le serveur.");
     }
   };
 
   const loading = status === "loading";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 via-primary-700 to-primary-900 p-4">
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+      <Image src="/images/hero-bg.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+      <div className="absolute inset-0 bg-primary-950/70 backdrop-blur-xl" />
+
+      <button
+        onClick={handleClose}
+        className="fixed top-4 left-4 z-20 p-2.5 rounded-full bg-white/90 dark:bg-primary-900/90 backdrop-blur border border-white/20 text-primary-900 dark:text-white hover:bg-white dark:hover:bg-primary-800 transition-colors shadow-lg"
+        aria-label="Fermer"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
       <div className="relative w-full max-w-4xl h-[660px] rounded-3xl overflow-hidden shadow-2xl bg-white">
         <div
           className={`hidden lg:flex absolute inset-y-0 w-1/2 z-10 flex-col justify-between p-10 bg-gradient-to-br from-primary-500 via-primary-700 to-primary-900 transition-all duration-[900ms] ease-in-out ${
@@ -93,10 +144,9 @@ export default function ConnexionPage() {
           }`}
         >
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="MemoRise" width={40} height={40} />
+            <Image src="/logo.svg" alt="MemoRise" width={40} height={40} unoptimized />
             <span className="text-xl font-bold text-white font-heading">MemoRise</span>
           </Link>
-
           <div>
             <h2 className="text-3xl font-bold text-white font-heading mb-3 leading-tight">
               {isLogin ? "Bon retour parmi nous !" : "Bienvenue sur MemoRise !"}
@@ -115,7 +165,7 @@ export default function ConnexionPage() {
           }`}
         >
           <Link href="/" className="flex lg:hidden items-center gap-2 mb-6">
-            <Image src="/logo.svg" alt="MemoRise" width={32} height={32} />
+            <Image src="/logo.svg" alt="MemoRise" width={32} height={32} unoptimized />
             <span className="text-lg font-bold text-primary-900 font-heading">MemoRise</span>
           </Link>
 
@@ -183,11 +233,7 @@ export default function ConnexionPage() {
             )}
 
             {message && (
-              <p
-                className={`text-xs text-center ${
-                  status === "error" ? "text-error-500" : "text-success-600"
-                }`}
-              >
+              <p className={`text-xs text-center ${status === "error" ? "text-error-500" : "text-success-600"}`}>
                 {message}
               </p>
             )}
@@ -198,11 +244,7 @@ export default function ConnexionPage() {
               className="w-full flex items-center justify-center gap-2 bg-cta-500 hover:bg-cta-400 disabled:opacity-60 disabled:cursor-not-allowed text-primary-900 font-semibold rounded-full py-3 transition-colors"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {loading
-                ? "Chargement…"
-                : isLogin
-                ? "Se connecter"
-                : "Créer mon compte"}
+              {loading ? "Chargement…" : isLogin ? "Se connecter" : "Créer mon compte"}
             </button>
           </form>
 
@@ -215,7 +257,7 @@ export default function ConnexionPage() {
           <button
             type="button"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-neutral-200 text-neutral-700 font-medium rounded-full py-3 hover:bg-neutral-50 disabled:opacity-60 transition-colors"
+            className="w-full flex items-center justify-center gap-3 bg-white border border-neutral-300 text-neutral-700 font-medium rounded-full py-3 hover:bg-neutral-50 disabled:opacity-60 transition-colors shadow-sm"
           >
             <GoogleIcon />
             Google
@@ -233,5 +275,13 @@ export default function ConnexionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConnexionPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-neutral-500">Chargement…</div>}>
+      <ConnexionContent />
+    </Suspense>
   );
 }

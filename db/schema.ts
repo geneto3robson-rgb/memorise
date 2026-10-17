@@ -15,18 +15,14 @@ export const filieres = pgTable("filieres", {
   poleId: integer("pole_id").notNull().references(() => poles.id),
 });
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  image: text("image"),
+export const profiles = pgTable("profiles", {
+  userId: text("user_id").primaryKey(),
   role: text("role").notNull().default("etudiant"),
   filiereId: integer("filiere_id").references(() => filieres.id),
   parcours: text("parcours"),
   facebook: text("facebook"),
   linkedin: text("linkedin"),
   whatsapp: text("whatsapp"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const memoires = pgTable("memoires", {
@@ -38,9 +34,14 @@ export const memoires = pgTable("memoires", {
   annee: integer("annee").notNull(),
   niveau: text("niveau").notNull(),
   encadreur: text("encadreur").notNull(),
+  domaine: text("domaine"),
   pages: integer("pages"),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull(),
   filiereId: integer("filiere_id").notNull().references(() => filieres.id),
+  parcours: text("parcours"),
+  facebook: text("facebook"),
+  linkedin: text("linkedin"),
+  whatsapp: text("whatsapp"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -57,7 +58,7 @@ export const memoireKeywords = pgTable("memoire_keywords", {
 }));
 
 export const favoris = pgTable("favoris", {
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
   memoireId: integer("memoire_id").notNull().references(() => memoires.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => ({

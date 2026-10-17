@@ -5,16 +5,40 @@ import Image from "next/image";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, Search, Plus, Bookmark, FileText, Settings,
-  Bell, ChevronDown, User,
+  LayoutDashboard,
+  Search,
+  Plus,
+  Bookmark,
+  FileText,
+  Settings,
+  Bell,
+  ChevronDown,
+  User,
+  LogOut,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 const navLinks = [
-  { href: "/tableau-de-bord", label: "Tableau de bord", short: "Accueil", icon: LayoutDashboard },
+  {
+    href: "/tableau-de-bord",
+    label: "Tableau de bord",
+    short: "Accueil",
+    icon: LayoutDashboard,
+  },
   { href: "/explorer", label: "Explorer", short: "Explorer", icon: Search },
   { href: "/publier", label: "Publier", short: "Publier", icon: Plus },
-  { href: "/favoris", label: "Enregistrements", short: "Favoris", icon: Bookmark },
-  { href: "/publications", label: "Publications", short: "Publi.", icon: FileText },
+  {
+    href: "/favoris",
+    label: "Enregistrements",
+    short: "Favoris",
+    icon: Bookmark,
+  },
+  {
+    href: "/publication",
+    label: "Publications",
+    short: "Publi.",
+    icon: FileText,
+  },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -28,8 +52,16 @@ export function Sidebar() {
     <>
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-60 flex-col bg-primary-500 dark:bg-primary-950 border-r border-white/10 p-4 z-40">
         <Link href="/" className="flex items-center gap-2 px-2 py-3 mb-6">
-          <Image src="/logo.svg" alt="MemoRise" width={32} height={32} unoptimized />
-          <span className="text-lg font-bold text-white font-heading">MemoRise</span>
+          <Image
+            src="/logo.svg"
+            alt="MemoRise"
+            width={32}
+            height={32}
+            unoptimized
+          />
+          <span className="text-lg font-bold text-white font-heading">
+            MemoRise
+          </span>
         </Link>
 
         <nav className="flex-1 space-y-1">
@@ -89,7 +121,9 @@ export function Sidebar() {
 }
 
 export function AppHeader() {
-  const [open, setOpen] = useState(false);
+  const [isUserOpen, setIsUserOpen] = useState(false);
+  const { data: session } = authClient.useSession();
+  const userName = session?.user?.name ?? "Mon compte";
 
   return (
     <header className="sticky top-0 z-30 bg-neutral-50/80 dark:bg-primary-950/80 backdrop-blur border-b border-neutral-200 dark:border-neutral-800">
@@ -102,37 +136,54 @@ export function AppHeader() {
           <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-cta-500" />
         </button>
 
-        <div className="relative">
-          <button
-            onClick={() => setOpen(!open)}
-            className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-neutral-200 dark:hover:bg-primary-900 transition-colors"
-          >
+        <div
+          className="relative"
+          onMouseEnter={() => setIsUserOpen(true)}
+          onMouseLeave={() => setIsUserOpen(false)}
+        >
+          <button className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-neutral-200 dark:hover:bg-primary-900 transition-colors">
             <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0">
-              <Image src="/images/authors/authors1.jpg" alt="Profil" fill sizes="32px" className="object-cover" />
+              <Image
+                src="/images/authors/authors1.jpg"
+                alt="Profil"
+                fill
+                sizes="32px"
+                className="object-cover"
+              />
             </div>
             <span className="hidden sm:block text-sm font-medium text-primary-900 dark:text-white">
-              Herry Flavina
+              {userName}
             </span>
-            <ChevronDown className={`w-3.5 h-3.5 text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-neutral-500 transition-transform duration-200 ${
+                isUserOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
 
-          {open && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-xl overflow-hidden z-50">
+          {isUserOpen && (
+            <div className="absolute top-full right-0 pt-3 min-w-[220px]">
+              <div className="bg-white dark:bg-primary-900/70 dark:backdrop-blur-lg border border-neutral-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden">
                 <Link
                   href="/parametres"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-sm text-primary-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-primary-800"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-primary-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/10 dark:hover:text-cta-400 transition-colors border-b border-neutral-100 dark:border-white/5"
                 >
                   <User className="w-4 h-4" />
                   Mon profil
                 </Link>
-                <button className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20 border-t border-neutral-100 dark:border-neutral-800">
+                <button
+                  onClick={() => {
+                    authClient.signOut().then(() => {
+                      window.location.href = "/";
+                    });
+                  }}
+                  className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-error-500 hover:bg-error-50 dark:hover:bg-white/10 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
                   Se déconnecter
                 </button>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
