@@ -1,87 +1,67 @@
-﻿import Image from "next/image";
+﻿"use client";
+
 import Link from "next/link";
-import { Container } from "@/components/layout/Container";
+import Image from "next/image";
+import { authClient } from "@/lib/auth-client";
 
 export function Footer() {
+  const { data: session } = authClient.useSession();
+  const isConnected = !!session;
+
   return (
-    <footer className="bg-primary-900 dark:bg-primary-950 text-white">
-      <Container className="pt-16 pb-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-3">
-              <Image
-                src="/logo.svg"
-                alt="Logo MemoRise"
-                width={36}
-                height={36}
-              />
-              <span className="text-xl font-bold font-heading">MemoRise</span>
+    <footer className="bg-primary-950 text-white pt-16 pb-8">
+      <div className="max-w-6xl mx-auto px-4 md:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+          <div>
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <Image src="/logo.svg" alt="Logo MemoRise" width={32} height={32} unoptimized />
+              <span className="text-lg font-bold font-heading">MemoRise</span>
             </Link>
-            <p className="text-sm text-white/70">
-              Decouvrez les mémoires de l'ESPA.
+            <p className="text-sm text-neutral-400">
+              Découvrez les mémoires de l&apos;ESPA.
             </p>
           </div>
 
-          <FooterColumn
-            title="Explorer"
-            links={[
-              { label: "Tous les travaux", href: "/explorer" },
-              { label: "Par filière", href: "/filieres" },
-              { label: "Par année", href: "/annees" },
-            ]}
-          />
+          <div>
+            <h3 className="font-semibold mb-4">Explorer</h3>
+            <ul className="space-y-2 text-sm text-neutral-400">
+              <li><Link href="/explorer" className="hover:text-cta-400 transition-colors">Tous les travaux</Link></li>
+              <li><Link href="/explorer?filiere=TCO" className="hover:text-cta-400 transition-colors">Par filière</Link></li>
+              <li><Link href="/explorer?annee=2026" className="hover:text-cta-400 transition-colors">Par année</Link></li>
+            </ul>
+          </div>
 
-          <FooterColumn
-            title="Plateforme"
-            links={[
-              { label: "Publier mon mémoire", href: "/publier" },
-              { label: "Se connecter", href: "/connexion" },
-              { label: "S'inscrire", href: "/inscription" },
-              { label: "A propos", href: "/a-propos" },
-            ]}
-          />
+          <div>
+            <h3 className="font-semibold mb-4">Plateforme</h3>
+            <ul className="space-y-2 text-sm text-neutral-400">
+              {isConnected ? (
+                <li><Link href="/tableau-de-bord" className="hover:text-cta-400 transition-colors">Mon espace</Link></li>
+              ) : (
+                <>
+                  <li><Link href="/connexion" className="hover:text-cta-400 transition-colors">Se connecter</Link></li>
+                  <li><Link href="/connexion?mode=signup" className="hover:text-cta-400 transition-colors">S&apos;inscrire</Link></li>
+                </>
+              )}
+              <li><Link href="/publier" className="hover:text-cta-400 transition-colors">Publier un mémoire</Link></li>
+            </ul>
+          </div>
 
-          <FooterColumn
-            title="Informations"
-            links={[
-              { label: "FAQ", href: "/faq" },
-              { label: "Mentions légales", href: "/mentions-legales" },
-              { label: "Confidentialité", href: "/confidentialite" },
-              { label: "Contact", href: "/contact" },
-            ]}
-          />
+          <div>
+            <h3 className="font-semibold mb-4">Informations</h3>
+            <ul className="space-y-2 text-sm text-neutral-400">
+              <li><Link href="/a-propos" className="hover:text-cta-400 transition-colors">À propos</Link></li>
+              <li><Link href="/#faq" className="hover:text-cta-400 transition-colors">FAQ</Link></li>
+              <li><Link href="/confidentialite" className="hover:text-cta-400 transition-colors">Confidentialité</Link></li>
+              <li><Link href="/contact" className="hover:text-cta-400 transition-colors">Contact</Link></li>
+            </ul>
+          </div>
         </div>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between gap-4 text-sm text-white/60">
-          <p>2026 MemoRise. Tous droits réservés.</p>
-          <p>Ecole Supérieure Polytechnique d'Antananarivo (ESPA)</p>
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+          <p>© {new Date().getFullYear()} MemoRise. Tous droits réservés.</p>
+          <p>École Supérieure Polytechnique d&apos;Antananarivo (ESPA)</p>
         </div>
-      </Container>
+      </div>
     </footer>
-  );
-}
-
-interface FooterColumnProps {
-  title: string;
-  links: { label: string; href: string }[];
-}
-
-function FooterColumn({ title, links }: FooterColumnProps) {
-  return (
-    <div>
-      <h3 className="font-semibold text-white mb-4">{title}</h3>
-      <ul className="space-y-2">
-        {links.map((link) => (
-          <li key={link.href}>
-            <Link
-              href={link.href}
-              className="text-sm text-white/70 hover:text-cta-500 transition-colors"
-            >
-              {link.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }

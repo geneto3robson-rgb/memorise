@@ -10,7 +10,7 @@ import { domainesParFiliere } from "@/lib/data/domaines";
 import { trpc } from "@/trpc/client";
 import { authClient } from "@/lib/auth-client";
 
-// --- LES ICÔNES SVG ---
+// --- LES VRAIS LOGOS SVG ---
 function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -32,20 +32,28 @@ function WhatsappIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-// ----------------------
+// ---------------------------
+
+function formatWhatsAppInput(value: string) {
+  let cleaned = value.replace(/\D/g, "");
+  if (cleaned.startsWith("261")) cleaned = cleaned.substring(3);
+  if (cleaned.startsWith("0")) cleaned = cleaned.substring(1);
+  return cleaned;
+}
 
 const MAX_WORDS = 500;
 const MAX_IMAGE_SIZE = 500 * 1024;
 const MAX_PUBLICATIONS = 3;
 
 const inputClass =
-  "w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 disabled:opacity-60";
+  "w-full pl-4 pr-10 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 disabled:opacity-60 shadow-sm appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_10px_center] bg-[length:1em_1em]";
 
-const labelClass =
-  "block text-sm font-medium text-primary-900 dark:text-white mb-2";
+const textInputClass = inputClass.replace("appearance-none", "").replace(/bg-\[url.*?\]/g, "");
 
 const iconInputClass =
-  "w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 disabled:opacity-60";
+  "w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 disabled:opacity-60 shadow-sm";
+
+const labelClass = "block text-sm font-medium text-primary-900 dark:text-white mb-2";
 
 export default function PublierPage() {
   const router = useRouter();
@@ -55,18 +63,9 @@ export default function PublierPage() {
 
   const { data: session, isPending } = authClient.useSession();
 
-  const { data: mesPublications = [] } = trpc.memoire.mine.useQuery(undefined, {
-    enabled: !!session,
-  });
-
-  const { data: myProfile } = trpc.memoire.myProfile.useQuery(undefined, {
-    enabled: !!session,
-  });
-
-  const { data: existing } = trpc.memoire.bySlug.useQuery(
-    { slug: editSlug ?? "" },
-    { enabled: isEditMode }
-  );
+  const { data: mesPublications = [] } = trpc.memoire.mine.useQuery(undefined, { enabled: !!session });
+  const { data: myProfile } = trpc.memoire.myProfile.useQuery(undefined, { enabled: !!session });
+  const { data: existing } = trpc.memoire.bySlug.useQuery({ slug: editSlug ?? "" }, { enabled: isEditMode });
 
   const limiteAtteinte = !isEditMode && mesPublications.length >= MAX_PUBLICATIONS;
 
@@ -106,7 +105,7 @@ export default function PublierPage() {
       setPhoto(existing.image ?? null);
       setFacebook(existing.facebook ?? "");
       setLinkedin(existing.linkedin ?? "");
-      setWhatsapp(existing.whatsapp ?? "");
+      if (existing.whatsapp) setWhatsapp(formatWhatsAppInput(existing.whatsapp));
     }
   }, [existing]);
 
@@ -115,17 +114,13 @@ export default function PublierPage() {
       setParcours(myProfile.parcours ?? "");
       setFacebook(myProfile.facebook ?? "");
       setLinkedin(myProfile.linkedin ?? "");
-      setWhatsapp(myProfile.whatsapp ?? "");
+      if (myProfile.whatsapp) setWhatsapp(formatWhatsAppInput(myProfile.whatsapp));
     }
   }, [myProfile, isEditMode]);
 
   const createMutation = trpc.memoire.create.useMutation({
     onSuccess: () => {
-      sessionStorage.setItem("flashMessage", JSON.stringify({
-        text: "Votre publication a bien été publiée avec succès.",
-        link: "/publication",
-        linkText: "Voir la publication",
-      }));
+      sessionStorage.setItem("flashMessage", JSON.stringify({ text: "Votre publication a bien été publiée avec succès.", link: "/publication", linkText: "Voir la publication" }));
       router.push("/tableau-de-bord");
     },
     onError: (err) => setFeedback(err.message || "Erreur lors de la publication."),
@@ -133,11 +128,7 @@ export default function PublierPage() {
 
   const updateMutation = trpc.memoire.update.useMutation({
     onSuccess: () => {
-      sessionStorage.setItem("flashMessage", JSON.stringify({
-        text: "Votre publication a bien été modifiée avec succès.",
-        link: "/publication",
-        linkText: "Voir la publication",
-      }));
+      sessionStorage.setItem("flashMessage", JSON.stringify({ text: "Votre publication a bien été modifiée avec succès.", link: "/publication", linkText: "Voir la publication" }));
       router.push("/tableau-de-bord");
     },
     onError: (err) => setFeedback(err.message || "Erreur lors de la modification."),
@@ -156,10 +147,7 @@ export default function PublierPage() {
 
   const addKeyword = () => {
     const k = keywordInput.trim();
-    if (k && !keywords.includes(k)) {
-      setKeywords([...keywords, k]);
-      setKeywordInput("");
-    }
+    if (k && !keywords.includes(k)) { setKeywords([...keywords, k]); setKeywordInput(""); }
   };
 
   const removeKeyword = (k: string) => setKeywords(keywords.filter((x) => x !== k));
@@ -181,27 +169,18 @@ export default function PublierPage() {
     if (!title || !summary || !filiereCode || !encadreur) return setFeedback("Veuillez remplir tous les champs obligatoires.");
     if (wordCount > MAX_WORDS) return setFeedback(`La description dépasse ${MAX_WORDS} mots.`);
 
+    const finalWhatsapp = whatsapp ? `+261${formatWhatsAppInput(whatsapp)}` : undefined;
+
     const payload = {
-      title,
-      summary,
-      filiereCode,
-      domaine,
-      parcours,
-      niveau,
-      annee: year,
-      encadreur,
-      keywords,
+      title, summary, filiereCode, domaine, parcours, niveau, annee: year, encadreur, keywords,
       image: photo ?? undefined,
       facebook: facebook || undefined,
       linkedin: linkedin || undefined,
-      whatsapp: whatsapp || undefined,
+      whatsapp: finalWhatsapp,
     };
 
-    if (isEditMode && editSlug) {
-      updateMutation.mutate({ ...payload, slug: editSlug });
-    } else {
-      createMutation.mutate(payload);
-    }
+    if (isEditMode && editSlug) updateMutation.mutate({ ...payload, slug: editSlug });
+    else createMutation.mutate(payload);
   };
 
   if (isPending) return <Container className="py-20 text-center text-neutral-500">Chargement…</Container>;
@@ -211,9 +190,7 @@ export default function PublierPage() {
       <Container className="py-20 text-center">
         <h1 className="text-2xl font-bold text-primary-900 dark:text-white font-heading mb-3">Connexion requise</h1>
         <p className="text-neutral-600 dark:text-neutral-400 mb-6">Vous devez être connecté pour publier un mémoire.</p>
-        <Link href="/connexion" className="inline-block px-5 py-2 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold">
-          Se connecter
-        </Link>
+        <Link href="/connexion" className="inline-block px-5 py-2 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold">Se connecter</Link>
       </Container>
     );
   }
@@ -227,13 +204,9 @@ export default function PublierPage() {
               <div className="relative w-16 h-16 mb-5">
                 <div className="absolute inset-0 rounded-full border-4 border-cta-500/20" />
                 <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cta-500 animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-full bg-cta-500/10" />
-                </div>
+                <div className="absolute inset-0 flex items-center justify-center"><div className="w-6 h-6 rounded-full bg-cta-500/10" /></div>
               </div>
-              <h3 className="text-lg font-bold text-primary-900 dark:text-white font-heading mb-1">
-                {isEditMode ? "Modification en cours" : "Publication en cours"}
-              </h3>
+              <h3 className="text-lg font-bold text-primary-900 dark:text-white font-heading mb-1">{isEditMode ? "Modification en cours" : "Publication en cours"}</h3>
               <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6 text-center">Veuillez patienter quelques instants…</p>
               <div className="w-full h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-primary-950">
                 <div style={{ width: `${progress}%` }} className="h-full rounded-full bg-cta-500 transition-all duration-[3000ms] ease-out" />
@@ -245,177 +218,161 @@ export default function PublierPage() {
 
       <Container className="py-10 md:py-14">
         <div className="w-16 h-1 bg-cta-500 mb-4 rounded-full" />
-        <h1 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-3">
+        <h1 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-8">
           {isEditMode ? "Modifier le mémoire" : "Publier un mémoire"}
         </h1>
-        <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mb-6">
-          {isEditMode ? "Modifiez les informations de votre mémoire." : "Renseignez les informations descriptives. Le PDF complet n'est pas stocké."}
-        </p>
 
-        <div className="flex items-start gap-3 rounded-2xl border border-cta-500/30 bg-cta-50 dark:bg-primary-900 p-4 mb-8 max-w-3xl">
-          <Info className="w-5 h-5 text-cta-600 shrink-0 mt-0.5" />
-          <p className="text-sm text-primary-900 dark:text-white">La conservation des documents reste assurée par la BAU.</p>
+        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 p-6 md:p-10 shadow-sm max-w-4xl">
+          <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+            {isEditMode ? "Modifiez les informations de votre mémoire." : "Renseignez les informations descriptives. Le PDF complet n'est pas stocké."}
+          </p>
+
+          <div className="flex items-start gap-3 rounded-2xl border border-cta-500/30 bg-cta-50 dark:bg-primary-950 p-4 mb-8">
+            <Info className="w-5 h-5 text-cta-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-primary-900 dark:text-white">La conservation des documents reste assurée par la BAU.</p>
+          </div>
+
+          {limiteAtteinte && (
+            <div className="mb-6 rounded-2xl border border-error-500/40 bg-error-50 dark:bg-primary-950 p-4">
+              <p className="text-sm font-medium text-error-600 dark:text-error-400">
+                Vous avez atteint la limite de {MAX_PUBLICATIONS} publications. Supprimez une publication existante pour en créer une nouvelle.
+              </p>
+              <Link href="/publication" className="inline-block mt-2 text-sm font-semibold text-error-700 dark:text-error-300 hover:underline">Voir mes publications</Link>
+            </div>
+          )}
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <label className={labelClass}>Photo de couverture</label>
+              <label className="group relative flex flex-col items-center justify-center gap-2 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl p-6 cursor-pointer hover:border-cta-500 transition-colors overflow-hidden bg-neutral-50 dark:bg-primary-800/30">
+                {photo ? (
+                  <>
+                    <img src={photo} alt="Aperçu" className="w-full max-h-48 object-cover rounded-lg" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
+                      <ImageIcon className="w-7 h-7 text-white" />
+                      <span className="text-sm font-medium text-white">Modifier la photo de couverture</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-6 h-6 text-neutral-400" />
+                    <span className="text-sm text-neutral-500">Cliquez pour choisir une image (max 500 Ko)</span>
+                  </>
+                )}
+                <input type="file" accept="image/*" onChange={onPhotoChange} disabled={isSubmitting || limiteAtteinte} className="hidden" />
+              </label>
+            </div>
+
+            <div>
+              <label className={labelClass}>Titre du mémoire *</label>
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSubmitting || limiteAtteinte} className={textInputClass} />
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div>
+                <label className={labelClass}>Filière *</label>
+                <select value={filiereCode} onChange={(e) => { setFiliereCode(e.target.value); setDomaine(""); }} disabled={isSubmitting || limiteAtteinte} className={inputClass}>
+                  <option value="">Sélectionner…</option>
+                  {filieres.map((f) => <option key={f.id} value={f.code}>{f.code} — {f.name}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Domaine</label>
+                <select value={domaine} onChange={(e) => setDomaine(e.target.value)} disabled={isSubmitting || limiteAtteinte || !filiereCode || domainesDisponibles.length === 0} className={inputClass}>
+                  <option value="">{!filiereCode ? "Choisir une filière d'abord" : domainesDisponibles.length === 0 ? "Aucun domaine disponible" : "Sélectionner…"}</option>
+                  {domainesDisponibles.map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Parcours *</label>
+                <input 
+                  type="text" value={parcours} onChange={(e) => setParcours(e.target.value)} 
+                  onFocus={() => { if (!parcours && myProfile?.parcours) setParcours(myProfile.parcours); }}
+                  disabled={isSubmitting || limiteAtteinte} 
+                  placeholder={myProfile?.parcours ? "Cliquez pour utiliser le profil" : "Ex: STI, RS, RC…"} 
+                  className={textInputClass} 
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Niveau *</label>
+                <select value={niveau} onChange={(e) => setNiveau(e.target.value)} disabled={isSubmitting || limiteAtteinte} className={inputClass}>
+                  <option value="L3">L3</option>
+                  <option value="M2">M2</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Année de soutenance *</label>
+                <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} disabled={isSubmitting || limiteAtteinte} className={textInputClass} />
+              </div>
+
+              <div>
+                <label className={labelClass}>Encadreur *</label>
+                <input type="text" value={encadreur} onChange={(e) => setEncadreur(e.target.value)} disabled={isSubmitting || limiteAtteinte} className={textInputClass} />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Description * (max {MAX_WORDS} mots)</label>
+              <textarea value={summary} onChange={(e) => setSummary(e.target.value)} disabled={isSubmitting || limiteAtteinte} rows={5} className={textInputClass} />
+              <p className="text-xs text-neutral-500 mt-1">{wordCount} / {MAX_WORDS} mots</p>
+            </div>
+
+            <div>
+              <label className={labelClass}>Mots-clés</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {keywords.map((k) => (
+                  <span key={k} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-900 text-white text-xs">
+                    {k}
+                    <button type="button" onClick={() => removeKeyword(k)} className="opacity-70 hover:opacity-100"><X className="w-3 h-3" /></button>
+                  </span>
+                ))}
+              </div>
+              <input type="text" value={keywordInput} onChange={(e) => setKeywordInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addKeyword(); } }} disabled={isSubmitting || limiteAtteinte} placeholder="Tapez un mot-clé puis Entrée" className={textInputClass} />
+            </div>
+
+            <div className="border-t border-neutral-200 dark:border-neutral-700 pt-6">
+              <h3 className="text-lg font-semibold text-primary-900 dark:text-white mb-4">Contacts de l'auteur (facultatif et optionnel)</h3>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div className="relative">
+                  <FacebookIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#1877F2]" />
+                  <input type="text" value={facebook} onChange={(e) => setFacebook(e.target.value)} onFocus={() => { if (!facebook && myProfile?.facebook) setFacebook(myProfile.facebook); }} disabled={isSubmitting || limiteAtteinte} placeholder={myProfile?.facebook ? "Utiliser le profil" : "Lien Facebook"} className={iconInputClass} />
+                </div>
+                <div className="relative">
+                  <LinkedinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0A66C2]" />
+                  <input type="text" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} onFocus={() => { if (!linkedin && myProfile?.linkedin) setLinkedin(myProfile.linkedin); }} disabled={isSubmitting || limiteAtteinte} placeholder={myProfile?.linkedin ? "Utiliser le profil" : "Lien LinkedIn"} className={iconInputClass} />
+                </div>
+                <div className="relative">
+                  <WhatsappIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#25D366]" />
+                  <span className="absolute left-10 top-1/2 -translate-y-1/2 text-sm text-neutral-500 font-medium">+261</span>
+                  <input 
+                    type="text" 
+                    value={whatsapp} 
+                    onChange={(e) => setWhatsapp(formatWhatsAppInput(e.target.value))} 
+                    onFocus={() => { if (!whatsapp && myProfile?.whatsapp) setWhatsapp(formatWhatsAppInput(myProfile.whatsapp)); }} 
+                    disabled={isSubmitting || limiteAtteinte} 
+                    placeholder={myProfile?.whatsapp ? "Utiliser le profil" : "34 78 805 02"} 
+                    className="w-full pl-[5.5rem] pr-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 disabled:opacity-60 shadow-sm" 
+                  />
+                </div>
+              </div>
+            </div>
+
+            {feedback && <p className="text-sm text-error-500 text-center font-medium bg-error-50 dark:bg-error-900/20 py-2 rounded-lg">{feedback}</p>}
+
+            <div className="flex flex-wrap justify-end gap-3 pt-4">
+              <button type="button" onClick={() => router.push(isEditMode ? "/publication" : "/tableau-de-bord")} disabled={isSubmitting} className="inline-flex items-center gap-2 border-2 border-neutral-300 dark:border-neutral-600 text-primary-900 dark:text-white font-semibold rounded-full px-6 py-3 hover:border-cta-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
+                <X className="w-4 h-4" /> Annuler
+              </button>
+              <button type="submit" disabled={isSubmitting || limiteAtteinte} className="bg-cta-500 hover:bg-cta-400 disabled:bg-neutral-300 dark:disabled:bg-primary-800 disabled:text-neutral-500 dark:disabled:text-neutral-500 disabled:cursor-not-allowed text-primary-900 font-semibold rounded-full px-8 py-3 transition-colors">
+                {isSubmitting ? (isEditMode ? "Modification…" : "Publication…") : limiteAtteinte ? "Limite atteinte (3 max)" : isEditMode ? "Enregistrer les modifications" : "Publier le mémoire"}
+              </button>
+            </div>
+          </form>
         </div>
-
-        {limiteAtteinte && (
-          <div className="max-w-3xl mb-6 rounded-2xl border border-error-500/40 bg-error-50 dark:bg-primary-900 p-4">
-            <p className="text-sm font-medium text-error-600 dark:text-error-400">
-              Vous avez atteint la limite de {MAX_PUBLICATIONS} publications. Supprimez une publication existante pour en créer une nouvelle.
-            </p>
-            <Link href="/publication" className="inline-block mt-2 text-sm font-semibold text-error-700 dark:text-error-300 hover:underline">
-              Voir mes publications
-            </Link>
-          </div>
-        )}
-
-        <form className="max-w-3xl space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label className={labelClass}>Photo de couverture</label>
-            <label className="group relative flex flex-col items-center justify-center gap-2 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl p-6 cursor-pointer hover:border-cta-500 transition-colors overflow-hidden">
-              {photo ? (
-                <>
-                  <img src={photo} alt="Aperçu" className="w-full max-h-48 object-cover rounded-lg" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
-                    <ImageIcon className="w-7 h-7 text-white" />
-                    <span className="text-sm font-medium text-white">Modifier la photo de couverture</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Upload className="w-6 h-6 text-neutral-400" />
-                  <span className="text-sm text-neutral-500">Cliquez pour choisir une image (max 500 Ko)</span>
-                </>
-              )}
-              <input type="file" accept="image/*" onChange={onPhotoChange} disabled={isSubmitting || limiteAtteinte} className="hidden" />
-            </label>
-          </div>
-
-          <div>
-            <label className={labelClass}>Titre du mémoire *</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSubmitting || limiteAtteinte} className={inputClass} />
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-6">
-            <div>
-              <label className={labelClass}>Filière *</label>
-              <select value={filiereCode} onChange={(e) => { setFiliereCode(e.target.value); setDomaine(""); }} disabled={isSubmitting || limiteAtteinte} className={inputClass}>
-                <option value="">Sélectionner…</option>
-                {filieres.map((f) => <option key={f.id} value={f.code}>{f.code} — {f.name}</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label className={labelClass}>Domaine</label>
-              <select value={domaine} onChange={(e) => setDomaine(e.target.value)} disabled={isSubmitting || limiteAtteinte || !filiereCode || domainesDisponibles.length === 0} className={inputClass}>
-                <option value="">{!filiereCode ? "Choisir une filière d'abord" : domainesDisponibles.length === 0 ? "Aucun domaine disponible" : "Sélectionner…"}</option>
-                {domainesDisponibles.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label className={labelClass}>Parcours *</label>
-              <input 
-                type="text" 
-                value={parcours} 
-                onChange={(e) => setParcours(e.target.value)} 
-                onFocus={() => { if (!parcours && myProfile?.parcours) setParcours(myProfile.parcours); }}
-                disabled={isSubmitting || limiteAtteinte} 
-                placeholder={myProfile?.parcours ? "Cliquez pour utiliser le profil" : "Ex: STI, RS, RC…"} 
-                className={inputClass} 
-              />
-            </div>
-
-            <div>
-              <label className={labelClass}>Niveau *</label>
-              <select value={niveau} onChange={(e) => setNiveau(e.target.value)} disabled={isSubmitting || limiteAtteinte} className={inputClass}>
-                <option value="L3">L3</option>
-                <option value="M2">M2</option>
-              </select>
-            </div>
-
-            <div>
-              <label className={labelClass}>Année de soutenance *</label>
-              <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} disabled={isSubmitting || limiteAtteinte} className={inputClass} />
-            </div>
-
-            <div>
-              <label className={labelClass}>Encadreur *</label>
-              <input type="text" value={encadreur} onChange={(e) => setEncadreur(e.target.value)} disabled={isSubmitting || limiteAtteinte} className={inputClass} />
-            </div>
-          </div>
-
-          <div>
-            <label className={labelClass}>Description * (max {MAX_WORDS} mots)</label>
-            <textarea value={summary} onChange={(e) => setSummary(e.target.value)} disabled={isSubmitting || limiteAtteinte} rows={5} className={inputClass} />
-            <p className="text-xs text-neutral-500 mt-1">{wordCount} / {MAX_WORDS} mots</p>
-          </div>
-
-          <div>
-            <label className={labelClass}>Mots-clés</label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {keywords.map((k) => (
-                <span key={k} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-900 text-white text-xs">
-                  {k}
-                  <button type="button" onClick={() => removeKeyword(k)} className="opacity-70 hover:opacity-100"><X className="w-3 h-3" /></button>
-                </span>
-              ))}
-            </div>
-            <input type="text" value={keywordInput} onChange={(e) => setKeywordInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addKeyword(); } }} disabled={isSubmitting || limiteAtteinte} placeholder="Tapez un mot-clé puis Entrée" className={inputClass} />
-          </div>
-
-          <div className="border-t border-neutral-200 dark:border-neutral-700 pt-6">
-            <h3 className="text-lg font-semibold text-primary-900 dark:text-white mb-4">Contacts de l'auteur (optionnel)</h3>
-            <div className="grid sm:grid-cols-3 gap-4">
-              <div className="relative">
-                <FacebookIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#1877F2]" />
-                <input 
-                  type="text" 
-                  value={facebook} 
-                  onChange={(e) => setFacebook(e.target.value)} 
-                  onFocus={() => { if (!facebook && myProfile?.facebook) setFacebook(myProfile.facebook); }}
-                  disabled={isSubmitting || limiteAtteinte} 
-                  placeholder={myProfile?.facebook ? "Cliquez pour utiliser le profil" : "Lien Facebook"} 
-                  className={iconInputClass} 
-                />
-              </div>
-              <div className="relative">
-                <LinkedinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0A66C2]" />
-                <input 
-                  type="text" 
-                  value={linkedin} 
-                  onChange={(e) => setLinkedin(e.target.value)} 
-                  onFocus={() => { if (!linkedin && myProfile?.linkedin) setLinkedin(myProfile.linkedin); }}
-                  disabled={isSubmitting || limiteAtteinte} 
-                  placeholder={myProfile?.linkedin ? "Cliquez pour utiliser le profil" : "Lien LinkedIn"} 
-                  className={iconInputClass} 
-                />
-              </div>
-              <div className="relative">
-                <WhatsappIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#25D366]" />
-                <input 
-                  type="text" 
-                  value={whatsapp} 
-                  onChange={(e) => setWhatsapp(e.target.value)} 
-                  onFocus={() => { if (!whatsapp && myProfile?.whatsapp) setWhatsapp(myProfile.whatsapp); }}
-                  disabled={isSubmitting || limiteAtteinte} 
-                  placeholder={myProfile?.whatsapp ? "Cliquez pour utiliser le profil" : "Numéro WhatsApp"} 
-                  className={iconInputClass} 
-                />
-              </div>
-            </div>
-          </div>
-
-          {feedback && <p className="text-sm text-error-500 text-center">{feedback}</p>}
-
-          <div className="flex flex-wrap justify-end gap-3 pt-4">
-            <button type="button" onClick={() => router.push(isEditMode ? "/publication" : "/tableau-de-bord")} disabled={isSubmitting} className="inline-flex items-center gap-2 border-2 border-neutral-300 dark:border-neutral-600 text-primary-900 dark:text-white font-semibold rounded-full px-6 py-3 hover:border-cta-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
-              <X className="w-4 h-4" /> Annuler
-            </button>
-            <button type="submit" disabled={isSubmitting || limiteAtteinte} className="bg-cta-500 hover:bg-cta-400 disabled:bg-neutral-300 dark:disabled:bg-primary-800 disabled:text-neutral-500 dark:disabled:text-neutral-500 disabled:cursor-not-allowed text-primary-900 font-semibold rounded-full px-8 py-3 transition-colors">
-              {isSubmitting ? (isEditMode ? "Modification…" : "Publication…") : limiteAtteinte ? "Limite atteinte (3 max)" : isEditMode ? "Enregistrer les modifications" : "Publier le mémoire"}
-            </button>
-          </div>
-        </form>
       </Container>
     </>
   );

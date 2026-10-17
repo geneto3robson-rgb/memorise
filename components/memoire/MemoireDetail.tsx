@@ -12,7 +12,6 @@ import { trpc } from "@/trpc/client";
 import { authClient } from "@/lib/auth-client";
 import { AuthPromptModal } from "@/components/layout/AuthPromptModal";
 
-// --- LES ICÔNES SVG ---
 function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -34,22 +33,16 @@ function WhatsappIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-// ----------------------
 
 function formatWhatsAppNumber(phone: string) {
   let cleaned = phone.replace(/\D/g, "");
-  if (cleaned.startsWith("0")) {
-    cleaned = "261" + cleaned.substring(1);
-  }
+  if (cleaned.startsWith("0")) cleaned = "261" + cleaned.substring(1);
   return cleaned;
 }
 
-// Nouvelle fonction pour sécuriser les liens externes
 function formatExternalUrl(url: string) {
   if (!url) return "";
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    return url;
-  }
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `https://${url}`;
 }
 
@@ -60,7 +53,6 @@ interface MemoireDetailProps {
 
 export function MemoireDetail({ slug, compact = false }: MemoireDetailProps) {
   const searchParams = useSearchParams();
-
   const { data: session, isPending } = authClient.useSession();
   const utils = trpc.useUtils();
 
@@ -94,31 +86,25 @@ export function MemoireDetail({ slug, compact = false }: MemoireDetailProps) {
     },
   });
 
+  const notifyContact = trpc.memoire.notifyContact.useMutation();
+
   useEffect(() => {
     if (session && searchParams.get("contact") === "1") {
       setShowContact(true);
     }
   }, [session, searchParams]);
 
-  if (isLoading) {
-    return <p className="text-center text-neutral-500 py-12">Chargement…</p>;
-  }
-
-  if (!memoire) {
-    return (
-      <div className="text-center py-12">
-        <h2 className="text-xl font-bold text-primary-900 dark:text-white font-heading mb-3">
-          Mémoire introuvable
-        </h2>
-        <Link
-          href="/explorer"
-          className="inline-block px-5 py-2 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold"
-        >
-          Retour à Explorer
-        </Link>
-      </div>
-    );
-  }
+  if (isLoading) return <p className="text-center text-neutral-500 py-12">Chargement…</p>;
+  if (!memoire) return (
+    <div className="text-center py-12">
+      <h2 className="text-xl font-bold text-primary-900 dark:text-white font-heading mb-3">
+        Mémoire introuvable
+      </h2>
+      <Link href="/explorer" className="inline-block px-5 py-2 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold">
+        Retour à Explorer
+      </Link>
+    </div>
+  );
 
   const isSaved = ids.includes(memoire.id);
   const hasContacts = !!(memoire.facebook || memoire.linkedin || memoire.whatsapp);
@@ -138,6 +124,7 @@ export function MemoireDetail({ slug, compact = false }: MemoireDetailProps) {
       setShowAuth("contact");
       return;
     }
+    notifyContact.mutate({ memoireId: memoire.id });
     setShowContact(true);
   };
 
@@ -146,13 +133,7 @@ export function MemoireDetail({ slug, compact = false }: MemoireDetailProps) {
       <div className="grid lg:grid-cols-[1fr_300px] gap-8">
         <div>
           <div className={`relative ${compact ? "h-48 md:h-64" : "h-64 md:h-80"} rounded-2xl overflow-hidden mb-6`}>
-            <Image
-              src={memoire.image ?? "/images/projects/telecom.jpg"}
-              alt={memoire.title}
-              fill
-              sizes="(max-width: 1024px) 100vw, 700px"
-              className="object-cover"
-            />
+            <Image src={memoire.image ?? "/images/projects/telecom.jpg"} alt={memoire.title} fill sizes="(max-width: 1024px) 100vw, 700px" className="object-cover" />
             <span className="absolute top-4 left-4 bg-primary-900/90 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full">
               {memoire.filiereName} · {memoire.niveau}
             </span>
@@ -165,37 +146,24 @@ export function MemoireDetail({ slug, compact = false }: MemoireDetailProps) {
           {memoire.keywords.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">
               {memoire.keywords.map((k) => (
-                <span
-                  key={k}
-                  className="px-3 py-1 rounded-full bg-neutral-100 dark:bg-primary-800 text-xs text-primary-900 dark:text-white"
-                >
+                <span key={k} className="px-3 py-1 rounded-full bg-neutral-100 dark:bg-primary-800 text-xs text-primary-900 dark:text-white">
                   {k}
                 </span>
               ))}
             </div>
           )}
 
-          <h2 className="text-lg font-semibold text-primary-900 dark:text-white mb-3">
-            Résumé
-          </h2>
+          <h2 className="text-lg font-semibold text-primary-900 dark:text-white mb-3">Résumé</h2>
           <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-8 whitespace-pre-line">
             {memoire.summary}
           </p>
 
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 p-5">
-            <h2 className="text-sm font-semibold text-primary-900 dark:text-white mb-3">
-              Conservation
-            </h2>
+            <h2 className="text-sm font-semibold text-primary-900 dark:text-white mb-3">Conservation</h2>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
-              MemoRise référence uniquement les métadonnées. Le PDF complet est
-              conservé par la Bibliothèque et Archives Universitaires (BAU).
+              MemoRise référence uniquement les métadonnées. Le PDF complet est conservé par la Bibliothèque et Archives Universitaires (BAU).
             </p>
-            <a
-              href="https://biblio.univ-antananarivo.mg/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary-900 dark:text-white border border-neutral-200 dark:border-neutral-700 rounded-full px-4 py-2 hover:border-cta-500 transition-colors"
-            >
+            <a href="https://biblio.univ-antananarivo.mg/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-primary-900 dark:text-white border border-neutral-200 dark:border-neutral-700 rounded-full px-4 py-2 hover:border-cta-500 transition-colors">
               Consulter la BAU
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
@@ -206,26 +174,15 @@ export function MemoireDetail({ slug, compact = false }: MemoireDetailProps) {
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 p-5">
             <div className="flex items-center gap-3 mb-5">
               <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0">
-                <Image
-                  src={memoire.authorImage ?? "/images/authors/authors1.jpg"}
-                  alt={memoire.authorName ?? "Auteur"}
-                  fill
-                  sizes="48px"
-                  className="object-cover"
-                />
+                <Image src={memoire.authorImage ?? "/images/authors/authors1.jpg"} alt={memoire.authorName ?? "Auteur"} fill sizes="48px" className="object-cover" />
               </div>
               <div className="min-w-0">
                 <p className="text-xs text-neutral-500">Auteur</p>
-                <p className="text-sm font-medium text-primary-900 dark:text-white truncate">
-                  {memoire.authorName}
-                </p>
+                <p className="text-sm font-medium text-primary-900 dark:text-white truncate">{memoire.authorName}</p>
               </div>
             </div>
 
-            <button
-              onClick={handleContact}
-              className="w-full inline-flex items-center justify-center gap-2 bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold rounded-full py-2.5 transition-colors"
-            >
+            <button onClick={handleContact} className="w-full inline-flex items-center justify-center gap-2 bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold rounded-full py-2.5 transition-colors">
               <MessageCircle className="w-4 h-4" />
               Contacter l&apos;auteur
             </button>
@@ -235,9 +192,7 @@ export function MemoireDetail({ slug, compact = false }: MemoireDetailProps) {
             <Row icon={<Calendar className="w-4 h-4" />} label="Année" value={String(memoire.annee)} />
             <Row icon={<GraduationCap className="w-4 h-4" />} label="Niveau" value={memoire.niveau} />
             <Row icon={<Building2 className="w-4 h-4" />} label="Filière" value={memoire.filiereName ?? ""} />
-            {memoire.domaine && (
-              <Row icon={<Bookmark className="w-4 h-4" />} label="Domaine" value={memoire.domaine} />
-            )}
+            {memoire.domaine && <Row icon={<Bookmark className="w-4 h-4" />} label="Domaine" value={memoire.domaine} />}
             <Row icon={<User className="w-4 h-4" />} label="Encadreur" value={memoire.encadreur} />
           </div>
 
@@ -257,55 +212,26 @@ export function MemoireDetail({ slug, compact = false }: MemoireDetailProps) {
 
       {showContact && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-primary-950/50 backdrop-blur-md"
-            onClick={() => setShowContact(false)}
-          />
+          <div className="absolute inset-0 bg-primary-950/50 backdrop-blur-md" onClick={() => setShowContact(false)} />
           <div className="relative bg-white dark:bg-primary-900 rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <button
-              onClick={() => setShowContact(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-full text-neutral-400 hover:bg-neutral-100 dark:hover:bg-primary-800 transition-colors"
-              aria-label="Fermer"
-            >
+            <button onClick={() => setShowContact(false)} className="absolute top-4 right-4 p-1.5 rounded-full text-neutral-400 hover:bg-neutral-100 dark:hover:bg-primary-800 transition-colors" aria-label="Fermer">
               <X className="w-4 h-4" />
             </button>
 
             <h2 className="text-lg font-bold text-primary-900 dark:text-white font-heading mb-1">
               Contacter {memoire.authorName}
             </h2>
-            <p className="text-sm text-neutral-500 mb-5">
-              Choisissez un moyen de contact.
-            </p>
+            <p className="text-sm text-neutral-500 mb-5">Choisissez un moyen de contact.</p>
 
             <div className="space-y-3">
-              {memoire.facebook && (
-                <ContactLink 
-                  href={formatExternalUrl(memoire.facebook)} 
-                  label="Facebook" 
-                  icon={<FacebookIcon className="w-5 h-5 text-[#1877F2]" />} 
-                />
-              )}
-              {memoire.linkedin && (
-                <ContactLink 
-                  href={formatExternalUrl(memoire.linkedin)} 
-                  label="LinkedIn" 
-                  icon={<LinkedinIcon className="w-5 h-5 text-[#0A66C2]" />} 
-                />
-              )}
+              {memoire.facebook && <ContactLink href={formatExternalUrl(memoire.facebook)} label="Facebook" icon={<FacebookIcon className="w-5 h-5 text-[#1877F2]" />} />}
+              {memoire.linkedin && <ContactLink href={formatExternalUrl(memoire.linkedin)} label="LinkedIn" icon={<LinkedinIcon className="w-5 h-5 text-[#0A66C2]" />} />}
               {memoire.whatsapp && (
-                <ContactLink
-                  href={`https://wa.me/${formatWhatsAppNumber(memoire.whatsapp)}`}
-                  label="WhatsApp"
-                  icon={<WhatsappIcon className="w-5 h-5 text-[#25D366]" />}
-                />
+                <ContactLink href={`https://wa.me/${formatWhatsAppNumber(memoire.whatsapp)}`} label="WhatsApp" icon={<WhatsappIcon className="w-5 h-5 text-[#25D366]" />} />
               )}
             </div>
 
-            {!hasContacts && (
-              <p className="text-sm text-neutral-500">
-                Aucun contact renseigné par l&apos;auteur.
-              </p>
-            )}
+            {!hasContacts && <p className="text-sm text-neutral-500">Aucun contact renseigné par l&apos;auteur.</p>}
           </div>
         </div>
       )}
@@ -344,12 +270,7 @@ function Row({ icon, label, value }: { icon: React.ReactNode; label: string; val
 
 function ContactLink({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-cta-500 transition-colors text-sm font-medium text-primary-900 dark:text-white"
-    >
+    <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-cta-500 transition-colors text-sm font-medium text-primary-900 dark:text-white">
       <div className="flex items-center gap-3">
         {icon}
         {label}
