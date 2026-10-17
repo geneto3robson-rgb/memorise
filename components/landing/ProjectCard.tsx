@@ -19,36 +19,76 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
   const utils = trpc.useUtils();
   const [showAuth, setShowAuth] = useState(false);
 
+  const numericId = Number(project.id);
+
   const { data: ids = [] } = trpc.favori.ids.useQuery(undefined, {
     enabled: !!session,
+    staleTime: Infinity,
   });
 
-  const numericId = Number(project.id);
   const isSaved = ids.includes(numericId);
 
   const toggle = trpc.favori.toggle.useMutation({
     onMutate: async ({ memoireId }) => {
       await utils.favori.ids.cancel();
-      const previous = utils.favori.ids.getData();
-      utils.favori.ids.setData(undefined, (old = []) =>
-        old.includes(memoireId)
-          ? old.filter((id) => id !== memoireId)
-          : [...old, memoireId]
-      );
-      return { previous };
+      await utils.favori.list.cancel();
+
+      const previousIds = utils.favori.ids.getData() ?? [];
+      const previousList = utils.favori.list.getData() ?? [];
+      const wasSaved = previousIds.includes(memoireId);
+
+      const nextIds = wasSaved
+        ? previousIds.filter((id) => id !== memoireId)
+        : [...previousIds, memoireId];
+
+      utils.favori.ids.setData(undefined, nextIds);
+
+      const nextList = wasSaved
+        ? previousList.filter((m) => m.id !== memoireId)
+        : [
+            {
+              id: memoireId,
+              slug: project.slug,
+              title: project.title,
+              summary: project.summary,
+              image: project.image,
+              annee: project.year,
+              niveau: project.niveau,
+              encadreur: project.encadreur,
+              filiereName: project.filiere,
+              filiereCode: project.filiereCode,
+              authorName: project.author,
+              authorImage: project.authorAvatar,
+            },
+            ...previousList,
+          ];
+
+      utils.favori.list.setData(undefined, nextList);
+
+      return { previousIds, previousList };
     },
     onError: (_err, _vars, ctx) => {
-      if (ctx?.previous !== undefined) {
-        utils.favori.ids.setData(undefined, ctx.previous);
+      if (ctx) {
+        utils.favori.ids.setData(undefined, ctx.previousIds);
+        utils.favori.list.setData(undefined, ctx.previousList);
       }
     },
-    onSettled: () => {
-      utils.favori.list.invalidate();
+    onSuccess: (result, { memoireId }) => {
+      if (result.saved) {
+        utils.favori.ids.setData(undefined, (old = []) =>
+          old.includes(memoireId) ? old : [...old, memoireId]
+        );
+      } else {
+        utils.favori.ids.setData(undefined, (old = []) =>
+          old.filter((id) => id !== memoireId)
+        );
+      }
     },
   });
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     if (!session) {
       setShowAuth(true);
       return;
@@ -77,7 +117,9 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <span className={`absolute top-3 left-3 ${project.filiereColor} text-white text-xs font-medium px-3 py-1 rounded-full`}>
+          <span
+            className={`absolute top-3 left-3 ${project.filiereColor} text-white text-xs font-medium px-3 py-1 rounded-full`}
+          >
             {project.filiere}
           </span>
         </div>
@@ -89,9 +131,17 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
 
           <div className="flex items-center gap-2 mb-2">
             <div className="w-6 h-6 rounded-full overflow-hidden relative shrink-0">
-              <Image src={project.authorAvatar} alt={project.author} fill sizes="24px" className="object-cover" />
+              <Image
+                src={project.authorAvatar}
+                alt={project.author}
+                fill
+                sizes="24px"
+                className="object-cover"
+              />
             </div>
-            <span className="text-xs text-neutral-700 dark:text-neutral-300 truncate">{project.author}</span>
+            <span className="text-xs text-neutral-700 dark:text-neutral-300 truncate">
+              {project.author}
+            </span>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 mb-3">
@@ -127,6 +177,7 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
               </Link>
             )}
             <button
+              type="button"
               onClick={handleToggle}
               aria-label={isSaved ? "Retirer des favoris" : "Enregistrer"}
               className={`transition-colors ${

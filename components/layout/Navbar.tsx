@@ -5,8 +5,16 @@ import Image from "next/image";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
-  Menu, X, User, ChevronDown, Bell,
-  LayoutDashboard, Bookmark, FileText, Settings, LogOut,
+  Menu,
+  X,
+  User,
+  ChevronDown,
+  Bell,
+  LogOut,
+  LayoutDashboard,
+  Bookmark,
+  FileText,
+  Settings,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { authClient } from "@/lib/auth-client";
@@ -17,17 +25,10 @@ const explorerLinks = [
   { label: "Par année", href: "/explorer" },
 ];
 
-const userMenuLinks = [
-  { label: "Tableau de bord", href: "/tableau-de-bord", icon: LayoutDashboard },
-  { label: "Enregistrements", href: "/favoris", icon: Bookmark },
-  { label: "Mes publications", href: "/publication", icon: FileText },
-  { label: "Paramètres", href: "/parametres", icon: Settings },
-];
-
 export function Navbar() {
   const pathname = usePathname();
   const isLanding = pathname === "/";
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isExplorerOpen, setIsExplorerOpen] = useState(false);
   const [isUserOpen, setIsUserOpen] = useState(false);
@@ -44,8 +45,16 @@ export function Navbar() {
     >
       <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-20 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.svg" alt="Logo MemoRise" width={40} height={40} unoptimized />
-          <span className="text-xl font-bold text-white font-heading">MemoRise</span>
+          <Image
+            src="/logo.svg"
+            alt="Logo MemoRise"
+            width={40}
+            height={40}
+            unoptimized
+          />
+          <span className="text-xl font-bold text-white font-heading">
+            MemoRise
+          </span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -91,7 +100,9 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-3">
           <ThemeToggle />
 
-          {user ? (
+          {isPending ? (
+            <div className="w-24 h-8 rounded-full bg-white/10 animate-pulse" />
+          ) : user ? (
             <>
               <button
                 aria-label="Notifications"
@@ -101,11 +112,12 @@ export function Navbar() {
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-cta-500" />
               </button>
 
-              <div className="relative">
-                <button
-                  onClick={() => setIsUserOpen(!isUserOpen)}
-                  className="flex items-center gap-2 p-1 pr-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
-                >
+              <div
+                className="relative"
+                onMouseEnter={() => setIsUserOpen(true)}
+                onMouseLeave={() => setIsUserOpen(false)}
+              >
+                <button className="flex items-center gap-2 p-1 pr-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white">
                   <div className="relative w-7 h-7 rounded-full overflow-hidden shrink-0">
                     <Image
                       src={user.image ?? "/images/authors/authors1.jpg"}
@@ -119,41 +131,56 @@ export function Navbar() {
                     {user.name}
                   </span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform ${isUserOpen ? "rotate-180" : ""}`}
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      isUserOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
 
                 {isUserOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setIsUserOpen(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-xl overflow-hidden z-50">
-                      {userMenuLinks.map((link) => {
-                        const Icon = link.icon;
-                        return (
-                          <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={() => setIsUserOpen(false)}
-                            className="flex items-center gap-3 px-4 py-3 text-sm text-primary-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-primary-800"
-                          >
-                            <Icon className="w-4 h-4" />
-                            {link.label}
-                          </Link>
-                        );
-                      })}
+                  <div className="absolute top-full right-0 pt-3 min-w-[220px]">
+                    <div className="bg-primary-900/70 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl overflow-hidden">
+                      <Link
+                        href="/tableau-de-bord"
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 hover:text-cta-400 transition-colors border-b border-white/5"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Tableau de bord
+                      </Link>
+                      <Link
+                        href="/favoris"
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 hover:text-cta-400 transition-colors border-b border-white/5"
+                      >
+                        <Bookmark className="w-4 h-4" />
+                        Enregistrements
+                      </Link>
+                      <Link
+                        href="/publication"
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 hover:text-cta-400 transition-colors border-b border-white/5"
+                      >
+                        <FileText className="w-4 h-4" />
+                        Mes publications
+                      </Link>
+                      <Link
+                        href="/parametres"
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-white hover:bg-white/10 hover:text-cta-400 transition-colors border-b border-white/5"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Paramètres
+                      </Link>
                       <button
                         onClick={() => {
                           authClient.signOut().then(() => {
                             window.location.href = "/";
                           });
                         }}
-                        className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20 border-t border-neutral-100 dark:border-neutral-800"
+                        className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-error-400 hover:bg-white/10 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
                         Se déconnecter
                       </button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </>
@@ -207,17 +234,16 @@ export function Navbar() {
           >
             À propos
           </Link>
-          {user ? (
+          {isPending ? (
+            <div className="h-8 rounded-full bg-white/10 animate-pulse" />
+          ) : user ? (
             <>
-              {userMenuLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-white hover:text-cta-400 py-2"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              <Link
+                href="/parametres"
+                className="text-sm font-medium text-white hover:text-cta-400 py-2"
+              >
+                Mon profil
+              </Link>
               <button
                 onClick={() => {
                   authClient.signOut().then(() => {
