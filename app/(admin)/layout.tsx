@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,6 +10,7 @@ import {
   LayoutDashboard, Users, BookOpen, Settings, LogOut,
   ShieldCheck, GraduationCap
 } from "lucide-react";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 const adminLinks = [
   { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
@@ -22,6 +23,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession(); 
   const { data: profileData, isLoading } = trpc.profile.get.useQuery(undefined, { enabled: !!session });
+  
+  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isPending && !isLoading) {
@@ -43,6 +46,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-screen bg-[#F4F5F7] dark:bg-[#051414] p-4 gap-4 overflow-hidden">
       
+      {/* Modal de basculement */}
+      <ConfirmModal
+        isOpen={isSwitchModalOpen}
+        onClose={() => setIsSwitchModalOpen(false)}
+        onConfirm={() => router.push("/tableau-de-bord")}
+        title="Passer en Mode Étudiant"
+        message="Vous allez quitter l'interface d'administration pour accéder à votre espace étudiant. Souhaitez-vous continuer ?"
+        confirmText="Oui, basculer"
+      />
+
       <aside className="w-64 bg-[#184F53] rounded-[2rem] flex flex-col shadow-xl shrink-0 relative overflow-hidden">
         <div className="p-6 flex items-center gap-3">
           <Image src="/logo.svg" alt="Logo MemoRise" width={32} height={32} />
@@ -65,9 +78,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="relative group">
             <div className="absolute bottom-full left-0 w-full mb-2 bg-[#0A1E1E] rounded-2xl shadow-xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
               <div className="p-2 space-y-1">
-                <Link href="/tableau-de-bord" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-[#CEEC22] hover:bg-white/10 transition-colors">
+                <button 
+                  onClick={() => setIsSwitchModalOpen(true)} 
+                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-[#CEEC22] hover:bg-white/10 transition-colors text-left"
+                >
                   <GraduationCap className="w-4 h-4" /> Mode Étudiant
-                </Link>
+                </button>
+                
                 <Link href="/admin/parametres" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors">
                   <Settings className="w-4 h-4" /> Paramètres
                 </Link>
@@ -91,7 +108,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* 👇 CHANGEMENT ICI : overflow-y-auto au lieu de overflow-hidden sur le main */}
       <main className="flex-1 bg-white dark:bg-[#0A1E1E] rounded-[2rem] shadow-sm overflow-y-auto">
         <div className="p-6 md:p-10">
           {children}

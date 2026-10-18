@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Search, MoreHorizontal, ShieldCheck, GraduationCap, Eye, Ban } from "lucide-react";
 import { trpc } from "@/trpc/client";
-import { filieres } from "@/lib/data/filieres";
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
@@ -67,7 +66,6 @@ export default function AdminUsersPage() {
           <p className="text-neutral-500 text-sm text-center py-10">Aucun utilisateur trouvé.</p>
         ) : (
           filteredUsers.map((user) => {
-            const userFiliere = filieres.find(f => f.id === user.filiereId);
             const isAdmin = user.role === "admin";
             
             return (
@@ -91,8 +89,9 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
+                  {/* 👇 MODIFICATION ICI : Utilisation directe des données de la BDD */}
                   <span className="hidden md:inline-block text-[11px] font-bold text-[#184F53] dark:text-[#CEEC22]">
-                    {userFiliere ? `${userFiliere.code} — ${userFiliere.name}` : "Non définie"}
+                    {user.filiereCode ? `${user.filiereCode} — ${user.filiereName}` : "Non définie"}
                   </span>
 
                   {isAdmin ? (
@@ -111,7 +110,6 @@ export default function AdminUsersPage() {
                     </button>
                     <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-xl border border-neutral-100 dark:border-neutral-800 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 z-20 overflow-hidden">
                       
-                      {/* 👇 CORRECTION DU 404 ICI */}
                       <Link 
                         href="/explorer" 
                         className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:bg-[#F4F5F7] dark:hover:bg-[#184F53] text-left transition-colors"
@@ -121,7 +119,6 @@ export default function AdminUsersPage() {
                       
                       <div className="h-px bg-neutral-100 dark:bg-neutral-800 my-1" />
                       
-                      {/* BOUTON BANNIR DÉSACTIVÉ */}
                       <button 
                         disabled
                         className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-400 dark:text-neutral-600 cursor-not-allowed text-left"
