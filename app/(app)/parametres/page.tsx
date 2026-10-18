@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // 👈 Ajout du router
+import Link from "next/link";
 import { User, Lock, Bell, Palette, Shield, Moon, Sun, Upload, ChevronDown } from "lucide-react";
-import { Container } from "@/components/layout/Container";
-import { filieres } from "@/lib/data/filieres";
 import { useTheme } from "@/lib/theme-context";
 import { trpc } from "@/trpc/client";
-import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
+import { filieres } from "@/lib/data/filieres";
 
 function FacebookIcon({ className }: { className?: string }) {
   return (
@@ -40,14 +38,11 @@ function formatWhatsAppInput(value: string) {
   return cleaned;
 }
 
-const inputClass =
-  "w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500 focus:border-cta-500 transition-colors shadow-sm disabled:opacity-50";
-const iconInputClass =
-  "w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500 focus:border-cta-500 transition-colors shadow-sm disabled:opacity-50";
+const inputClass = "w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-[#F4F5F7] dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#184F53] focus:border-transparent transition-all shadow-sm disabled:opacity-50 font-medium";
 const selectClass = `${inputClass} appearance-none pr-10 cursor-pointer`;
-const labelClass = "block text-xs font-medium text-neutral-500 mb-1.5";
-const btnPrimary =
-  "px-6 py-2.5 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold transition-colors disabled:opacity-50";
+const iconInputClass = "w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-[#F4F5F7] dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#184F53] focus:border-transparent transition-all shadow-sm disabled:opacity-50 font-medium";
+const labelClass = "block text-xs font-bold text-[#184F53] dark:text-primary-300 mb-2 uppercase tracking-wide";
+const btnPrimary = "px-6 py-3 rounded-full bg-[#CEEC22] hover:bg-[#b5d11b] text-[#0A1E1E] text-sm font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-50";
 
 const roles = ["Étudiant actuel", "Ancien étudiant", "Enseignant"];
 
@@ -62,7 +57,6 @@ const sections = [
 type SectionId = (typeof sections)[number]["id"];
 
 export default function ParametresPage() {
-  const router = useRouter(); // 👈 Initialisation
   const { theme, toggle } = useTheme();
   const [active, setActive] = useState<SectionId>("profil");
 
@@ -99,19 +93,12 @@ export default function ParametresPage() {
   useEffect(() => {
     if (data?.profile) {
       setRole(data.profile.role === "etudiant" ? roles[0] : data.profile.role || roles[0]);
-      
-      if (data.filiereCode) {
-        setFiliereCode(data.filiereCode);
-      } else {
-        setFiliereCode("");
-      }
-
+      if (data.filiereCode) setFiliereCode(data.filiereCode);
+      else setFiliereCode("");
       setParcours(data.profile.parcours || "");
       setFacebook(data.profile.facebook || "");
       setLinkedin(data.profile.linkedin || "");
-      if (data.profile.whatsapp) {
-        setWhatsapp(formatWhatsAppInput(data.profile.whatsapp));
-      }
+      if (data.profile.whatsapp) setWhatsapp(formatWhatsAppInput(data.profile.whatsapp));
     }
   }, [data]);
 
@@ -130,21 +117,14 @@ export default function ParametresPage() {
       utils.profile.get.invalidate();
       setTimeout(() => setFeedback(""), 3000);
     },
-    onError: (err) => {
-      setFeedback(err.message || "Une erreur est survenue.");
-    },
-    onSettled: () => {
-      setIsSaving(false);
-    },
+    onError: (err) => setFeedback(err.message || "Une erreur est survenue."),
+    onSettled: () => setIsSaving(false),
   });
 
   const onPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 500 * 1024) {
-      setFeedback("L'image ne doit pas dépasser 500 Ko.");
-      return;
-    }
+    if (file.size > 500 * 1024) return setFeedback("L'image ne doit pas dépasser 500 Ko.");
     const reader = new FileReader();
     reader.onloadend = () => setImage(reader.result as string);
     reader.readAsDataURL(file);
@@ -154,22 +134,13 @@ export default function ParametresPage() {
     e.preventDefault();
     setFeedback("");
     setIsSaving(true);
-
     const finalWhatsapp = whatsapp ? `+261${formatWhatsAppInput(whatsapp)}` : undefined;
-
     try {
-      await authClient.updateUser({
-        name: nom,
-        image: image || undefined,
-      });
-
+      await authClient.updateUser({ name: nom, image: image || undefined });
       updateProfile.mutate({
         role: role === roles[0] ? "etudiant" : role,
         filiereCode: filiereCode || null,
-        parcours,
-        facebook,
-        linkedin,
-        whatsapp: finalWhatsapp,
+        parcours, facebook, linkedin, whatsapp: finalWhatsapp,
       });
     } catch (err) {
       setFeedback("Erreur lors de la mise à jour.");
@@ -180,82 +151,54 @@ export default function ParametresPage() {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPassFeedback("");
-    
-    if (newPassword !== confirmPassword) {
-      return setPassFeedback("Les nouveaux mots de passe ne correspondent pas.");
-    }
-    if (newPassword.length < 8) {
-      return setPassFeedback("Le mot de passe doit contenir au moins 8 caractères.");
-    }
-
+    if (newPassword !== confirmPassword) return setPassFeedback("Les mots de passe ne correspondent pas.");
+    if (newPassword.length < 8) return setPassFeedback("Le mot de passe doit contenir au moins 8 caractères.");
     try {
-      const { error } = await authClient.changePassword({
-        currentPassword,
-        newPassword,
-        revokeOtherSessions: true,
-      });
-
-      if (error) {
-        setPassFeedback(error.message || "Erreur lors du changement de mot de passe.");
-      } else {
+      const { error } = await authClient.changePassword({ currentPassword, newPassword, revokeOtherSessions: true });
+      if (error) setPassFeedback(error.message || "Erreur.");
+      else {
         setPassFeedback("Mot de passe modifié avec succès !");
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
+        setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       }
-    } catch (err) {
-      setPassFeedback("Une erreur inattendue est survenue.");
-    }
-  };
-
-  const handleLogout = async () => {
-    await authClient.signOut();
-    router.push("/"); // 👈 Redirection propre
-    router.refresh(); // 👈 Rafraîchit les données de session
+    } catch (err) { setPassFeedback("Une erreur inattendue est survenue."); }
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] p-4 md:p-8">
       {isSaving && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-96 max-w-full rounded-3xl bg-white dark:bg-primary-900 p-8 shadow-2xl border border-neutral-200 dark:border-neutral-700">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0A1E1E]/40 backdrop-blur-sm p-4">
+          <div className="w-96 max-w-full rounded-3xl bg-white dark:bg-[#0A1E1E] p-8 shadow-2xl border border-neutral-200 dark:border-neutral-800">
             <div className="flex flex-col items-center">
               <div className="relative w-16 h-16 mb-5">
-                <div className="absolute inset-0 rounded-full border-4 border-cta-500/20" />
-                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-cta-500 animate-spin" />
+                <div className="absolute inset-0 rounded-full border-4 border-[#CEEC22]/20" />
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#CEEC22] animate-spin" />
               </div>
-              <h3 className="text-lg font-bold text-primary-900 dark:text-white mb-1">Enregistrement en cours</h3>
-              <div className="w-full h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-primary-950">
-                <div style={{ width: `${progress}%` }} className="h-full rounded-full bg-cta-500 transition-all duration-[3000ms] ease-out" />
+              <h3 className="text-lg font-bold text-[#0A1E1E] dark:text-white mb-1">Enregistrement en cours</h3>
+              <div className="w-full h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-[#051414]">
+                <div style={{ width: `${progress}%` }} className="h-full rounded-full bg-[#CEEC22] transition-all duration-[3000ms] ease-out" />
               </div>
             </div>
           </div>
         </div>
       )}
 
-      <Container className="py-10 md:py-14">
-        <div className="w-16 h-1 bg-cta-500 mb-4 rounded-full" />
-        <h1 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-8">
-          Paramètres
-        </h1>
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#0A1E1E] dark:text-white font-heading">Paramètres</h1>
+          <p className="text-neutral-500 mt-1">Gérez votre profil et vos préférences.</p>
+        </div>
 
-        <div className="grid lg:grid-cols-[300px_1fr] gap-6">
-          <aside className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 overflow-hidden h-fit">
-            <div className="p-6 text-center border-b border-neutral-200 dark:border-neutral-700">
-              <div className="relative w-20 h-20 mx-auto mb-3">
-                <Image
-                  src={image || "/images/authors/authors1.jpg"}
-                  alt={nom || "Profil"}
-                  fill
-                  sizes="80px"
-                  className="rounded-full object-cover border-2 border-neutral-200 dark:border-neutral-700"
-                />
+        <div className="grid lg:grid-cols-[320px_1fr] gap-6 items-start">
+          <aside className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] shadow-sm overflow-hidden p-4 border border-neutral-100 dark:border-neutral-800 sticky top-8">
+            <div className="text-center pb-6 pt-4 border-b border-neutral-100 dark:border-neutral-800 mb-4">
+              <div className="relative w-24 h-24 mx-auto mb-4">
+                <Image src={image || "/images/authors/authors1.jpg"} alt={nom || "Profil"} fill sizes="96px" className="rounded-full object-cover border-4 border-[#F4F5F7] dark:border-neutral-800" />
               </div>
-              <p className="font-semibold text-primary-900 dark:text-white text-sm truncate px-2">{nom}</p>
-              <p className="text-xs text-neutral-500 mt-0.5">{role}</p>
+              <p className="font-bold text-lg text-[#0A1E1E] dark:text-white truncate px-2">{nom}</p>
+              <p className="text-xs font-medium text-neutral-500 mt-0.5">{role}</p>
             </div>
 
-            <nav className="p-2">
+            <nav className="space-y-1">
               {sections.map((s) => {
                 const Icon = s.icon;
                 const isActive = active === s.id;
@@ -263,8 +206,8 @@ export default function ParametresPage() {
                   <button
                     key={s.id}
                     onClick={() => setActive(s.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-left transition-colors ${
-                      isActive ? "bg-cta-500 text-primary-900" : "text-primary-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-primary-800"
+                    className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-full text-sm font-bold transition-all duration-200 ${
+                      isActive ? "bg-[#CEEC22] text-[#0A1E1E] shadow-md" : "text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-[#0A1E1E] dark:hover:text-white"
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
@@ -275,42 +218,43 @@ export default function ParametresPage() {
             </nav>
           </aside>
 
-          <section className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 p-6 md:p-8">
+          <section className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] shadow-sm p-6 md:p-10 border border-neutral-100 dark:border-neutral-800 min-h-[600px]">
+            
             {active === "profil" && (
-              <>
-                <header className="mb-6">
-                  <h2 className="text-lg font-semibold text-primary-900 dark:text-white">Informations personnelles</h2>
+              <div className="animate-in fade-in duration-300">
+                <header className="mb-8">
+                  <h2 className="text-2xl font-bold text-[#0A1E1E] dark:text-white">Informations personnelles</h2>
+                  <p className="text-sm text-neutral-500 mt-1">Mettez à jour vos informations publiques.</p>
                 </header>
-                <form className="space-y-5" onSubmit={handleSubmit}>
-                  <div className="flex items-center gap-4">
-                    <div className="relative w-16 h-16 shrink-0">
-                      <Image src={image || "/images/authors/authors1.jpg"} alt={nom} fill sizes="64px" className="rounded-full object-cover" />
+                <form className="space-y-6" onSubmit={handleSubmit}>
+                  <div className="flex items-center gap-6 p-4 rounded-2xl bg-[#F4F5F7] dark:bg-[#051414] border border-neutral-100 dark:border-neutral-800">
+                    <div className="relative w-20 h-20 shrink-0">
+                      <Image src={image || "/images/authors/authors1.jpg"} alt={nom} fill sizes="80px" className="rounded-full object-cover border-2 border-white dark:border-neutral-700 shadow-sm" />
                     </div>
-                    <label className="cursor-pointer text-sm font-medium text-primary-900 dark:text-white border border-neutral-200 dark:border-neutral-700 rounded-full px-4 py-2 hover:border-cta-500 transition-colors flex items-center gap-2">
+                    <label className="cursor-pointer text-sm font-bold text-[#184F53] dark:text-[#CEEC22] bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-full px-5 py-2.5 hover:border-[#184F53] transition-colors flex items-center gap-2 shadow-sm">
                       <Upload className="w-4 h-4" /> Changer la photo
                       <input type="file" accept="image/*" onChange={onPhotoChange} className="hidden" />
                     </label>
                   </div>
 
-                  <div>
-                    <label className={labelClass}>Nom et prénom</label>
-                    <input type="text" value={nom} onChange={(e) => setNom(e.target.value)} className={inputClass} disabled={isSaving} />
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className={labelClass}>Nom et prénom</label>
+                      <input type="text" value={nom} onChange={(e) => setNom(e.target.value)} className={inputClass} disabled={isSaving} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Adresse e-mail</label>
+                      <input type="email" value={session?.user?.email || ""} readOnly className={inputClass + " opacity-60 cursor-not-allowed"} />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className={labelClass}>Adresse e-mail</label>
-                    <input type="email" value={session?.user?.email || ""} readOnly className={inputClass + " bg-neutral-100 dark:bg-primary-950 cursor-not-allowed opacity-70"} />
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="grid sm:grid-cols-2 gap-6">
                     <div>
                       <label className={labelClass}>Filière</label>
                       <div className="relative">
                         <select value={filiereCode} onChange={(e) => setFiliereCode(e.target.value)} className={selectClass} disabled={isSaving}>
                           <option value="">Sélectionner…</option>
-                          {filieres.map((f) => (
-                            <option key={f.id} value={f.code}>{f.code} — {f.name}</option>
-                          ))}
+                          {filieres.map((f) => <option key={f.id} value={f.code}>{f.code} — {f.name}</option>)}
                         </select>
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
                       </div>
@@ -331,123 +275,134 @@ export default function ParametresPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className={labelClass}>Contacts (facultatif)</label>
-                    <div className="space-y-3">
+                  <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                    <label className={labelClass}>Contacts publics (facultatif)</label>
+                    <div className="space-y-3 mt-3">
                       <div className="relative">
-                        <FacebookIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#1877F2]" />
-                        <input type="text" value={facebook} onChange={(e) => setFacebook(e.target.value)} placeholder="Lien Facebook" className={iconInputClass} disabled={isSaving} />
+                        <FacebookIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#1877F2]" />
+                        <input type="text" value={facebook} onChange={(e) => setFacebook(e.target.value)} placeholder="Lien vers votre profil Facebook" className={iconInputClass} disabled={isSaving} />
                       </div>
                       <div className="relative">
-                        <LinkedinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0A66C2]" />
-                        <input type="text" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="Lien LinkedIn" className={iconInputClass} disabled={isSaving} />
+                        <LinkedinIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#0A66C2]" />
+                        <input type="text" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="Lien vers votre profil LinkedIn" className={iconInputClass} disabled={isSaving} />
                       </div>
                       <div className="relative">
-                        <WhatsappIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#25D366]" />
-                        <span className="absolute left-10 top-1/2 -translate-y-1/2 text-sm text-neutral-500 font-medium">+261</span>
-                        <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(formatWhatsAppInput(e.target.value))} placeholder="34 78 805 02" className="w-full pl-[5.5rem] pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500 focus:border-cta-500 transition-colors shadow-sm disabled:opacity-50" disabled={isSaving} />
+                        <WhatsappIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#25D366]" />
+                        <span className="absolute left-11 top-1/2 -translate-y-1/2 text-sm text-neutral-500 font-bold">+261</span>
+                        <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(formatWhatsAppInput(e.target.value))} placeholder="34 78 805 02" className="w-full pl-[6rem] pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-[#F4F5F7] dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#184F53] focus:border-transparent transition-all shadow-sm disabled:opacity-50 font-medium" disabled={isSaving} />
                       </div>
                     </div>
                   </div>
 
-                  {feedback && <p className={`text-sm text-center font-medium ${feedback.includes("succès") ? "text-success-500" : "text-error-500"}`}>{feedback}</p>}
+                  {feedback && <p className={`text-sm text-center font-bold p-3 rounded-xl ${feedback.includes("succès") ? "text-green-700 bg-green-50" : "text-red-600 bg-red-50"}`}>{feedback}</p>}
 
-                  <div className="flex justify-end pt-4 border-t border-neutral-200 dark:border-neutral-700">
-                    <button type="submit" disabled={isSaving} className={btnPrimary}>{isSaving ? "Enregistrement…" : "Modifier le profil"}</button>
+                  <div className="flex justify-end pt-4">
+                    <button type="submit" disabled={isSaving} className={btnPrimary}>{isSaving ? "Enregistrement…" : "Enregistrer les modifications"}</button>
                   </div>
                 </form>
-              </>
+              </div>
             )}
 
             {active === "securite" && (
-              <>
-                <header className="mb-6">
-                  <h2 className="text-lg font-semibold text-primary-900 dark:text-white">Sécurité et connexion</h2>
+              <div className="animate-in fade-in duration-300">
+                <header className="mb-8">
+                  <h2 className="text-2xl font-bold text-[#0A1E1E] dark:text-white">Sécurité et connexion</h2>
+                  <p className="text-sm text-neutral-500 mt-1">Gérez votre mot de passe et vos sessions.</p>
                 </header>
-                <div className="space-y-5">
+                <div className="space-y-8">
                   <div>
                     <label className={labelClass}>Adresse e-mail du compte</label>
-                    <input type="email" value={session?.user?.email || ""} readOnly className={inputClass + " opacity-70 cursor-not-allowed"} />
+                    <input type="email" value={session?.user?.email || ""} readOnly className={inputClass + " opacity-60 cursor-not-allowed"} />
                   </div>
-
-                  <form onSubmit={handlePasswordChange} className="space-y-3">
-                    <label className={labelClass}>Modifier le mot de passe</label>
+                  <form onSubmit={handlePasswordChange} className="space-y-4 bg-[#F4F5F7] dark:bg-[#051414] p-6 rounded-2xl border border-neutral-100 dark:border-neutral-800">
+                    <h3 className="font-bold text-[#0A1E1E] dark:text-white mb-2">Modifier le mot de passe</h3>
                     <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Mot de passe actuel" className={inputClass} required />
                     <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Nouveau mot de passe" className={inputClass} required />
                     <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirmer le nouveau mot de passe" className={inputClass} required />
-                    
-                    {passFeedback && <p className={`text-sm mt-2 ${passFeedback.includes("succès") ? "text-success-500" : "text-error-500"}`}>{passFeedback}</p>}
-                    
+                    {passFeedback && <p className={`text-sm font-bold ${passFeedback.includes("succès") ? "text-green-600" : "text-red-500"}`}>{passFeedback}</p>}
                     <div className="pt-2">
-                      <button type="submit" className={btnPrimary}>Modifier le mot de passe</button>
+                      <button type="submit" className={btnPrimary}>Mettre à jour le mot de passe</button>
                     </div>
                   </form>
-
-                  <div className="pt-6 mt-6 border-t border-neutral-200 dark:border-neutral-700 flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-xs text-neutral-500">Déconnecter cet appareil.</p>
-                    <button onClick={handleLogout} type="button" className="px-5 py-2 rounded-full border-2 border-error-200 dark:border-error-800 text-error-600 dark:text-error-400 text-sm font-medium hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">Déconnexion</button>
-                  </div>
                 </div>
-              </>
+              </div>
             )}
 
             {active === "notifications" && (
-              <>
-                <header className="mb-6">
-                  <h2 className="text-lg font-semibold text-primary-900 dark:text-white">Notifications</h2>
+              <div className="animate-in fade-in duration-300">
+                <header className="mb-8">
+                  <h2 className="text-2xl font-bold text-[#0A1E1E] dark:text-white">Notifications</h2>
+                  <p className="text-sm text-neutral-500 mt-1">Choisissez ce que vous souhaitez recevoir.</p>
                 </header>
                 <div className="space-y-4">
-                  <label className="flex items-center justify-between gap-4 cursor-pointer">
-                    <span className="text-sm text-primary-900 dark:text-white">Recevoir les actualités de MemoRise</span>
-                    <input type="checkbox" checked={data?.profile?.notifyNews ?? true} onChange={(e) => updateProfile.mutate({ notifyNews: e.target.checked, notifyPublications: data?.profile?.notifyPublications ?? true })} className="w-5 h-5 accent-cta-500" />
+                  <label className="flex items-center justify-between p-5 rounded-2xl bg-[#F4F5F7] dark:bg-[#051414] border border-transparent hover:border-[#184F53] transition-colors cursor-pointer">
+                    <div>
+                      <p className="font-bold text-[#0A1E1E] dark:text-white text-sm">Actualités de MemoRise</p>
+                      <p className="text-xs text-neutral-500">Recevoir les dernières nouvelles de la plateforme.</p>
+                    </div>
+                    <input type="checkbox" checked={data?.profile?.notifyNews ?? true} onChange={(e) => updateProfile.mutate({ notifyNews: e.target.checked, notifyPublications: data?.profile?.notifyPublications ?? true })} className="w-6 h-6 accent-[#CEEC22] cursor-pointer" />
                   </label>
-                  <label className="flex items-center justify-between gap-4 cursor-pointer">
-                    <span className="text-sm text-primary-900 dark:text-white">Recevoir les notifications concernant mes publications</span>
-                    <input type="checkbox" checked={data?.profile?.notifyPublications ?? true} onChange={(e) => updateProfile.mutate({ notifyPublications: e.target.checked, notifyNews: data?.profile?.notifyNews ?? true })} className="w-5 h-5 accent-cta-500" />
+                  <label className="flex items-center justify-between p-5 rounded-2xl bg-[#F4F5F7] dark:bg-[#051414] border border-transparent hover:border-[#184F53] transition-colors cursor-pointer">
+                    <div>
+                      <p className="font-bold text-[#0A1E1E] dark:text-white text-sm">Mes publications</p>
+                      <p className="text-xs text-neutral-500">Être notifié quand quelqu'un consulte ou contacte pour mes mémoires.</p>
+                    </div>
+                    <input type="checkbox" checked={data?.profile?.notifyPublications ?? true} onChange={(e) => updateProfile.mutate({ notifyPublications: e.target.checked, notifyNews: data?.profile?.notifyNews ?? true })} className="w-6 h-6 accent-[#CEEC22] cursor-pointer" />
                   </label>
                 </div>
-              </>
+              </div>
             )}
 
             {active === "affichage" && (
-              <>
-                <header className="mb-6">
-                  <h2 className="text-lg font-semibold text-primary-900 dark:text-white">Préférences d'affichage</h2>
+              <div className="animate-in fade-in duration-300">
+                <header className="mb-8">
+                  <h2 className="text-2xl font-bold text-[#0A1E1E] dark:text-white">Préférences d'affichage</h2>
+                  <p className="text-sm text-neutral-500 mt-1">Personnalisez l'apparence de l'application.</p>
                 </header>
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center justify-between p-6 rounded-2xl bg-[#F4F5F7] dark:bg-[#051414] border border-neutral-100 dark:border-neutral-800">
                   <div>
-                    <p className="text-sm text-primary-900 dark:text-white">Thème {theme === "dark" ? "sombre" : "clair"}</p>
+                    <p className="font-bold text-[#0A1E1E] dark:text-white">Thème de l'application</p>
+                    <p className="text-sm text-neutral-500">Mode {theme === "dark" ? "sombre" : "clair"} activé.</p>
                   </div>
-                  <button onClick={toggle} aria-label="Changer de thème" className="p-3 rounded-full border border-neutral-200 dark:border-neutral-700 text-primary-900 dark:text-white hover:border-cta-500 transition-colors">
-                    {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                  <button onClick={toggle} aria-label="Changer de thème" className="p-4 rounded-full bg-white dark:bg-neutral-800 text-[#184F53] dark:text-[#CEEC22] shadow-sm hover:scale-105 transition-transform">
+                    {theme === "light" ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
                   </button>
                 </div>
-              </>
+              </div>
             )}
 
             {active === "confidentialite" && (
-              <>
-                <header className="mb-6">
-                  <h2 className="text-lg font-semibold text-primary-900 dark:text-white">Confidentialité et compte</h2>
+              <div className="animate-in fade-in duration-300">
+                <header className="mb-8">
+                  <h2 className="text-2xl font-bold text-[#0A1E1E] dark:text-white">Confidentialité et compte</h2>
+                  <p className="text-sm text-neutral-500 mt-1">Gérez vos données personnelles.</p>
                 </header>
+                
+                {/* 👇 LIENS DE CONFIDENTIALITÉ RESTAURÉS */}
                 <div className="space-y-3">
-                  {/* 👇 CORRECTION ICI : Utilisation de Link au lieu de <a> */}
-                  <Link href="/confidentialite" className="block text-sm text-primary-900 dark:text-white hover:text-cta-600 transition-colors">
-                    Politique de confidentialité
+                  <Link href="/confidentialite" className="flex items-center justify-between p-5 rounded-2xl bg-[#F4F5F7] dark:bg-[#051414] border border-transparent hover:border-[#184F53] transition-colors group">
+                    <span className="font-bold text-[#0A1E1E] dark:text-white">Politique de confidentialité</span>
+                    <span className="text-neutral-400 group-hover:text-[#184F53]">&rarr;</span>
                   </Link>
-                  <Link href="/conditions" className="block text-sm text-primary-900 dark:text-white hover:text-cta-600 transition-colors">
-                    Conditions d'utilisation
+                  <Link href="/conditions" className="flex items-center justify-between p-5 rounded-2xl bg-[#F4F5F7] dark:bg-[#051414] border border-transparent hover:border-[#184F53] transition-colors group">
+                    <span className="font-bold text-[#0A1E1E] dark:text-white">Conditions d'utilisation</span>
+                    <span className="text-neutral-400 group-hover:text-[#184F53]">&rarr;</span>
                   </Link>
                 </div>
-                <div className="mt-8 pt-6 border-t border-error-200 dark:border-error-800">
-                  <p className="text-xs text-error-600 dark:text-error-400 mb-3">La suppression du compte est définitive. Vos publications et favoris seront perdus.</p>
-                  <button type="button" className="px-5 py-2.5 rounded-full border-2 border-error-500 text-error-500 text-sm font-medium hover:bg-error-500 hover:text-white transition-colors">Supprimer mon compte</button>
+
+                <div className="mt-12 pt-8 border-t border-red-100 dark:border-red-900/30">
+                  <h3 className="text-lg font-bold text-red-600 mb-2">Zone de danger</h3>
+                  <p className="text-sm text-neutral-500 mb-4">La suppression du compte est définitive. Vos publications et favoris seront perdus.</p>
+                  <button type="button" className="px-6 py-3 rounded-full border-2 border-red-500 text-red-500 text-sm font-bold hover:bg-red-500 hover:text-white transition-colors">
+                    Supprimer mon compte
+                  </button>
                 </div>
-              </>
+              </div>
             )}
+            
           </section>
         </div>
-      </Container>
-    </>
+      </div>
+    </div>
   );
 }
