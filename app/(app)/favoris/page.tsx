@@ -17,19 +17,19 @@ export default function FavorisPage() {
 
   const formatted = memoires.map((m) => ({
     id: String(m.id),
-    slug: m.slug,
-    title: m.title,
-    summary: m.summary,
+    slug: m.slug || "", // 👈 CORRECTION ICI
+    title: m.title || "Sans titre",
+    summary: m.summary || "",
     image: m.image ?? "/images/projects/telecom.jpg",
     filiere: m.filiereName ?? "",
     filiereCode: m.filiereCode ?? "",
     filiereColor: filiereColorMap[m.filiereCode ?? ""] ?? "bg-primary-500",
     author: m.authorName ?? "Auteur",
     authorAvatar: m.authorImage ?? "/images/authors/authors1.jpg",
-    niveau: m.niveau,
-    year: m.annee,
+    niveau: m.niveau || "",
+    year: m.annee || new Date().getFullYear(),
     pages: 0,
-    encadreur: m.encadreur,
+    encadreur: m.encadreur || "",
     keywords: [] as string[],
   }));
 
