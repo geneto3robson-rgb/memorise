@@ -22,6 +22,8 @@ export const adminRouter = router({
   getStats: adminProcedure.query(async () => {
     const [usersCount] = await db.select({ count: sql<number>`count(*)` }).from(user);
     const [memoiresCount] = await db.select({ count: sql<number>`count(*)` }).from(memoires);
+    // 👇 AJOUT : On compte le nombre de filières
+    const [filieresCount] = await db.select({ count: sql<number>`count(*)` }).from(filieres);
     
     // On récupère les 5 derniers mémoires publiés
     const recentMemoires = await db
@@ -42,11 +44,12 @@ export const adminRouter = router({
     return {
       totalUsers: Number(usersCount.count),
       totalMemoires: Number(memoiresCount.count),
+      totalFilieres: Number(filieresCount.count), // 👈 AJOUT
       recentMemoires,
     };
   }),
 
-    // Lister tous les mémoires
+  // Lister tous les mémoires
   listAllMemoires: adminProcedure.query(async () => {
     return db
       .select({
@@ -74,13 +77,17 @@ export const adminRouter = router({
         image: user.image,
         role: profiles.role,
         filiereId: profiles.filiereId,
+        // 👇 AJOUT : On récupère le nom et le code de la filière depuis la BDD
+        filiereName: filieres.name,
+        filiereCode: filieres.code,
       })
       .from(user)
       .leftJoin(profiles, eq(user.id, profiles.userId))
+      .leftJoin(filieres, eq(profiles.filiereId, filieres.id)) // 👈 Jointure ajoutée
       .orderBy(desc(user.createdAt));
   }),
 
-   // Supprimer un mémoire (Modération)
+  // Supprimer un mémoire (Modération)
   deleteMemoire: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {

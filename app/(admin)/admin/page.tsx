@@ -81,7 +81,8 @@ export default function AdminDashboardPage() {
             <div className="w-9 h-9 rounded-full bg-neutral-200/50 dark:bg-neutral-800 flex items-center justify-center"><Layers className="w-4 h-4 text-neutral-600 dark:text-neutral-400" /></div>
           </div>
           <div>
-            <p className="text-4xl font-black text-[#0A1E1E] dark:text-white mb-1">16</p>
+            {/* 👇 MODIFICATION ICI : Utilisation de totalFilieres */}
+            <p className="text-4xl font-black text-[#0A1E1E] dark:text-white mb-1">{stats?.totalFilieres || 0}</p>
             <p className="text-xs font-medium text-neutral-400">Toutes configurées</p>
           </div>
         </div>
@@ -98,7 +99,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* LISTE PUBLICATIONS (S'assure que toutes s'affichent) */}
+      {/* LISTE PUBLICATIONS */}
       <div className="pt-4">
         <div className="flex items-center gap-4 mb-6">
           <h3 className="text-xl font-bold text-[#0A1E1E] dark:text-white mr-2">Publications récentes</h3>
