@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/layout/Container";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { ChevronDown, HelpCircle, Send, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, HelpCircle, Send, CheckCircle2 } from "lucide-react";
 
 const faqs = [
   { q: "Qu'est-ce que MemoRise ?", a: "MemoRise est un catalogue en ligne qui référence les mémoires de fin d'études de l'ESPA. Il vous permet de trouver facilement un travail par filière, année ou auteur." },
@@ -18,6 +19,7 @@ const faqs = [
 const inputClass = "w-full px-4 py-3 rounded-xl border border-primary-200 dark:border-primary-600 bg-white dark:bg-primary-900/50 text-primary-950 dark:text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-sm transition-all text-sm";
 
 export default function FaqPage() {
+  const router = useRouter();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -38,6 +40,11 @@ export default function FaqPage() {
       <main className="pt-24 pb-16 bg-[#f7faf9] dark:bg-primary-950 min-h-screen">
         <Container>
           <div className="max-w-6xl mx-auto">
+            {/* BOUTON RETOUR */}
+            <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-300 hover:text-cta-500 transition-colors mb-6">
+              <ArrowLeft className="w-4 h-4" /> Retour
+            </button>
+
             <FadeIn>
               <div className="text-center mb-12 max-w-2xl mx-auto">
                 <HelpCircle className="w-10 h-10 text-cta-500 mx-auto mb-4" />
@@ -54,7 +61,6 @@ export default function FaqPage() {
               <div className="space-y-4">
                 {faqs.map((faq, index) => (
                   <FadeIn key={index}>
-                    {/* BLOC VERT PRIMAIRE */}
                     <div className="bg-primary-50 dark:bg-primary-800 border border-primary-100 dark:border-primary-700 rounded-2xl overflow-hidden shadow-sm">
                       <button
                         onClick={() => setOpenIndex(openIndex === index ? null : index)}

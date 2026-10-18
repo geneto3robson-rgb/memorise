@@ -2,19 +2,31 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { protectedProcedure, router } from "../init";
 import { db } from "@/db";
-import { profiles } from "@/db/schema";
+import { profiles, filieres } from "@/db/schema";
 
 export const profileRouter = router({
   get: protectedProcedure.query(async ({ ctx }) => {
-    const [p] = await db.select().from(profiles).where(eq(profiles.userId, ctx.session.user.id));
-    return { profile: p || null };
+    // 👇 On fait une jointure pour récupérer le code de la filière
+    const [p] = await db
+      .select({ 
+        profile: profiles, 
+        filiereCode: filieres.code 
+      })
+      .from(profiles)
+      .leftJoin(filieres, eq(profiles.filiereId, filieres.id))
+      .where(eq(profiles.userId, ctx.session.user.id));
+      
+    return { 
+      profile: p?.profile || null, 
+      filiereCode: p?.filiereCode || null 
+    };
   }),
 
   update: protectedProcedure
     .input(
       z.object({
         role: z.string().optional(),
-        filiereId: z.number().nullish(),
+        filiereCode: z.string().nullish(), // 👈 On demande le CODE (ex: "TCO") et non l'ID
         parcours: z.string().optional(),
         facebook: z.string().optional(),
         linkedin: z.string().optional(),
@@ -26,9 +38,16 @@ export const profileRouter = router({
     .mutation(async ({ input, ctx }) => {
       const existingProfile = await db.select().from(profiles).where(eq(profiles.userId, ctx.session.user.id));
 
+      // 👇 On cherche l'ID numérique correspondant au code envoyé par le frontend
+      let finalFiliereId: number | null = null;
+      if (input.filiereCode) {
+        const [f] = await db.select().from(filieres).where(eq(filieres.code, input.filiereCode));
+        if (f) finalFiliereId = f.id;
+      }
+
       const profileData = {
         role: input.role || "etudiant",
-        filiereId: input.filiereId ?? null,
+        filiereId: finalFiliereId, // 👈 On enregistre le bon ID numérique en BDD
         parcours: input.parcours || null,
         facebook: input.facebook || null,
         linkedin: input.linkedin || null,

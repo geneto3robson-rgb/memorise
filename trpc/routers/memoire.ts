@@ -11,9 +11,17 @@ function slugify(text: string) {
 }
 
 export const memoireRouter = router({
+  // 👇 CORRECTION 1 : On renvoie le filiereCode pour le frontend
   myProfile: protectedProcedure.query(async ({ ctx }) => {
-    const [profile] = await db.select().from(profiles).where(eq(profiles.userId, ctx.session.user.id));
-    return profile ?? null;
+    const [row] = await db.select({ 
+      profile: profiles, 
+      filiereCode: filieres.code 
+    })
+    .from(profiles)
+    .leftJoin(filieres, eq(profiles.filiereId, filieres.id))
+    .where(eq(profiles.userId, ctx.session.user.id));
+    
+    return row ? { ...row.profile, filiereCode: row.filiereCode } : null;
   }),
 
   notifyProfileIncomplete: protectedProcedure.mutation(async ({ ctx }) => {
@@ -51,7 +59,7 @@ export const memoireRouter = router({
         .from(memoires)
         .leftJoin(filieres, eq(memoires.filiereId, filieres.id))
         .leftJoin(user, eq(memoires.userId, user.id))
-        .orderBy(desc(memoires.id)); // Tri par défaut
+        .orderBy(desc(memoires.id));
 
       return rows.filter((r) => {
         const q = input.search.toLowerCase().trim();
@@ -101,6 +109,7 @@ export const memoireRouter = router({
       return { ...row, keywords: kws.map((k) => k.name ?? "").filter(Boolean) };
     }),
 
+  // 👇 CORRECTION 2 : Sécurité à la création
   create: protectedProcedure.input(z.object({
         title: z.string().min(3), summary: z.string().min(10), filiereCode: z.string().min(1),
         domaine: z.string().optional(), parcours: z.string().optional(), niveau: z.string().min(1),
@@ -108,8 +117,21 @@ export const memoireRouter = router({
         image: z.string().optional(), keywords: z.array(z.string()).default([]),
         facebook: z.string().optional(), linkedin: z.string().optional(), whatsapp: z.string().optional(),
       })).mutation(async ({ input, ctx }) => {
-      const [filiere] = await db.select().from(filieres).where(eq(filieres.code, input.filiereCode));
-      if (!filiere) throw new TRPCError({ code: "BAD_REQUEST", message: "Filière introuvable." });
+      
+      // On récupère le profil
+      const [userProfile] = await db.select().from(profiles).where(eq(profiles.userId, ctx.session.user.id));
+      
+      let finalFiliereId: number;
+
+      // Si le profil a une filière, on l'impose. Sinon, on utilise celle du formulaire.
+      if (userProfile && userProfile.filiereId) {
+        finalFiliereId = userProfile.filiereId;
+      } else {
+        const [filiere] = await db.select().from(filieres).where(eq(filieres.code, input.filiereCode));
+        if (!filiere) throw new TRPCError({ code: "BAD_REQUEST", message: "Filière introuvable." });
+        finalFiliereId = filiere.id;
+      }
+
       const existing = await db.select({ count: sql<number>`count(*)` }).from(memoires).where(eq(memoires.userId, ctx.session.user.id));
       if (Number(existing[0].count) >= 3) throw new TRPCError({ code: "FORBIDDEN", message: "Vous avez atteint la limite de 3 publications." });
 
@@ -119,7 +141,7 @@ export const memoireRouter = router({
           annee: input.annee, niveau: input.niveau, encadreur: input.encadreur,
           domaine: input.domaine ?? null, parcours: input.parcours ?? null,
           facebook: input.facebook ?? null, linkedin: input.linkedin ?? null, whatsapp: input.whatsapp ?? null,
-          userId: ctx.session.user.id, filiereId: filiere.id,
+          userId: ctx.session.user.id, filiereId: finalFiliereId, // Utilisation de la filière sécurisée
         }).returning();
 
       for (const raw of input.keywords) {
@@ -134,6 +156,7 @@ export const memoireRouter = router({
       return memoire;
     }),
 
+  // 👇 CORRECTION 3 : Sécurité à la modification
   update: protectedProcedure.input(z.object({
         slug: z.string(), title: z.string().min(3), summary: z.string().min(10), filiereCode: z.string().min(1),
         domaine: z.string().optional(), parcours: z.string().optional(), niveau: z.string().min(1),
@@ -144,15 +167,24 @@ export const memoireRouter = router({
       const [row] = await db.select({ id: memoires.id, userId: memoires.userId }).from(memoires).where(eq(memoires.slug, input.slug));
       if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Mémoire introuvable." });
       if (row.userId !== ctx.session.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "Non autorisé." });
-      const [filiere] = await db.select().from(filieres).where(eq(filieres.code, input.filiereCode));
-      if (!filiere) throw new TRPCError({ code: "BAD_REQUEST", message: "Filière introuvable." });
+      
+      const [userProfile] = await db.select().from(profiles).where(eq(profiles.userId, ctx.session.user.id));
+      let finalFiliereId: number;
+
+      if (userProfile && userProfile.filiereId) {
+        finalFiliereId = userProfile.filiereId;
+      } else {
+        const [filiere] = await db.select().from(filieres).where(eq(filieres.code, input.filiereCode));
+        if (!filiere) throw new TRPCError({ code: "BAD_REQUEST", message: "Filière introuvable." });
+        finalFiliereId = filiere.id;
+      }
 
       await db.update(memoires).set({
           title: input.title, summary: input.summary, image: input.image ?? null,
           annee: input.annee, niveau: input.niveau, encadreur: input.encadreur,
           domaine: input.domaine ?? null, parcours: input.parcours ?? null,
           facebook: input.facebook ?? null, linkedin: input.linkedin ?? null, whatsapp: input.whatsapp ?? null,
-          filiereId: filiere.id,
+          filiereId: finalFiliereId,
         }).where(eq(memoires.id, row.id));
 
       await db.delete(memoireKeywords).where(eq(memoireKeywords.memoireId, row.id));
