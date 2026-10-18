@@ -10,7 +10,13 @@ export const auth = betterAuth({
     schema: { user, session, account, verification },
   }),
   emailAndPassword: { enabled: true },
-  trustedOrigins: ["http://localhost:3000"],
+  trustedOrigins: ["http://localhost:3000", "http://localhost:3001"],
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
   databaseHooks: {
     user: {
       create: {
@@ -21,7 +27,7 @@ export const auth = betterAuth({
               role: "etudiant",
             });
           } catch (error) {
-            console.error("Erreur lors de la création du profil :", error);
+            console.error("Erreur profil:", error);
           }
         },
       },
