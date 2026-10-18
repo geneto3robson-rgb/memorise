@@ -27,6 +27,7 @@ export const adminRouter = router({
     const recentMemoires = await db
       .select({
         id: memoires.id,
+        slug: memoires.slug,
         title: memoires.title,
         createdAt: memoires.createdAt,
         authorName: user.name,
@@ -45,6 +46,24 @@ export const adminRouter = router({
     };
   }),
 
+    // Lister tous les mémoires
+  listAllMemoires: adminProcedure.query(async () => {
+    return db
+      .select({
+        id: memoires.id,
+        slug: memoires.slug,
+        title: memoires.title,
+        annee: memoires.annee,
+        niveau: memoires.niveau,
+        authorName: user.name,
+        filiereName: filieres.name,
+      })
+      .from(memoires)
+      .leftJoin(user, eq(memoires.userId, user.id))
+      .leftJoin(filieres, eq(memoires.filiereId, filieres.id))
+      .orderBy(desc(memoires.createdAt));
+  }),
+
   // Lister tous les utilisateurs (pour la page Utilisateurs)
   listUsers: adminProcedure.query(async () => {
     return db
@@ -60,4 +79,12 @@ export const adminRouter = router({
       .leftJoin(profiles, eq(user.id, profiles.userId))
       .orderBy(desc(user.createdAt));
   }),
+
+   // Supprimer un mémoire (Modération)
+  deleteMemoire: adminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.delete(memoires).where(eq(memoires.id, input.id));
+      return { success: true };
+    }),
 });

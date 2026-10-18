@@ -151,7 +151,7 @@ export default function ExplorerPage() {
             priority
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-primary-950/85" />
+          <div className="absolute inset-0 bg-primary-950/60" />
           
           <Container className="relative z-10 py-16">
             <div className="max-w-2xl">
@@ -179,8 +179,9 @@ export default function ExplorerPage() {
         </section>
       )}
 
-      <main className={`pb-16 bg-[#f7faf9] dark:bg-primary-950 min-h-screen relative z-20 ${!session ? '-mt-8' : 'pt-28'}`}>
-        <Container className="pt-8 md:pt-12">
+      {/* CHANGEMENT ICI : on remplace '-mt-8' par 'pt-8' pour laisser un espace */}
+      <main className={`pb-16 bg-[#f7faf9] dark:bg-primary-950 min-h-screen relative z-20 ${!session ? 'pt-8' : 'pt-24'}`}>
+        <Container>
           
           {session && (
             <div className="mb-8">
@@ -193,17 +194,19 @@ export default function ExplorerPage() {
             </div>
           )}
 
-          {/* 👇 BARRE DE RECHERCHE SÉPARÉE ET PLACÉE AU-DESSUS DES FILTRES */}
-          <div className="relative max-w-2xl mb-6">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un mémoire, un auteur..."
-              className="w-full h-12 pl-12 pr-4 bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-full text-base text-primary-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-sm"
-            />
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-600" />
-          </div>
+          {/* BARRE DE RECHERCHE (Uniquement pour les connectés) */}
+          {session && (
+            <div className="relative max-w-2xl mb-6">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher un mémoire, un auteur..."
+                className="w-full h-12 pl-12 pr-4 bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-full text-base text-primary-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-sm"
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-600" />
+            </div>
+          )}
 
           <div className="bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-3xl p-5 mb-8 shadow-sm">
             <div className="flex items-center gap-2 mb-4 text-primary-900 dark:text-white font-semibold border-b border-neutral-100 dark:border-neutral-800 pb-3">
@@ -211,8 +214,6 @@ export default function ExplorerPage() {
             </div>
             
             <div className="flex flex-wrap items-center gap-3 mb-5">
-              {/* La barre de recherche a été retirée d'ici */}
-
               <div className="relative min-w-[140px]">
                 <select value={sort} onChange={(e) => setSort(e.target.value as any)} className={filterInputClass}>
                   <option value="recent">Plus récents</option>
@@ -300,6 +301,7 @@ export default function ExplorerPage() {
               {paginated.map((project) => <ProjectCard key={project.id} project={project} onOpen={(slug) => setSelectedSlug(slug)} />)}
             </div>
           )}
+
         </Container>
       </main>
 
