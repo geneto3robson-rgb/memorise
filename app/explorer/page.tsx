@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { SlidersHorizontal, ChevronDown } from "lucide-react"; // 👈 Ajout de ChevronDown
+import { SlidersHorizontal, ChevronDown, Search } from "lucide-react"; 
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 import { MemoireModal } from "@/components/memoire/MemoireModal";
 import { filieres } from "@/lib/data/filieres";
 import { trpc } from "@/trpc/client";
 import { domainesParFiliere } from "@/lib/data/domaines";
+import { authClient } from "@/lib/auth-client";
 
 const PER_PAGE = 16;
 const niveaux = ["L3", "M2"];
@@ -37,13 +39,13 @@ const parcoursParFiliere: Record<string, string[]> = {
   TCO: ["STI", "RS", "RC"],
 };
 
-// 👇 Classe commune pour tous les filtres (même hauteur, même padding)
 const filterInputClass = "h-10 pl-4 pr-10 bg-neutral-50 dark:bg-primary-800 border border-neutral-200 dark:border-neutral-700 rounded-full text-sm font-medium text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500 appearance-none w-full";
 
 export default function ExplorerPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: session } = authClient.useSession();
   
   const initialFiliere = searchParams.get("filiere") ?? "";
   const initialParcours = searchParams.get("parcours") ?? "";
@@ -140,117 +142,166 @@ export default function ExplorerPage() {
 
   return (
     <>
-      <Container className="py-8 md:py-12">
-        <div className="bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-3xl p-5 mb-8 shadow-sm">
-          <div className="flex items-center gap-2 mb-4 text-primary-900 dark:text-white font-semibold border-b border-neutral-100 dark:border-neutral-800 pb-3">
-            <SlidersHorizontal className="w-4 h-4" /> Filtres de recherche
-          </div>
+      {!session && (
+        <section className="relative min-h-[400px] flex items-center pt-24">
+          <Image
+            src="/images/hero-bg.jpg"
+            alt="Étudiant consultant un mémoire"
+            fill
+            priority
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-primary-950/85" />
           
-          <div className="flex flex-wrap items-center gap-3 mb-5">
-            
-            {/* TRI */}
-            <div className="relative min-w-[140px]">
-              <select 
-                value={sort} 
-                onChange={(e) => setSort(e.target.value as any)} 
-                className={filterInputClass}
-              >
-                <option value="recent">Plus récents</option>
-                <option value="oldest">Plus anciens</option>
-                <option value="alphabetical">Titre (A-Z)</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
-            </div>
-
-            {/* NIVEAU */}
-            <div className="relative min-w-[150px]">
-              <select 
-                value={niveau} 
-                onChange={(e) => setNiveau(e.target.value)} 
-                className={filterInputClass}
-              >
-                <option value="">Tous les niveaux</option>
-                {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
-            </div>
-
-            {/* ANNÉE ET INPUT GROUPÉS */}
-            <div className="flex items-center gap-2">
-              <div className="relative min-w-[160px]">
-                <select 
-                  value={showCustomYear ? "custom" : annee} 
-                  onChange={handleYearChange} 
-                  className={filterInputClass}
-                >
-                  <option value="">Toutes les années</option>
-                  {annees.map(a => <option key={a} value={a}>{a}</option>)}
-                  <option value="custom">Autre année...</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
-              </div>
-
-              {showCustomYear && (
+          <Container className="relative z-10 py-16">
+            <div className="max-w-2xl">
+              <h1 className="text-4xl md:text-5xl font-bold text-white font-heading mb-4">
+                Explorer les mémoires
+              </h1>
+              <p className="text-lg text-white/90 mb-8">
+                Parcourez le catalogue des travaux de fin d'études de l'ESPA et trouvez l'inspiration pour votre propre projet.
+              </p>
+              
+              <div className="relative">
                 <input
-                  type="number"
-                  placeholder="Ex: 2021"
-                  value={annee || ""}
-                  onChange={(e) => setAnnee(e.target.value ? Number(e.target.value) : "")}
-                  className="h-10 w-28 pl-4 pr-4 bg-neutral-50 dark:bg-primary-800 border border-neutral-200 dark:border-neutral-700 rounded-full text-sm font-medium text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500"
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Rechercher un mémoire, un auteur..."
+                  className="w-full px-6 py-4 pr-14 rounded-full bg-white text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-xl text-lg"
                 />
-              )}
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 bg-cta-500 p-3 rounded-full">
+                  <Search className="w-5 h-5 text-primary-900" />
+                </div>
+              </div>
             </div>
+          </Container>
+        </section>
+      )}
 
-            <button onClick={resetFilters} className="text-sm font-medium text-neutral-500 hover:text-error-500 transition-colors ml-auto">Réinitialiser tout</button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-3">
-            <button onClick={() => changeFiliere("")} className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${filiereCode === "" ? "bg-primary-900 dark:bg-cta-500 text-white dark:text-primary-900" : "bg-neutral-100 dark:bg-primary-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-primary-700"}`}>Toutes les filières</button>
-            {filieres.map((f) => (
-              <button key={f.id} onClick={() => changeFiliere(f.code)} className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${filiereCode === f.code ? "bg-primary-900 dark:bg-cta-500 text-white dark:text-primary-900" : "bg-neutral-100 dark:bg-primary-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-primary-700"}`}>{f.code}</button>
-            ))}
-          </div>
-
-          {(domainesDisponibles.length > 0 || parcoursDisponibles.length > 0) && (
-            <div className="space-y-2 mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
-              {parcoursDisponibles.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wide mr-2">Parcours :</span>
-                  <button onClick={() => changeParcours("")} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${parcours === "" ? "bg-cta-500 text-primary-900" : "border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:border-cta-500"}`}>Tous</button>
-                  {parcoursDisponibles.map((p) => (
-                    <button key={p} onClick={() => changeParcours(p)} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${parcours === p ? "bg-cta-500 text-primary-900" : "border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:border-cta-500"}`}>{p}</button>
-                  ))}
-                </div>
-              )}
-              {domainesDisponibles.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wide mr-2">Domaine :</span>
-                  <button onClick={() => setDomaine("")} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${domaine === "" ? "bg-cta-500 text-primary-900" : "border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:border-cta-500"}`}>Tous</button>
-                  {domainesDisponibles.map((d) => (
-                    <button key={d} onClick={() => setDomaine(d)} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${domaine === d ? "bg-cta-500 text-primary-900" : "border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:border-cta-500"}`}>{d}</button>
-                  ))}
-                </div>
-              )}
+      <main className={`pb-16 bg-[#f7faf9] dark:bg-primary-950 min-h-screen relative z-20 ${!session ? '-mt-8' : 'pt-28'}`}>
+        <Container className="pt-8 md:pt-12">
+          
+          {session && (
+            <div className="mb-8">
+              <h1 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-2">
+                Explorer les mémoires
+              </h1>
+              <p className="text-primary-700 dark:text-neutral-400">
+                Parcourez le catalogue des travaux de fin d'études de l'ESPA.
+              </p>
             </div>
           )}
-        </div>
 
-        <p className="text-sm font-medium text-neutral-500 mb-6">{formatted.length} mémoire{formatted.length > 1 ? "s" : ""} trouvé{formatted.length > 1 ? "s" : ""}</p>
-        
-        {isLoading ? (
-          <p className="text-center text-neutral-500 py-12">Chargement…</p>
-        ) : formatted.length === 0 ? (
-          <div className="rounded-3xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-primary-900/50 p-12 text-center">
-            <h3 className="text-lg font-bold text-primary-900 dark:text-white mb-2">Aucun mémoire trouvé</h3>
-            <p className="text-neutral-500 mb-6">Essayez de modifier vos critères de recherche.</p>
-            <button onClick={resetFilters} className="px-6 py-2.5 rounded-full border-2 border-primary-900 dark:border-white text-primary-900 dark:text-white text-sm font-semibold hover:bg-primary-900 hover:text-white transition-colors">Réinitialiser les filtres</button>
+          {/* 👇 BARRE DE RECHERCHE SÉPARÉE ET PLACÉE AU-DESSUS DES FILTRES */}
+          <div className="relative max-w-2xl mb-6">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher un mémoire, un auteur..."
+              className="w-full h-12 pl-12 pr-4 bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-full text-base text-primary-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-sm"
+            />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-600" />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {paginated.map((project) => <ProjectCard key={project.id} project={project} onOpen={(slug) => setSelectedSlug(slug)} />)}
+
+          <div className="bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-3xl p-5 mb-8 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 text-primary-900 dark:text-white font-semibold border-b border-neutral-100 dark:border-neutral-800 pb-3">
+              <SlidersHorizontal className="w-4 h-4" /> Filtres de recherche
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-3 mb-5">
+              {/* La barre de recherche a été retirée d'ici */}
+
+              <div className="relative min-w-[140px]">
+                <select value={sort} onChange={(e) => setSort(e.target.value as any)} className={filterInputClass}>
+                  <option value="recent">Plus récents</option>
+                  <option value="oldest">Plus anciens</option>
+                  <option value="alphabetical">Titre (A-Z)</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-600 pointer-events-none" />
+              </div>
+
+              <div className="relative min-w-[150px]">
+                <select value={niveau} onChange={(e) => setNiveau(e.target.value)} className={filterInputClass}>
+                  <option value="">Tous les niveaux</option>
+                  {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-600 pointer-events-none" />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative min-w-[160px]">
+                  <select value={showCustomYear ? "custom" : annee} onChange={handleYearChange} className={filterInputClass}>
+                    <option value="">Toutes les années</option>
+                    {annees.map(a => <option key={a} value={a}>{a}</option>)}
+                    <option value="custom">Autre année...</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-600 pointer-events-none" />
+                </div>
+
+                {showCustomYear && (
+                  <input
+                    type="number"
+                    placeholder="Ex: 2021"
+                    value={annee || ""}
+                    onChange={(e) => setAnnee(e.target.value ? Number(e.target.value) : "")}
+                    className="h-10 w-28 pl-4 pr-4 bg-neutral-50 dark:bg-primary-800 border border-neutral-200 dark:border-neutral-700 rounded-full text-sm font-medium text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500"
+                  />
+                )}
+              </div>
+
+              <button onClick={resetFilters} className="text-sm font-medium text-primary-600 hover:text-error-500 transition-colors ml-auto">Réinitialiser tout</button>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-3">
+              <button onClick={() => changeFiliere("")} className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${filiereCode === "" ? "bg-primary-900 dark:bg-cta-500 text-white dark:text-primary-900" : "bg-neutral-100 dark:bg-primary-800 text-primary-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-primary-700"}`}>Toutes les filières</button>
+              {filieres.map((f) => (
+                <button key={f.id} onClick={() => changeFiliere(f.code)} className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${filiereCode === f.code ? "bg-primary-900 dark:bg-cta-500 text-white dark:text-primary-900" : "bg-neutral-100 dark:bg-primary-800 text-primary-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-primary-700"}`}>{f.code}</button>
+              ))}
+            </div>
+
+            {(domainesDisponibles.length > 0 || parcoursDisponibles.length > 0) && (
+              <div className="space-y-2 mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                {parcoursDisponibles.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-medium text-primary-700 uppercase tracking-wide mr-2">Parcours :</span>
+                    <button onClick={() => changeParcours("")} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${parcours === "" ? "bg-cta-500 text-primary-900" : "border border-neutral-200 dark:border-neutral-700 text-primary-700 hover:border-cta-500"}`}>Tous</button>
+                    {parcoursDisponibles.map((p) => (
+                      <button key={p} onClick={() => changeParcours(p)} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${parcours === p ? "bg-cta-500 text-primary-900" : "border border-neutral-200 dark:border-neutral-700 text-primary-700 hover:border-cta-500"}`}>{p}</button>
+                    ))}
+                  </div>
+                )}
+                {domainesDisponibles.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-medium text-primary-700 uppercase tracking-wide mr-2">Domaine :</span>
+                    <button onClick={() => setDomaine("")} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${domaine === "" ? "bg-cta-500 text-primary-900" : "border border-neutral-200 dark:border-neutral-700 text-primary-700 hover:border-cta-500"}`}>Tous</button>
+                    {domainesDisponibles.map((d) => (
+                      <button key={d} onClick={() => setDomaine(d)} className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${domaine === d ? "bg-cta-500 text-primary-900" : "border border-neutral-200 dark:border-neutral-700 text-primary-700 hover:border-cta-500"}`}>{d}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </Container>
+
+          <p className="text-sm font-medium text-primary-700 mb-6">{formatted.length} mémoire{formatted.length > 1 ? "s" : ""} trouvé{formatted.length > 1 ? "s" : ""}</p>
+          
+          {isLoading ? (
+            <p className="text-center text-primary-600 py-12">Chargement…</p>
+          ) : formatted.length === 0 ? (
+            <div className="rounded-3xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-primary-900/50 p-12 text-center">
+              <h3 className="text-lg font-bold text-primary-900 dark:text-white mb-2">Aucun mémoire trouvé</h3>
+              <p className="text-primary-600 mb-6">Essayez de modifier vos critères de recherche.</p>
+              <button onClick={resetFilters} className="px-6 py-2.5 rounded-full border-2 border-primary-900 dark:border-white text-primary-900 dark:text-white text-sm font-semibold hover:bg-primary-900 hover:text-white transition-colors">Réinitialiser les filtres</button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginated.map((project) => <ProjectCard key={project.id} project={project} onOpen={(slug) => setSelectedSlug(slug)} />)}
+            </div>
+          )}
+        </Container>
+      </main>
 
       <MemoireModal slug={selectedSlug} onClose={() => setSelectedSlug(null)} />
     </>
