@@ -10,7 +10,6 @@ import { domainesParFiliere } from "@/lib/data/domaines";
 import { trpc } from "@/trpc/client";
 import { authClient } from "@/lib/auth-client";
 
-// --- LES VRAIS LOGOS SVG ---
 function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -32,7 +31,6 @@ function WhatsappIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-// ---------------------------
 
 function formatWhatsAppInput(value: string) {
   let cleaned = value.replace(/\D/g, "");
@@ -115,6 +113,11 @@ export default function PublierPage() {
       setFacebook(myProfile.facebook ?? "");
       setLinkedin(myProfile.linkedin ?? "");
       if (myProfile.whatsapp) setWhatsapp(formatWhatsAppInput(myProfile.whatsapp));
+      
+      // 👇 SÉCURITÉ FRONTEND : On force la filière du profil
+      if (myProfile.filiereCode) {
+        setFiliereCode(myProfile.filiereCode);
+      }
     }
   }, [myProfile, isEditMode]);
 
@@ -271,10 +274,21 @@ export default function PublierPage() {
             <div className="grid sm:grid-cols-2 gap-6">
               <div>
                 <label className={labelClass}>Filière *</label>
-                <select value={filiereCode} onChange={(e) => { setFiliereCode(e.target.value); setDomaine(""); }} disabled={isSubmitting || limiteAtteinte} className={inputClass}>
+                {/* 👇 SÉCURITÉ : Le champ est désactivé si l'utilisateur a une filière */}
+                <select 
+                  value={filiereCode} 
+                  onChange={(e) => { setFiliereCode(e.target.value); setDomaine(""); }} 
+                  disabled={isSubmitting || limiteAtteinte || !!myProfile?.filiereCode} 
+                  className={inputClass}
+                >
                   <option value="">Sélectionner…</option>
                   {filieres.map((f) => <option key={f.id} value={f.code}>{f.code} — {f.name}</option>)}
                 </select>
+                {myProfile?.filiereCode && (
+                  <p className="text-xs text-cta-600 dark:text-cta-400 mt-1 flex items-center gap-1">
+                    <Info className="w-3 h-3" /> Filière liée à votre profil
+                  </p>
+                )}
               </div>
 
               <div>

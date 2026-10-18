@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { User, Lock, Bell, Palette, Shield, Moon, Sun, Upload } from "lucide-react";
+import { useRouter } from "next/navigation"; // 👈 Ajout du router
+import { User, Lock, Bell, Palette, Shield, Moon, Sun, Upload, ChevronDown } from "lucide-react";
 import { Container } from "@/components/layout/Container";
 import { filieres } from "@/lib/data/filieres";
 import { useTheme } from "@/lib/theme-context";
 import { trpc } from "@/trpc/client";
+import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 
 function FacebookIcon({ className }: { className?: string }) {
@@ -42,6 +44,7 @@ const inputClass =
   "w-full px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500 focus:border-cta-500 transition-colors shadow-sm disabled:opacity-50";
 const iconInputClass =
   "w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500 focus:border-cta-500 transition-colors shadow-sm disabled:opacity-50";
+const selectClass = `${inputClass} appearance-none pr-10 cursor-pointer`;
 const labelClass = "block text-xs font-medium text-neutral-500 mb-1.5";
 const btnPrimary =
   "px-6 py-2.5 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold transition-colors disabled:opacity-50";
@@ -59,6 +62,7 @@ const sections = [
 type SectionId = (typeof sections)[number]["id"];
 
 export default function ParametresPage() {
+  const router = useRouter(); // 👈 Initialisation
   const { theme, toggle } = useTheme();
   const [active, setActive] = useState<SectionId>("profil");
 
@@ -78,7 +82,6 @@ export default function ParametresPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // États pour le mot de passe
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -96,10 +99,13 @@ export default function ParametresPage() {
   useEffect(() => {
     if (data?.profile) {
       setRole(data.profile.role === "etudiant" ? roles[0] : data.profile.role || roles[0]);
-      if (data.profile.filiereId) {
-        const f = filieres.find((x) => x.id === data.profile?.filiereId);
-        if (f) setFiliereCode(f.code);
+      
+      if (data.filiereCode) {
+        setFiliereCode(data.filiereCode);
+      } else {
+        setFiliereCode("");
       }
+
       setParcours(data.profile.parcours || "");
       setFacebook(data.profile.facebook || "");
       setLinkedin(data.profile.linkedin || "");
@@ -149,14 +155,6 @@ export default function ParametresPage() {
     setFeedback("");
     setIsSaving(true);
 
-    let finalFiliereId: number | undefined = undefined;
-    if (filiereCode) {
-      const foundFiliere = filieres.find((f) => f.code === filiereCode);
-      if (foundFiliere && foundFiliere.id) {
-        finalFiliereId = Number(foundFiliere.id);
-      }
-    }
-
     const finalWhatsapp = whatsapp ? `+261${formatWhatsAppInput(whatsapp)}` : undefined;
 
     try {
@@ -167,7 +165,7 @@ export default function ParametresPage() {
 
       updateProfile.mutate({
         role: role === roles[0] ? "etudiant" : role,
-        filiereId: finalFiliereId,
+        filiereCode: filiereCode || null,
         parcours,
         facebook,
         linkedin,
@@ -208,6 +206,12 @@ export default function ParametresPage() {
     } catch (err) {
       setPassFeedback("Une erreur inattendue est survenue.");
     }
+  };
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    router.push("/"); // 👈 Redirection propre
+    router.refresh(); // 👈 Rafraîchit les données de session
   };
 
   return (
@@ -301,12 +305,15 @@ export default function ParametresPage() {
                   <div className="grid sm:grid-cols-2 gap-5">
                     <div>
                       <label className={labelClass}>Filière</label>
-                      <select value={filiereCode} onChange={(e) => setFiliereCode(e.target.value)} className={inputClass} disabled={isSaving}>
-                        <option value="">Sélectionner…</option>
-                        {filieres.map((f) => (
-                          <option key={f.id} value={f.code}>{f.code} — {f.name}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select value={filiereCode} onChange={(e) => setFiliereCode(e.target.value)} className={selectClass} disabled={isSaving}>
+                          <option value="">Sélectionner…</option>
+                          {filieres.map((f) => (
+                            <option key={f.id} value={f.code}>{f.code} — {f.name}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+                      </div>
                     </div>
                     <div>
                       <label className={labelClass}>Parcours</label>
@@ -316,9 +323,12 @@ export default function ParametresPage() {
 
                   <div>
                     <label className={labelClass}>Statut</label>
-                    <select value={role} onChange={(e) => setRole(e.target.value)} className={inputClass} disabled={isSaving}>
-                      {roles.map((r) => <option key={r} value={r}>{r}</option>)}
-                    </select>
+                    <div className="relative">
+                      <select value={role} onChange={(e) => setRole(e.target.value)} className={selectClass} disabled={isSaving}>
+                        {roles.map((r) => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+                    </div>
                   </div>
 
                   <div>
@@ -375,7 +385,7 @@ export default function ParametresPage() {
 
                   <div className="pt-6 mt-6 border-t border-neutral-200 dark:border-neutral-700 flex flex-wrap items-center justify-between gap-3">
                     <p className="text-xs text-neutral-500">Déconnecter cet appareil.</p>
-                    <button onClick={() => authClient.signOut().then(() => (window.location.href = "/"))} type="button" className="px-5 py-2 rounded-full border-2 border-error-200 dark:border-error-800 text-error-600 dark:text-error-400 text-sm font-medium hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">Déconnexion</button>
+                    <button onClick={handleLogout} type="button" className="px-5 py-2 rounded-full border-2 border-error-200 dark:border-error-800 text-error-600 dark:text-error-400 text-sm font-medium hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors">Déconnexion</button>
                   </div>
                 </div>
               </>
@@ -421,8 +431,13 @@ export default function ParametresPage() {
                   <h2 className="text-lg font-semibold text-primary-900 dark:text-white">Confidentialité et compte</h2>
                 </header>
                 <div className="space-y-3">
-                  <a href="/confidentialite" className="block text-sm text-primary-900 dark:text-white hover:text-cta-600 transition-colors">Politique de confidentialité</a>
-                  <a href="/conditions" className="block text-sm text-primary-900 dark:text-white hover:text-cta-600 transition-colors">Conditions d'utilisation</a>
+                  {/* 👇 CORRECTION ICI : Utilisation de Link au lieu de <a> */}
+                  <Link href="/confidentialite" className="block text-sm text-primary-900 dark:text-white hover:text-cta-600 transition-colors">
+                    Politique de confidentialité
+                  </Link>
+                  <Link href="/conditions" className="block text-sm text-primary-900 dark:text-white hover:text-cta-600 transition-colors">
+                    Conditions d'utilisation
+                  </Link>
                 </div>
                 <div className="mt-8 pt-6 border-t border-error-200 dark:border-error-800">
                   <p className="text-xs text-error-600 dark:text-error-400 mb-3">La suppression du compte est définitive. Vos publications et favoris seront perdus.</p>

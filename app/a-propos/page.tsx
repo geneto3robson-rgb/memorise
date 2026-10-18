@@ -1,16 +1,30 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/layout/Container";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { BookOpen, Target, Users, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BookOpen, Target, Users, ShieldCheck } from "lucide-react";
 
 export default function AProposPage() {
+  const router = useRouter();
+
   return (
     <>
       <Navbar />
       <main className="pt-24 pb-16 bg-[#f7faf9] dark:bg-primary-950 min-h-screen">
         <Container>
           <div className="max-w-6xl mx-auto">
+            
+            {/* BOUTON RETOUR */}
+            <button 
+              onClick={() => router.back()} 
+              className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-300 hover:text-cta-500 transition-colors mb-6"
+            >
+              <ArrowLeft className="w-4 h-4" /> Retour
+            </button>
+
             <FadeIn>
               <div className="text-center mb-16 max-w-3xl mx-auto">
                 <h1 className="text-4xl md:text-5xl font-bold text-primary-950 dark:text-white font-heading mb-6">
@@ -24,7 +38,6 @@ export default function AProposPage() {
 
             <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
               <FadeIn>
-                {/* BLOC VERT PRIMAIRE */}
                 <div className="space-y-8 bg-primary-50 dark:bg-primary-800 p-8 rounded-3xl border border-primary-100 dark:border-primary-700 shadow-sm">
                   <div>
                     <div className="flex items-center gap-3 mb-3">

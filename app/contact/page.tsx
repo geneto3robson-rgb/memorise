@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/layout/Container";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { Mail, Send, CheckCircle2, MapPin, Phone } from "lucide-react";
+import { ArrowLeft, Mail, Send, CheckCircle2, MapPin, Phone } from "lucide-react";
 
 export default function ContactPage() {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -29,6 +31,11 @@ export default function ContactPage() {
       <main className="pt-24 pb-16 bg-[#f7faf9] dark:bg-primary-950 min-h-screen">
         <Container>
           <div className="max-w-5xl mx-auto">
+            {/* BOUTON RETOUR */}
+            <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-300 hover:text-cta-500 transition-colors mb-6">
+              <ArrowLeft className="w-4 h-4" /> Retour
+            </button>
+
             <FadeIn>
               <div className="text-center mb-16 max-w-2xl mx-auto">
                 <h1 className="text-4xl font-bold text-primary-950 dark:text-white font-heading mb-4">Contactez-nous</h1>
@@ -38,7 +45,6 @@ export default function ContactPage() {
 
             <div className="grid md:grid-cols-2 gap-10 items-start">
               <FadeIn>
-                {/* BLOC VERT PRIMAIRE */}
                 <div className="bg-primary-50 dark:bg-primary-800 p-8 rounded-3xl border border-primary-100 dark:border-primary-700 shadow-sm space-y-8">
                   <h2 className="text-2xl font-bold text-primary-950 dark:text-white font-heading">Nos coordonnées</h2>
                   
@@ -75,7 +81,6 @@ export default function ContactPage() {
               </FadeIn>
 
               <FadeIn>
-                {/* BLOC VERT PRIMAIRE */}
                 <div className="bg-primary-50 dark:bg-primary-800 p-6 md:p-8 rounded-3xl border border-primary-100 dark:border-primary-700 shadow-sm">
                   {isSuccess ? (
                     <div className="text-center py-16">

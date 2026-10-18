@@ -39,6 +39,9 @@ function ConnexionForm() {
   const [confirm, setConfirm] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
+  
+  // État pour le chargement Google
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const isLogin = mode === "login";
 
@@ -46,6 +49,7 @@ function ConnexionForm() {
     setMode(next);
     setStatus("idle");
     setMessage("");
+    setGoogleLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,6 +118,20 @@ function ConnexionForm() {
     } catch {
       setStatus("error");
       setMessage("Une erreur est survenue. Veuillez réessayer.");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/tableau-de-bord",
+      });
+    } catch (error) {
+      setGoogleLoading(false);
+      setStatus("error");
+      setMessage("Erreur lors de la connexion avec Google.");
     }
   };
 
@@ -188,7 +206,7 @@ function ConnexionForm() {
                 placeholder="Nom complet"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                disabled={loading}
+                disabled={loading || googleLoading}
                 className={inputClass}
               />
             )}
@@ -197,7 +215,7 @@ function ConnexionForm() {
               placeholder="Adresse e-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
+              disabled={loading || googleLoading}
               className={inputClass}
             />
             <div className="relative">
@@ -206,7 +224,7 @@ function ConnexionForm() {
                 placeholder="Mot de passe"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
+                disabled={loading || googleLoading}
                 className={inputClass + " pr-12"}
               />
               <button
@@ -224,7 +242,7 @@ function ConnexionForm() {
                   placeholder="Confirmer le mot de passe"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  disabled={loading}
+                  disabled={loading || googleLoading}
                   className={inputClass + " pr-12"}
                 />
                 <button
@@ -249,7 +267,7 @@ function ConnexionForm() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || googleLoading}
               className="w-full flex items-center justify-center gap-2 bg-cta-500 hover:bg-cta-400 disabled:opacity-60 disabled:cursor-not-allowed text-primary-900 font-semibold rounded-full py-3 transition-colors"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -269,10 +287,11 @@ function ConnexionForm() {
 
           <button
             type="button"
-            disabled={loading}
+            onClick={handleGoogleLogin}
+            disabled={loading || googleLoading}
             className="w-full flex items-center justify-center gap-3 bg-white border border-neutral-200 text-neutral-700 font-medium rounded-full py-3 hover:bg-neutral-50 disabled:opacity-60 transition-colors"
           >
-            <GoogleIcon />
+            {googleLoading ? <Loader2 className="w-5 h-5 animate-spin text-neutral-400" /> : <GoogleIcon />}
             Google
           </button>
 

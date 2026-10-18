@@ -57,8 +57,9 @@ export const filieres: Filiere[] = [
   { id: "ge", code: "GE", name: "Génie Électrique", poleId: "gsti", href: "/explorer?filiere=GE", icon: Zap, featured: true },
   { id: "isa", code: "ISA", name: "Ingénierie des Systèmes Avancés", poleId: "gsti", href: "/explorer?filiere=ISA", icon: Cpu, featured: false },
 
-  { id: "min", code: "MIN", name: "Ingénierie Minière", poleId: "gstm", href: "/explorer?filiere=MIN", icon: Gem, featured: false },
+  // 👇 MISE À JOUR ICI : MIN -> IMIN, GGO -> GGEO, MtoH -> MTO
+  { id: "imin", code: "IMIN", name: "Ingénierie Minière", poleId: "gstm", href: "/explorer?filiere=IMIN", icon: Gem, featured: false },
   { id: "ipe", code: "IPE", name: "Ingénierie Pétrolière", poleId: "gstm", href: "/explorer?filiere=IPE", icon: Fuel, featured: false },
-  { id: "ggo", code: "GGO", name: "Génie Géologique", poleId: "gstm", href: "/explorer?filiere=GGO", icon: Mountain, featured: false },
-  { id: "mtoh", code: "MtoH", name: "Météorologie et Hydrologie", poleId: "gstm", href: "/explorer?filiere=MtoH", icon: CloudRain, featured: false },
+  { id: "ggeo", code: "GGEO", name: "Génie Géologique", poleId: "gstm", href: "/explorer?filiere=GGEO", icon: Mountain, featured: false },
+  { id: "mto", code: "MTO", name: "Météorologie et Hydrologie", poleId: "gstm", href: "/explorer?filiere=MTO", icon: CloudRain, featured: false },
 ];
