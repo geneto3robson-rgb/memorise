@@ -1,18 +1,17 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, X } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { trpc } from "@/trpc/client";
 
 type Mode = "login" | "signup";
 type Status = "idle" | "loading" | "error" | "success";
 
 const inputClass =
-  "w-full px-4 py-3 rounded-full bg-white border border-neutral-300 text-primary-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 focus:border-cta-500 transition-colors shadow-sm";
+  "w-full px-4 py-3 rounded-full bg-neutral-50 border border-neutral-200 text-primary-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 focus:bg-white transition-colors";
 
 function GoogleIcon() {
   return (
@@ -25,11 +24,13 @@ function GoogleIcon() {
   );
 }
 
-function ConnexionContent() {
+function ConnexionForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<Mode>(
-    searchParams.get("mode") === "signup" ? "signup" : "login"
-  );
+  
+  const initialMode = searchParams.get("mode") === "signup" ? "signup" : "login";
+  const [mode, setMode] = useState<Mode>(initialMode);
+  
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [name, setName] = useState("");
@@ -38,22 +39,13 @@ function ConnexionContent() {
   const [confirm, setConfirm] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
-  const isLogin = mode === "login";
 
-  const toggleFavori = trpc.favori.toggle.useMutation();
+  const isLogin = mode === "login";
 
   const switchMode = (next: Mode) => {
     setMode(next);
     setStatus("idle");
     setMessage("");
-  };
-
-  const handleClose = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.location.href = "/";
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,61 +75,69 @@ function ConnexionContent() {
     }
 
     setStatus("loading");
+
     try {
-      const res = isLogin
-        ? await authClient.signIn.email({ email, password })
-        : await authClient.signUp.email({ email, password, name });
-
-      if (res.error) {
-        setStatus("error");
-        setMessage(res.error.message ?? "Une erreur est survenue.");
-        return;
+      if (isLogin) {
+        await authClient.signIn.email({
+          email,
+          password,
+          callbackURL: "/tableau-de-bord",
+        }, {
+          onError: (ctx) => {
+            setStatus("error");
+            setMessage(ctx.error.message || "Identifiants incorrects.");
+          },
+          onSuccess: () => {
+            setStatus("success");
+            setMessage("Connexion réussie. Redirection…");
+            router.push("/tableau-de-bord");
+          }
+        });
+      } else {
+        await authClient.signUp.email({
+          email,
+          password,
+          name,
+          callbackURL: "/tableau-de-bord",
+        }, {
+          onError: (ctx) => {
+            setStatus("error");
+            setMessage(ctx.error.message || "Erreur lors de la création du compte.");
+          },
+          onSuccess: () => {
+            setStatus("success");
+            setMessage("Compte créé. Redirection…");
+            router.push("/tableau-de-bord");
+          }
+        });
       }
-
-      await new Promise((r) => setTimeout(r, 400));
-
-      const saveId = searchParams.get("save");
-      if (saveId && !Number.isNaN(Number(saveId))) {
-        try {
-          await toggleFavori.mutateAsync({ memoireId: Number(saveId) });
-        } catch {
-          // ignore
-        }
-      }
-
-      const rawRedirect = searchParams.get("redirect");
-      const target =
-        rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
-          ? rawRedirect
-          : "/tableau-de-bord";
-
-      setStatus("success");
-      setMessage(isLogin ? "Connexion réussie." : "Compte créé.");
-
-      await new Promise((r) => setTimeout(r, 600));
-      window.location.href = target;
     } catch {
       setStatus("error");
-      setMessage("Impossible de contacter le serveur.");
+      setMessage("Une erreur est survenue. Veuillez réessayer.");
     }
   };
 
   const loading = status === "loading";
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-      <Image src="/images/hero-bg.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
-      <div className="absolute inset-0 bg-primary-950/70 backdrop-blur-xl" />
+    <div className="relative min-h-screen w-full flex items-center justify-center p-4 overflow-hidden">
+      
+      {/* Faux fond flouté */}
+      <div className="absolute inset-0 bg-[url('/images/hero-bg.jpg')] bg-cover bg-center blur-sm scale-110" />
+      <div className="absolute inset-0 bg-primary-950/60 backdrop-blur-md" />
 
+      {/* Bouton Fermer (X) */}
       <button
-        onClick={handleClose}
-        className="fixed top-4 left-4 z-20 p-2.5 rounded-full bg-white/90 dark:bg-primary-900/90 backdrop-blur border border-white/20 text-primary-900 dark:text-white hover:bg-white dark:hover:bg-primary-800 transition-colors shadow-lg"
-        aria-label="Fermer"
+        onClick={() => router.push("/")}
+        className="absolute top-6 left-6 p-2 rounded-full bg-white text-primary-900 hover:bg-neutral-100 transition-colors shadow-lg z-50"
       >
         <X className="w-5 h-5" />
       </button>
 
-      <div className="relative w-full max-w-4xl h-[660px] rounded-3xl overflow-hidden shadow-2xl bg-white">
+      {/* Carte Modale avec effet de glissement */}
+      <div className="relative z-10 w-full max-w-4xl h-[680px] rounded-3xl overflow-hidden shadow-2xl bg-white">
+        
+        {/* Panneau Vert (Glissant) */}
         <div
           className={`hidden lg:flex absolute inset-y-0 w-1/2 z-10 flex-col justify-between p-10 bg-gradient-to-br from-primary-500 via-primary-700 to-primary-900 transition-all duration-[900ms] ease-in-out ${
             isLogin ? "left-0 rounded-r-[40px]" : "left-1/2 rounded-l-[40px]"
@@ -147,6 +147,7 @@ function ConnexionContent() {
             <Image src="/logo.svg" alt="MemoRise" width={40} height={40} unoptimized />
             <span className="text-xl font-bold text-white font-heading">MemoRise</span>
           </Link>
+
           <div>
             <h2 className="text-3xl font-bold text-white font-heading mb-3 leading-tight">
               {isLogin ? "Bon retour parmi nous !" : "Bienvenue sur MemoRise !"}
@@ -157,8 +158,12 @@ function ConnexionContent() {
                 : "Créez votre compte pour accéder à votre espace."}
             </p>
           </div>
+
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-white/5 blur-3xl" />
+          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-cta-500/10 blur-3xl" />
         </div>
 
+        {/* Panneau Blanc (Formulaire) */}
         <div
           className={`absolute inset-y-0 w-full lg:w-1/2 p-8 sm:p-10 flex flex-col justify-center bg-white transition-all duration-[900ms] ease-in-out ${
             isLogin ? "lg:left-1/2" : "lg:left-0"
@@ -233,7 +238,11 @@ function ConnexionContent() {
             )}
 
             {message && (
-              <p className={`text-xs text-center ${status === "error" ? "text-error-500" : "text-success-600"}`}>
+              <p
+                className={`text-xs text-center ${
+                  status === "error" ? "text-error-500" : "text-success-600"
+                }`}
+              >
                 {message}
               </p>
             )}
@@ -244,7 +253,11 @@ function ConnexionContent() {
               className="w-full flex items-center justify-center gap-2 bg-cta-500 hover:bg-cta-400 disabled:opacity-60 disabled:cursor-not-allowed text-primary-900 font-semibold rounded-full py-3 transition-colors"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {loading ? "Chargement…" : isLogin ? "Se connecter" : "Créer mon compte"}
+              {loading
+                ? "Chargement…"
+                : isLogin
+                ? "Se connecter"
+                : "Créer mon compte"}
             </button>
           </form>
 
@@ -257,7 +270,7 @@ function ConnexionContent() {
           <button
             type="button"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-neutral-300 text-neutral-700 font-medium rounded-full py-3 hover:bg-neutral-50 disabled:opacity-60 transition-colors shadow-sm"
+            className="w-full flex items-center justify-center gap-3 bg-white border border-neutral-200 text-neutral-700 font-medium rounded-full py-3 hover:bg-neutral-50 disabled:opacity-60 transition-colors"
           >
             <GoogleIcon />
             Google
@@ -267,7 +280,7 @@ function ConnexionContent() {
             {isLogin ? "Pas encore de compte ? " : "Déjà un compte ? "}
             <button
               onClick={() => switchMode(isLogin ? "signup" : "login")}
-              className="text-primary-900 font-semibold hover:text-cta-600"
+              className="text-primary-900 font-semibold hover:text-cta-600 transition-colors"
             >
               {isLogin ? "S'inscrire" : "Se connecter"}
             </button>
@@ -280,8 +293,8 @@ function ConnexionContent() {
 
 export default function ConnexionPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-neutral-500">Chargement…</div>}>
-      <ConnexionContent />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Chargement...</div>}>
+      <ConnexionForm />
     </Suspense>
   );
 }
