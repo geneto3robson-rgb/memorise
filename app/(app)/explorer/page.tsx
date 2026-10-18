@@ -12,6 +12,8 @@ import { trpc } from "@/trpc/client";
 import { domainesParFiliere } from "@/lib/data/domaines";
 import { authClient } from "@/lib/auth-client";
 
+export const dynamic = 'force-dynamic';
+
 const PER_PAGE = 16;
 const niveaux = ["L3", "M2"];
 const annees = [2026, 2025, 2024, 2023, 2022];
