@@ -94,4 +94,4 @@ RAVELOTIARAY Jacsilin Geneto Robson
 Licence Télécommunication — Parcours STI
 ESPA Antananarivo, 2026
 npm install
-npm run dev
+npm run dev 
