@@ -1,112 +1,114 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { Container } from "@/components/layout/Container";
-import { FadeIn } from "@/components/ui/FadeIn";
-import { ArrowLeft, ChevronDown, HelpCircle, Send, CheckCircle2 } from "lucide-react";
+import { ChevronDown, Send } from "lucide-react";
 
 const faqs = [
-  { q: "Qu'est-ce que MemoRise ?", a: "MemoRise est un catalogue en ligne qui référence les mémoires de fin d'études de l'ESPA. Il vous permet de trouver facilement un travail par filière, année ou auteur." },
-  { q: "Puis-je télécharger les fichiers PDF des mémoires ?", a: "Non, MemoRise ne stocke pas les fichiers PDF. La plateforme référence uniquement les métadonnées (titre, résumé, auteur). La conservation physique et numérique des documents est assurée par la BAU." },
-  { q: "Comment publier mon propre mémoire ?", a: "Vous devez créer un compte, vous connecter, puis cliquer sur l'onglet 'Publier'. Remplissez les informations descriptives de votre mémoire. Vous êtes limité à 3 publications." },
-  { q: "Puis-je contacter l'auteur d'un mémoire ?", a: "Oui. Sur la fiche détaillée d'un mémoire, un bouton 'Contacter l'auteur' vous permet d'accéder aux réseaux (Facebook, LinkedIn, WhatsApp) si l'auteur les a renseignés dans son profil." },
-  { q: "Les informations de mon profil sont-elles visibles ?", a: "Votre e-mail n'est jamais partagé. Seuls votre nom, filière, et les contacts facultatifs (WhatsApp, Facebook, LinkedIn) que vous avez renseignés apparaissent sur vos fiches de mémoire." }
+  { question: "Qu'est-ce que MemoRise ?", answer: "MemoRise est un catalogue en ligne qui référence les mémoires de fin d'études de l'ESPA. Il vous permet de trouver facilement un travail par filière, année ou auteur." },
+  { question: "Puis-je télécharger les fichiers PDF des mémoires ?", answer: "Non, MemoRise est un catalogue de métadonnées. La conservation et la distribution des documents physiques restent assurées par la BAU (Bibliothèque)." },
+  { question: "Comment publier mon propre mémoire ?", answer: "Il vous suffit de créer un compte étudiant, puis de vous rendre dans l'onglet 'Publier' de votre tableau de bord. Vous pourrez y renseigner toutes les informations relatives à votre travail." },
+  { question: "Puis-je contacter l'auteur d'un mémoire ?", answer: "Oui, si l'auteur a renseigné ses réseaux sociaux (Facebook, LinkedIn) ou son numéro WhatsApp sur la page de son mémoire, vous pourrez le contacter directement." },
+  { question: "Les informations de mon profil sont-elles visibles ?", answer: "Seuls votre nom et votre prénom sont visibles publiquement sur vos mémoires. Votre adresse e-mail et vos autres informations personnelles restent confidentielles." },
 ];
 
-const inputClass = "w-full px-4 py-3 rounded-xl border border-primary-200 dark:border-primary-600 bg-white dark:bg-primary-900/50 text-primary-950 dark:text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-sm transition-all text-sm";
-
 export default function FaqPage() {
-  const router = useRouter();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  
+  // État pour le formulaire de contact rapide
+  const [email, setEmail] = useState("");
+  const [question, setQuestion] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleAskQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      setTimeout(() => setIsSuccess(false), 5000);
-    }, 1500);
+    setStatus("loading");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          name: "Utilisateur FAQ", 
+          email: email, 
+          subject: "Question depuis la FAQ", 
+          message: question 
+        }),
+      });
+
+      if (res.ok) {
+        setStatus("success");
+        setEmail("");
+        setQuestion("");
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
   };
 
   return (
-    <>
-      <Navbar />
-      <main className="pt-24 pb-16 bg-[#f7faf9] dark:bg-primary-950 min-h-screen">
-        <Container>
-          <div className="max-w-6xl mx-auto">
-            {/* BOUTON RETOUR */}
-            <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-300 hover:text-cta-500 transition-colors mb-6">
-              <ArrowLeft className="w-4 h-4" /> Retour
-            </button>
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] py-16 px-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-[#0A1E1E] dark:text-white mb-4">Foire Aux Questions</h1>
+          <p className="text-neutral-500">Trouvez les réponses aux questions les plus fréquentes sur MemoRise.</p>
+        </div>
 
-            <FadeIn>
-              <div className="text-center mb-12 max-w-2xl mx-auto">
-                <HelpCircle className="w-10 h-10 text-cta-500 mx-auto mb-4" />
-                <h1 className="text-3xl md:text-4xl font-bold text-primary-950 dark:text-white font-heading mb-4">
-                  Foire Aux Questions
-                </h1>
-                <p className="text-primary-800 dark:text-neutral-400 text-lg">
-                  Trouvez les réponses aux questions les plus fréquentes sur MemoRise.
-                </p>
-              </div>
-            </FadeIn>
-
-            <div className="grid lg:grid-cols-[1fr_400px] gap-12 items-start">
-              <div className="space-y-4">
-                {faqs.map((faq, index) => (
-                  <FadeIn key={index}>
-                    <div className="bg-primary-50 dark:bg-primary-800 border border-primary-100 dark:border-primary-700 rounded-2xl overflow-hidden shadow-sm">
-                      <button
-                        onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                        className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
-                      >
-                        <span className="font-semibold text-primary-950 dark:text-white pr-4">{faq.q}</span>
-                        <ChevronDown className={`w-5 h-5 text-primary-600 dark:text-primary-300 transition-transform duration-300 shrink-0 ${openIndex === index ? "rotate-180" : ""}`} />
-                      </button>
-                      <div className={`px-5 overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index ? "max-h-96 pb-5 opacity-100" : "max-h-0 opacity-0"}`}>
-                        <p className="text-primary-800 dark:text-primary-100 text-sm leading-relaxed border-t border-primary-200 dark:border-primary-700 pt-4">{faq.a}</p>
-                      </div>
-                    </div>
-                  </FadeIn>
-                ))}
-              </div>
-
-              <div className="relative">
-                <FadeIn>
-                  <div className="sticky top-28 bg-primary-500 dark:bg-primary-600 p-6 rounded-3xl shadow-xl">
-                    <div className="mb-6">
-                      <h2 className="text-xl font-bold text-white font-heading mb-2">Vous ne trouvez pas votre réponse ?</h2>
-                      <p className="text-primary-50 text-sm">Posez-nous votre question, notre équipe vous répondra rapidement.</p>
-                    </div>
-
-                    {isSuccess ? (
-                      <div className="text-center py-8">
-                        <CheckCircle2 className="w-12 h-12 text-cta-400 mx-auto mb-3" />
-                        <p className="text-white font-medium">Votre question a bien été envoyée !</p>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleSubmit} className="space-y-4">
-                        <input type="email" required placeholder="Votre adresse e-mail" className={inputClass} />
-                        <textarea required rows={4} placeholder="Écrivez votre question ici..." className={`${inputClass} resize-none`} />
-                        <button type="submit" disabled={isSubmitting} className="w-full inline-flex items-center justify-center gap-2 bg-cta-500 hover:bg-cta-400 disabled:opacity-60 text-primary-950 font-semibold rounded-full px-6 py-3 transition-colors">
-                          {isSubmitting ? "Envoi..." : <><Send className="w-4 h-4" /> Envoyer</>}
-                        </button>
-                      </form>
-                    )}
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Accordéon FAQ (Gauche) */}
+          <div className="md:col-span-2 space-y-3">
+            {faqs.map((faq, index) => (
+              <div key={index} className="bg-white dark:bg-[#0A1E1E] rounded-2xl shadow-sm border border-neutral-100 dark:border-neutral-800 overflow-hidden transition-all">
+                <button 
+                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                  className="w-full flex items-center justify-between p-5 text-left font-bold text-[#0A1E1E] dark:text-white hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors"
+                >
+                  {faq.question}
+                  <ChevronDown className={`w-5 h-5 text-neutral-400 transition-transform duration-200 ${openIndex === index ? "rotate-180" : ""}`} />
+                </button>
+                {openIndex === index && (
+                  <div className="px-5 pb-5 text-sm text-neutral-600 dark:text-neutral-400 border-t border-neutral-100 dark:border-neutral-800 pt-4">
+                    {faq.answer}
                   </div>
-                </FadeIn>
+                )}
               </div>
-            </div>
+            ))}
           </div>
-        </Container>
-      </main>
-      <Footer />
-    </>
+
+          {/* Formulaire de question (Droite) */}
+          <div className="bg-[#184F53] rounded-3xl p-8 h-fit text-white">
+            <h2 className="text-xl font-bold mb-2">Vous ne trouvez pas votre réponse ?</h2>
+            <p className="text-sm text-white/70 mb-6">Posez-nous votre question, notre équipe vous répondra rapidement.</p>
+            
+            <form onSubmit={handleAskQuestion} className="space-y-4">
+              <input 
+                type="email" 
+                required 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                placeholder="Votre adresse e-mail" 
+                className="w-full px-4 py-3 rounded-xl bg-white text-[#0A1E1E] placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#CEEC22]" 
+              />
+              <textarea 
+                required 
+                rows={4} 
+                value={question} 
+                onChange={(e) => setQuestion(e.target.value)} 
+                placeholder="Écrivez votre question ici..." 
+                className="w-full px-4 py-3 rounded-xl bg-white text-[#0A1E1E] placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[#CEEC22] resize-none" 
+              />
+              
+              {status === "success" && <p className="text-[#CEEC22] text-sm font-medium">Votre question a bien été envoyée !</p>}
+              {status === "error" && <p className="text-red-300 text-sm font-medium">Une erreur est survenue.</p>}
+
+              <button type="submit" disabled={status === "loading"} className="w-full flex items-center justify-center gap-2 bg-[#CEEC22] hover:bg-[#b5d11b] text-[#0A1E1E] font-bold py-3 rounded-xl transition-colors disabled:opacity-50">
+                {status === "loading" ? "Envoi..." : <><Send className="w-5 h-5" /> Envoyer</>}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,125 +1,114 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { Container } from "@/components/layout/Container";
-import { FadeIn } from "@/components/ui/FadeIn";
-import { ArrowLeft, Mail, Send, CheckCircle2, MapPin, Phone } from "lucide-react";
+import { Mail, Phone, MapPin, Send, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function ContactPage() {
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      setTimeout(() => setIsSuccess(false), 5000);
-    }, 1500);
+    setStatus("loading");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        setStatus("success");
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        setStatus("error");
+      }
+    } catch (err) {
+      setStatus("error");
+    }
   };
 
-  const inputClass = "w-full px-4 py-3 rounded-xl border border-primary-200 dark:border-primary-600 bg-white dark:bg-primary-900 text-primary-950 dark:text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-sm transition-all";
-
   return (
-    <>
-      <Navbar />
-      <main className="pt-24 pb-16 bg-[#f7faf9] dark:bg-primary-950 min-h-screen">
-        <Container>
-          <div className="max-w-5xl mx-auto">
-            {/* BOUTON RETOUR */}
-            <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-300 hover:text-cta-500 transition-colors mb-6">
-              <ArrowLeft className="w-4 h-4" /> Retour
-            </button>
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-[#184F53] mb-8 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Retour à l'accueil
+        </Link>
 
-            <FadeIn>
-              <div className="text-center mb-16 max-w-2xl mx-auto">
-                <h1 className="text-4xl font-bold text-primary-950 dark:text-white font-heading mb-4">Contactez-nous</h1>
-                <p className="text-primary-800 dark:text-neutral-400">Une question, une suggestion ou un problème technique ? Écrivez-nous.</p>
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#0A1E1E] dark:text-white mb-4">Contactez-nous</h1>
+          <p className="text-neutral-500">Une question, une suggestion ou un problème technique ? Écrivez-nous.</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Colonne Infos */}
+          <div className="bg-[#E8F0F0] dark:bg-[#0A1E1E] rounded-3xl p-8 h-fit">
+            <h2 className="text-xl font-bold text-[#0A1E1E] dark:text-white mb-6">Nos coordonnées</h2>
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-white dark:bg-[#184F53] flex items-center justify-center shrink-0 shadow-sm">
+                  <MapPin className="w-5 h-5 text-[#184F53] dark:text-[#CEEC22]" />
+                </div>
+                <div>
+                  <p className="font-bold text-[#0A1E1E] dark:text-white">Adresse</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">École Supérieure Polytechnique<br />Antananarivo, Madagascar</p>
+                </div>
               </div>
-            </FadeIn>
-
-            <div className="grid md:grid-cols-2 gap-10 items-start">
-              <FadeIn>
-                <div className="bg-primary-50 dark:bg-primary-800 p-8 rounded-3xl border border-primary-100 dark:border-primary-700 shadow-sm space-y-8">
-                  <h2 className="text-2xl font-bold text-primary-950 dark:text-white font-heading">Nos coordonnées</h2>
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white dark:bg-primary-900 flex items-center justify-center shrink-0 shadow-sm">
-                      <MapPin className="w-5 h-5 text-primary-600 dark:text-cta-500" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-primary-950 dark:text-white">Adresse</p>
-                      <p className="text-sm text-primary-700 dark:text-primary-200">École Supérieure Polytechnique<br/>Antananarivo, Madagascar</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white dark:bg-primary-900 flex items-center justify-center shrink-0 shadow-sm">
-                      <Mail className="w-5 h-5 text-primary-600 dark:text-cta-500" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-primary-950 dark:text-white">E-mail</p>
-                      <p className="text-sm text-primary-700 dark:text-primary-200">contact@memorise.mg</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white dark:bg-primary-900 flex items-center justify-center shrink-0 shadow-sm">
-                      <Phone className="w-5 h-5 text-primary-600 dark:text-cta-500" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-primary-950 dark:text-white">Téléphone</p>
-                      <p className="text-sm text-primary-700 dark:text-primary-200">+261 34 78 805 02</p>
-                    </div>
-                  </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-white dark:bg-[#184F53] flex items-center justify-center shrink-0 shadow-sm">
+                  <Mail className="w-5 h-5 text-[#184F53] dark:text-[#CEEC22]" />
                 </div>
-              </FadeIn>
-
-              <FadeIn>
-                <div className="bg-primary-50 dark:bg-primary-800 p-6 md:p-8 rounded-3xl border border-primary-100 dark:border-primary-700 shadow-sm">
-                  {isSuccess ? (
-                    <div className="text-center py-16">
-                      <CheckCircle2 className="w-16 h-16 text-cta-500 mx-auto mb-4" />
-                      <h2 className="text-2xl font-bold text-primary-950 dark:text-white mb-2 font-heading">Message envoyé !</h2>
-                      <p className="text-primary-700 dark:text-primary-200">Merci de nous avoir contactés.</p>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                      <div className="grid sm:grid-cols-2 gap-5">
-                        <div>
-                          <label className="block text-sm font-medium text-primary-950 dark:text-white mb-2">Nom complet</label>
-                          <input type="text" required placeholder="Votre nom" className={inputClass} />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-primary-950 dark:text-white mb-2">E-mail</label>
-                          <input type="email" required placeholder="vous@exemple.com" className={inputClass} />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-primary-950 dark:text-white mb-2">Sujet</label>
-                        <input type="text" required placeholder="L'objet de votre message" className={inputClass} />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-primary-950 dark:text-white mb-2">Message</label>
-                        <textarea required rows={5} placeholder="Écrivez votre message ici..." className={`${inputClass} resize-none`} />
-                      </div>
-                      <button type="submit" disabled={isSubmitting} className="w-full inline-flex items-center justify-center gap-2 bg-cta-500 hover:bg-cta-400 disabled:opacity-60 text-primary-950 font-semibold rounded-full px-8 py-3.5 transition-colors mt-2">
-                        {isSubmitting ? "Envoi en cours..." : <><Send className="w-4 h-4" /> Envoyer le message</>}
-                      </button>
-                    </form>
-                  )}
+                <div>
+                  <p className="font-bold text-[#0A1E1E] dark:text-white">E-mail</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">contact@memorise.mg</p>
                 </div>
-              </FadeIn>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-white dark:bg-[#184F53] flex items-center justify-center shrink-0 shadow-sm">
+                  <Phone className="w-5 h-5 text-[#184F53] dark:text-[#CEEC22]" />
+                </div>
+                <div>
+                  <p className="font-bold text-[#0A1E1E] dark:text-white">Téléphone</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">+261 34 78 805 02</p>
+                </div>
+              </div>
             </div>
           </div>
-        </Container>
-      </main>
-      <Footer />
-    </>
+
+          {/* Colonne Formulaire */}
+          <div className="bg-[#E8F0F0] dark:bg-[#0A1E1E] rounded-3xl p-8">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#0A1E1E] dark:text-white mb-1">Nom complet</label>
+                  <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#051414] text-[#0A1E1E] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#184F53]" placeholder="Votre nom" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#0A1E1E] dark:text-white mb-1">E-mail</label>
+                  <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#051414] text-[#0A1E1E] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#184F53]" placeholder="vous@exemple.com" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#0A1E1E] dark:text-white mb-1">Sujet</label>
+                <input type="text" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#051414] text-[#0A1E1E] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#184F53]" placeholder="L'objet de votre message" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#0A1E1E] dark:text-white mb-1">Message</label>
+                <textarea required rows={5} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#051414] text-[#0A1E1E] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#184F53] resize-none" placeholder="Écrivez votre message ici..." />
+              </div>
+
+              {status === "success" && <p className="text-green-600 text-sm font-medium bg-green-50 p-3 rounded-lg">Votre message a bien été envoyé !</p>}
+              {status === "error" && <p className="text-red-600 text-sm font-medium bg-red-50 p-3 rounded-lg">Une erreur est survenue. Veuillez réessayer.</p>}
+
+              <button type="submit" disabled={status === "loading"} className="w-full flex items-center justify-center gap-2 bg-[#CEEC22] hover:bg-[#b5d11b] text-[#0A1E1E] font-bold py-3.5 rounded-xl transition-colors disabled:opacity-50 mt-2">
+                {status === "loading" ? "Envoi en cours..." : <><Send className="w-5 h-5" /> Envoyer le message</>}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -209,7 +209,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 👇 VUE PUBLIQUE (Non connecté)
+  //  VUE PUBLIQUE (Non connecté)
   if (!session) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F4F5F7] dark:bg-[#051414]">
@@ -217,13 +217,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1">
           {children}
         </main>
-        {/* 👇 UTILISATION DU GRAND FOOTER ICI */}
+        {/*  UTILISATION DU GRAND FOOTER ICI */}
         <Footer /> 
       </div>
     );
   }
 
-  // 👇 VUE PRIVÉE (Connecté)
+  //  VUE PRIVÉE (Connecté)
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] flex flex-col">
       <Sidebar />
