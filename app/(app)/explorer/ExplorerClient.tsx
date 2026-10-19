@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link"; // 👈 IMPORT LINK
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { SlidersHorizontal, ChevronDown, Search } from "lucide-react"; 
+import { SlidersHorizontal, ChevronDown, Search, ArrowLeft } from "lucide-react"; // 👈 IMPORT ARROWLEFT
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 import { MemoireModal } from "@/components/memoire/MemoireModal";
@@ -155,6 +156,17 @@ export default function ExplorerClient() {
           
           <Container className="relative z-10 py-16">
             <div className="max-w-2xl">
+              
+              {/* 👇 BOUTON RETOUR AJOUTÉ ICI */}
+              <Link 
+                href="/" 
+                className="inline-flex items-center gap-2 text-sm font-medium text-white/80 hover:text-white mb-6 transition-colors bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Retour à l'accueil
+              </Link>
+              {/* 👆 FIN DU BOUTON RETOUR */}
+
               <h1 className="text-4xl md:text-5xl font-bold text-white font-heading mb-4">
                 Explorer les mémoires
               </h1>

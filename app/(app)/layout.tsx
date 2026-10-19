@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { ShieldAlert } from "lucide-react"; // ShieldCheck retiré car plus utilisé
+import { ShieldAlert } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Search, Plus, Bookmark, FileText, Settings,
@@ -13,6 +13,7 @@ import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
 import { Navbar } from "@/components/layout/Navbar";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { AppFooter } from "@/components/layout/AppFooter"; // 👈 Assure-toi que ce chemin est correct
 
 const navLinks = [
   { href: "/tableau-de-bord", label: "Tableau de bord", short: "Accueil", icon: LayoutDashboard },
@@ -197,25 +198,42 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: profileData } = trpc.profile.get.useQuery(undefined, { enabled: !!session }); 
   const isAdmin = profileData?.profile?.role === "admin"; 
 
-  if (!session && !isPending) {
+  // 👇 Anti-clignotement (FOUC)
+  if (isPending) {
     return (
-      <>
-        <Navbar />
-        <main className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414]">
-          {children}
-        </main>
-      </>
+      <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
+        <div className="w-8 h-8 rounded-full border-4 border-[#CEEC22] border-t-transparent animate-spin" />
+      </div>
     );
   }
 
+  // 👇 VUE PUBLIQUE (Non connecté)
+  if (!session) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#F4F5F7] dark:bg-[#051414]">
+        <Navbar />
+        <main className="flex-1">
+          {children}
+        </main>
+        <AppFooter /> {/*C'EST ICI QUE LE FOOTER EST AJOUTÉ */}
+      </div>
+    );
+  }
+
+  // VUE PRIVÉE (Connecté)
   return (
-    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414]">
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] flex flex-col">
       <Sidebar />
-      <div className="lg:pl-60 flex flex-col min-h-screen">
+      <div className="lg:pl-60 flex flex-col flex-1">
         <AppHeader isAdmin={isAdmin} />
+        
         <main className="flex-1 p-4 md:p-8">
           {children}
         </main>
+
+        <div className="px-4 md:px-8 pb-6">
+          <AppFooter />
+        </div>
       </div>
     </div>
   );
