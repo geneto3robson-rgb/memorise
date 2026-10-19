@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Info, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Info, Upload, X, Image as ImageIcon, Lock } from "lucide-react"; // 👈 Ajout de Lock
 import { Container } from "@/components/layout/Container";
 import { filieres } from "@/lib/data/filieres";
 import { domainesParFiliere } from "@/lib/data/domaines";
@@ -53,7 +53,7 @@ const iconInputClass =
 
 const labelClass = "block text-sm font-medium text-primary-900 dark:text-white mb-2";
 
-export default function PublierClient() { // 👈 Nom modifié ici
+export default function PublierClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
@@ -185,15 +185,45 @@ export default function PublierClient() { // 👈 Nom modifié ici
     else createMutation.mutate(payload);
   };
 
+  // 👇 ÉTAT DE CHARGEMENT INITIAL (évite le flash)
   if (isPending) return <Container className="py-20 text-center text-neutral-500">Chargement…</Container>;
 
+  // 👇 MODAL POUR UTILISATEUR NON CONNECTÉ (Fond flouté)
   if (!session) {
     return (
-      <Container className="py-20 text-center">
-        <h1 className="text-2xl font-bold text-primary-900 dark:text-white font-heading mb-3">Connexion requise</h1>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-6">Vous devez être connecté pour publier un mémoire.</p>
-        <Link href="/connexion" className="inline-block px-5 py-2 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 text-sm font-semibold">Se connecter</Link>
-      </Container>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {/* Le fond flouté qui recouvre tout l'écran */}
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-md" />
+        
+        {/* La carte du modal */}
+        <div className="relative bg-white dark:bg-[#0A1E1E] rounded-3xl p-8 md:p-10 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 text-center animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-16 h-16 rounded-full bg-cta-500/20 flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-8 h-8 text-[#184F53] dark:text-[#CEEC22]" />
+          </div>
+          
+          <h2 className="text-2xl font-bold text-primary-900 dark:text-white font-heading mb-3">
+            Connexion requise
+          </h2>
+          <p className="text-neutral-500 dark:text-neutral-400 mb-8">
+            Vous devez être connecté à votre compte étudiant pour pouvoir publier un mémoire.
+          </p>
+          
+          <div className="flex flex-col gap-3">
+            <Link 
+              href="/connexion" 
+              className="w-full py-3 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 font-bold transition-colors shadow-md"
+            >
+              Se connecter
+            </Link>
+            <button 
+              onClick={() => router.push("/")}
+              className="w-full py-3 rounded-full border-2 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+            >
+              Retour à l'accueil
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 

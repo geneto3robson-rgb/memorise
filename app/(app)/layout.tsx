@@ -11,10 +11,10 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
-import { Navbar } from "@/components/layout/Navbar"; //  Ta navbar landing
+import { Navbar } from "@/components/layout/Navbar"; // 👈 Ta navbar landing
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { AppFooter } from "@/components/layout/AppFooter"; 
-import { LandingFooter } from "@/components/landing/LandingFooter"; //  IMPORT DU GRAND FOOTER (ajuste le chemin/nom si besoin)
+import { LandingFooter } from "@/components/landing/LandingFooter"; // 👈 IMPORT DU GRAND FOOTER (ajuste le chemin/nom si besoin)
 
 const navLinks = [
   { href: "/tableau-de-bord", label: "Tableau de bord", short: "Accueil", icon: LayoutDashboard },
@@ -207,7 +207,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // VUE PUBLIQUE (Non connecté)
+  // 👇 VUE PUBLIQUE (Non connecté)
   if (!session) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F4F5F7] dark:bg-[#051414]">
@@ -215,12 +215,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1">
           {children}
         </main>
-        <LandingFooter /> {/* Grand Footer Landing */}
+        <LandingFooter /> {/* 👈 Grand Footer Landing */}
       </div>
     );
   }
 
-  // VUE PRIVÉE (Connecté)
+  // 👇 VUE PRIVÉE (Connecté)
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] flex flex-col">
       <Sidebar />
@@ -232,7 +232,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
 
         <div className="px-4 md:px-8 pb-6">
-          <AppFooter /> {/* Petit footer pour le dashboard */}
+          <AppFooter /> {/* 👈 Petit footer pour le dashboard */}
         </div>
       </div>
     </div>
