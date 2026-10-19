@@ -11,16 +11,21 @@ export const auth = betterAuth({
     schema: { user, session, account, verification },
   }),
   emailAndPassword: { enabled: true },
-  trustedOrigins: ["http://localhost:3000", "http://localhost:3001"],
   
-  // 👇 AJOUT : Configuration pour lier les comptes existants à Google
+  // CORRECTION ICI : Ajout des domaines de production et de prévisualisation Vercel
+  trustedOrigins: [
+    "http://localhost:3000", 
+    "http://localhost:3001",
+    "https://memorise-roan.vercel.app", // mon URL de production
+    "https://*.vercel.app" // Autorise toutes les URL de prévisualisation générées par Vercel
+  ],
+  
   account: {
     accountLinking: {
       enabled: true,
       trustedProviders: ["google"],
     },
   },
-  // 👆 FIN DE L'AJOUT
 
   socialProviders: {
     google: {
