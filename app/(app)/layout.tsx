@@ -11,9 +11,10 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
-import { Navbar } from "@/components/layout/Navbar";
+import { Navbar } from "@/components/layout/Navbar"; //  Ta navbar landing
 import { ConfirmModal } from "@/components/ConfirmModal";
-import { AppFooter } from "@/components/layout/AppFooter"; // 👈 Assure-toi que ce chemin est correct
+import { AppFooter } from "@/components/layout/AppFooter"; 
+import { LandingFooter } from "@/components/landing/LandingFooter"; //  IMPORT DU GRAND FOOTER (ajuste le chemin/nom si besoin)
 
 const navLinks = [
   { href: "/tableau-de-bord", label: "Tableau de bord", short: "Accueil", icon: LayoutDashboard },
@@ -198,7 +199,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: profileData } = trpc.profile.get.useQuery(undefined, { enabled: !!session }); 
   const isAdmin = profileData?.profile?.role === "admin"; 
 
-  // 👇 Anti-clignotement (FOUC)
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
@@ -207,15 +207,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 👇 VUE PUBLIQUE (Non connecté)
+  // VUE PUBLIQUE (Non connecté)
   if (!session) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F4F5F7] dark:bg-[#051414]">
-        <Navbar />
+        <Navbar /> {/* 👈 Navbar Landing */}
         <main className="flex-1">
           {children}
         </main>
-        <AppFooter /> {/*C'EST ICI QUE LE FOOTER EST AJOUTÉ */}
+        <LandingFooter /> {/* Grand Footer Landing */}
       </div>
     );
   }
@@ -232,7 +232,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
 
         <div className="px-4 md:px-8 pb-6">
-          <AppFooter />
+          <AppFooter /> {/* Petit footer pour le dashboard */}
         </div>
       </div>
     </div>

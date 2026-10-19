@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
-import Link from "next/link"; // 👈 IMPORT LINK
+import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { SlidersHorizontal, ChevronDown, Search, ArrowLeft } from "lucide-react"; // 👈 IMPORT ARROWLEFT
+// 👇 Ajout de ChevronLeft et ChevronRight pour la pagination
+import { SlidersHorizontal, ChevronDown, Search, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"; 
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 import { MemoireModal } from "@/components/memoire/MemoireModal";
@@ -22,22 +23,11 @@ const filiereColorMap: Record<string, string> = {
 };
 
 const parcoursParFiliere: Record<string, string[]> = {
-  IGAT: ["IGF", "GT"],
-  GMI: ["GI", "GMD", "STGI", "IM", "MA"],
-  GPCI: ["VRM", "BIO", "STGP", "LP"],
-  IMIN: ["STM", "GEO-ENERGIE", "GLB"],
-  GE: ["SERI", "IE", "REER", "MEAI"],
-  GPAE: ["TAA", "EE"],
-  GGEO: ["GEA", "GM", "GSS"],
-  IPE: ["STP", "PCH", "BEEN"],
-  BTP: ["BTP", "Géotechnique"],
-  HYDR: ["AEH", "AEP", "AHA"],
-  EN: ["EA", "IA"],
-  ISA: [],
-  UAGC: [],
-  MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"],
-  SIM: ["MOC", "MCM", "GMAT"],
-  TCO: ["STI", "RS", "RC"],
+  IGAT: ["IGF", "GT"], GMI: ["GI", "GMD", "STGI", "IM", "MA"], GPCI: ["VRM", "BIO", "STGP", "LP"],
+  IMIN: ["STM", "GEO-ENERGIE", "GLB"], GE: ["SERI", "IE", "REER", "MEAI"], GPAE: ["TAA", "EE"],
+  GGEO: ["GEA", "GM", "GSS"], IPE: ["STP", "PCH", "BEEN"], BTP: ["BTP", "Géotechnique"],
+  HYDR: ["AEH", "AEP", "AHA"], EN: ["EA", "IA"], ISA: [], UAGC: [],
+  MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"], SIM: ["MOC", "MCM", "GMAT"], TCO: ["STI", "RS", "RC"],
 };
 
 const filterInputClass = "h-10 pl-4 pr-10 bg-neutral-50 dark:bg-primary-800 border border-neutral-200 dark:border-neutral-700 rounded-full text-sm font-medium text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500 appearance-none w-full";
@@ -66,10 +56,8 @@ export default function ExplorerClient() {
   useEffect(() => {
     const urlFiliere = searchParams.get("filiere") ?? "";
     const urlParcours = searchParams.get("parcours") ?? "";
-    
     if (urlFiliere !== filiereCode) setFiliereCode(urlFiliere);
     if (urlParcours !== parcours) setParcours(urlParcours);
-    
     setPage(1);
   }, [searchParams]);
 
@@ -88,35 +76,24 @@ export default function ExplorerClient() {
   };
 
   const changeFiliere = (code: string) => {
-    setFiliereCode(code); 
-    setDomaine(""); 
-    setParcours("");
-    
+    setFiliereCode(code); setDomaine(""); setParcours("");
     const params = new URLSearchParams(searchParams.toString());
-    if (code) params.set("filiere", code);
-    else params.delete("filiere");
+    if (code) params.set("filiere", code); else params.delete("filiere");
     params.delete("parcours"); 
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const changeParcours = (p: string) => {
     setParcours(p);
-    
     const params = new URLSearchParams(searchParams.toString());
-    if (p) params.set("parcours", p);
-    else params.delete("parcours");
+    if (p) params.set("parcours", p); else params.delete("parcours");
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
-    if (val === "custom") {
-      setShowCustomYear(true);
-      setAnnee("");
-    } else {
-      setShowCustomYear(false);
-      setAnnee(val ? Number(val) : "");
-    }
+    if (val === "custom") { setShowCustomYear(true); setAnnee(""); } 
+    else { setShowCustomYear(false); setAnnee(val ? Number(val) : ""); }
   };
 
   const formatted = useMemo(() => {
@@ -145,27 +122,20 @@ export default function ExplorerClient() {
     <>
       {!session && (
         <section className="relative min-h-[400px] flex items-center pt-24">
-          <Image
-            src="/images/hero-bg.jpg"
-            alt="Étudiant consultant un mémoire"
-            fill
-            priority
-            className="object-cover"
-          />
+          <Image src="/images/hero-bg.jpg" alt="Étudiant consultant un mémoire" fill priority className="object-cover" />
           <div className="absolute inset-0 bg-primary-950/60" />
           
           <Container className="relative z-10 py-16">
             <div className="max-w-2xl">
               
-              {/* 👇 BOUTON RETOUR AJOUTÉ ICI */}
+              {/* 👇 FLÈCHE DE RETOUR SIMPLE */}
               <Link 
                 href="/" 
-                className="inline-flex items-center gap-2 text-sm font-medium text-white/80 hover:text-white mb-6 transition-colors bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm mb-6 transition-colors"
+                title="Retour à l'accueil"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Retour à l'accueil
+                <ArrowLeft className="w-5 h-5" />
               </Link>
-              {/* 👆 FIN DU BOUTON RETOUR */}
 
               <h1 className="text-4xl md:text-5xl font-bold text-white font-heading mb-4">
                 Explorer les mémoires
@@ -175,13 +145,7 @@ export default function ExplorerClient() {
               </p>
               
               <div className="relative">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher un mémoire, un auteur..."
-                  className="w-full px-6 py-4 pr-14 rounded-full bg-white text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-xl text-lg"
-                />
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un mémoire, un auteur..." className="w-full px-6 py-4 pr-14 rounded-full bg-white text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-xl text-lg" />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 bg-cta-500 p-3 rounded-full">
                   <Search className="w-5 h-5 text-primary-900" />
                 </div>
@@ -193,27 +157,16 @@ export default function ExplorerClient() {
 
       <main className={`pb-16 bg-[#f7faf9] dark:bg-primary-950 min-h-screen relative z-20 ${!session ? 'pt-8' : 'pt-24'}`}>
         <Container>
-          
           {session && (
             <div className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-2">
-                Explorer les mémoires
-              </h1>
-              <p className="text-primary-700 dark:text-neutral-400">
-                Parcourez le catalogue des travaux de fin d'études de l'ESPA.
-              </p>
+              <h1 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-2">Explorer les mémoires</h1>
+              <p className="text-primary-700 dark:text-neutral-400">Parcourez le catalogue des travaux de fin d'études de l'ESPA.</p>
             </div>
           )}
 
           {session && (
             <div className="relative max-w-2xl mb-6">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher un mémoire, un auteur..."
-                className="w-full h-12 pl-12 pr-4 bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-full text-base text-primary-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-sm"
-              />
+              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un mémoire, un auteur..." className="w-full h-12 pl-12 pr-4 bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-700 rounded-full text-base text-primary-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-sm" />
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary-600" />
             </div>
           )}
@@ -252,13 +205,7 @@ export default function ExplorerClient() {
                 </div>
 
                 {showCustomYear && (
-                  <input
-                    type="number"
-                    placeholder="Ex: 2021"
-                    value={annee || ""}
-                    onChange={(e) => setAnnee(e.target.value ? Number(e.target.value) : "")}
-                    className="h-10 w-28 pl-4 pr-4 bg-neutral-50 dark:bg-primary-800 border border-neutral-200 dark:border-neutral-700 rounded-full text-sm font-medium text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500"
-                  />
+                  <input type="number" placeholder="Ex: 2021" value={annee || ""} onChange={(e) => setAnnee(e.target.value ? Number(e.target.value) : "")} className="h-10 w-28 pl-4 pr-4 bg-neutral-50 dark:bg-primary-800 border border-neutral-200 dark:border-neutral-700 rounded-full text-sm font-medium text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cta-500" />
                 )}
               </div>
 
@@ -307,11 +254,51 @@ export default function ExplorerClient() {
               <button onClick={resetFilters} className="px-6 py-2.5 rounded-full border-2 border-primary-900 dark:border-white text-primary-900 dark:text-white text-sm font-semibold hover:bg-primary-900 hover:text-white transition-colors">Réinitialiser les filtres</button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {paginated.map((project) => <ProjectCard key={project.id} project={project} onOpen={(slug) => setSelectedSlug(slug)} />)}
-            </div>
-          )}
+            <>
+              {/* GRILLE DE CARTES (4 par ligne max) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {paginated.map((project) => <ProjectCard key={project.id} project={project} onOpen={(slug) => setSelectedSlug(slug)} />)}
+              </div>
 
+              {/* 👇 PAGINATION AJOUTÉE ICI */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-12 pb-8">
+                  <button 
+                    onClick={() => setPage(p => Math.max(1, p - 1))} 
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-full border border-neutral-200 dark:border-neutral-700 text-primary-900 dark:text-white disabled:opacity-30 hover:bg-neutral-100 dark:hover:bg-primary-800 transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  
+                  {Array.from({ length: totalPages }).map((_, i) => {
+                    const pageNumber = i + 1;
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => setPage(pageNumber)}
+                        className={`w-10 h-10 rounded-full text-sm font-bold transition-colors ${
+                          currentPage === pageNumber 
+                            ? "bg-primary-900 dark:bg-cta-500 text-white dark:text-primary-900" 
+                            : "text-primary-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-primary-800"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+
+                  <button 
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-full border border-neutral-200 dark:border-neutral-700 text-primary-900 dark:text-white disabled:opacity-30 hover:bg-neutral-100 dark:hover:bg-primary-800 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </Container>
       </main>
 
