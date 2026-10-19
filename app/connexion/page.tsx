@@ -34,13 +34,12 @@ function ConnexionForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(""); // Sert pour l'e-mail OU le nom d'utilisateur
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   
-  // État pour le chargement Google
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const isLogin = mode === "login";
@@ -62,11 +61,25 @@ function ConnexionForm() {
       setMessage("Veuillez remplir tous les champs obligatoires.");
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+
+    // 👇 LOGIQUE POUR GÉRER L'EMAIL OU LE NOM D'UTILISATEUR
+    const isEmailInput = email.includes("@");
+    
+    // Si c'est un email, on le valide. Si c'est un username, on ne valide pas le format email.
+    if (isEmailInput && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setStatus("error");
       setMessage("Adresse e-mail invalide.");
       return;
     }
+
+    // On crée un email virtuel si l'utilisateur a tapé un nom d'utilisateur
+    let finalEmail = email.trim();
+    if (!isEmailInput) {
+      // On nettoie le pseudo (pas d'espaces, pas de majuscules)
+      finalEmail = `${finalEmail.toLowerCase().replace(/\s+/g, '')}@memorise.app`;
+    }
+    // 👆 FIN DE LA LOGIQUE
+
     if (password.length < 6) {
       setStatus("error");
       setMessage("Le mot de passe doit contenir au moins 6 caractères.");
@@ -83,7 +96,7 @@ function ConnexionForm() {
     try {
       if (isLogin) {
         await authClient.signIn.email({
-          email,
+          email: finalEmail, // 👈 On utilise finalEmail
           password,
           callbackURL: "/tableau-de-bord",
         }, {
@@ -99,9 +112,9 @@ function ConnexionForm() {
         });
       } else {
         await authClient.signUp.email({
-          email,
+          email: finalEmail, // 👈 On utilise finalEmail
           password,
-          name,
+          name, // On garde le nom complet pour l'affichage
           callbackURL: "/tableau-de-bord",
         }, {
           onError: (ctx) => {
@@ -211,8 +224,8 @@ function ConnexionForm() {
               />
             )}
             <input
-              type="email"
-              placeholder="Adresse e-mail"
+              type="text" // 👈 Changé de "email" à "text" pour accepter les pseudos
+              placeholder="E-mail ou Nom d'utilisateur" // 👈 Changé le placeholder
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading || googleLoading}
