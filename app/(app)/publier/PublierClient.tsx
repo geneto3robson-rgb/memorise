@@ -198,7 +198,7 @@ export default function PublierClient() {
         {/* La carte du modal */}
         <div className="relative bg-white dark:bg-[#0A1E1E] rounded-3xl p-8 md:p-10 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 text-center animate-in fade-in zoom-in-95 duration-200">
           <div className="w-16 h-16 rounded-full bg-cta-500/20 flex items-center justify-center mx-auto mb-6">
-            <Lock className="w-8 h-8 text-[#184F53] dark:text-[#CEEC22]" />
+            <Lock className="w-8 h-8 text-primary-500 dark:text-[#CEEC22]" />
           </div>
           
           <h2 className="text-2xl font-bold text-primary-900 dark:text-white font-heading mb-3">

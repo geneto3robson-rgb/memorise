@@ -11,10 +11,12 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
-import { Navbar } from "@/components/layout/Navbar"; // 👈 Ta navbar landing
+import { Navbar } from "@/components/layout/Navbar";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { AppFooter } from "@/components/layout/AppFooter"; 
-import { LandingFooter } from "@/components/landing/LandingFooter"; // 👈 IMPORT DU GRAND FOOTER (ajuste le chemin/nom si besoin)
+
+// 👇 CORRECTION DE L'IMPORT ICI (avec le bon chemin)
+import { Footer } from "@/components/layout/Footer"; 
 
 const navLinks = [
   { href: "/tableau-de-bord", label: "Tableau de bord", short: "Accueil", icon: LayoutDashboard },
@@ -211,11 +213,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!session) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F4F5F7] dark:bg-[#051414]">
-        <Navbar /> {/* 👈 Navbar Landing */}
+        <Navbar />
         <main className="flex-1">
           {children}
         </main>
-        <LandingFooter /> {/* 👈 Grand Footer Landing */}
+        {/* 👇 UTILISATION DU GRAND FOOTER ICI */}
+        <Footer /> 
       </div>
     );
   }
@@ -232,7 +235,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
 
         <div className="px-4 md:px-8 pb-6">
-          <AppFooter /> {/* 👈 Petit footer pour le dashboard */}
+          <AppFooter /> {/* 👈 Le petit footer pour le dashboard */}
         </div>
       </div>
     </div>
