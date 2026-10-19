@@ -8,7 +8,7 @@ import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
 import { 
   LayoutDashboard, Users, BookOpen, Settings, LogOut,
-  ShieldCheck, GraduationCap
+  ShieldCheck, GraduationCap, Menu, X
 } from "lucide-react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 
@@ -25,6 +25,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: profileData, isLoading } = trpc.profile.get.useQuery(undefined, { enabled: !!session });
   
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Fermer le menu quand on change de page
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!isPending && !isLoading) {
@@ -44,9 +50,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen bg-[#F4F5F7] dark:bg-[#051414] p-4 gap-4 overflow-hidden">
+    <div className="flex h-screen bg-[#F4F5F7] dark:bg-[#051414] overflow-hidden relative">
       
-      {/* Modal de basculement */}
       <ConfirmModal
         isOpen={isSwitchModalOpen}
         onClose={() => setIsSwitchModalOpen(false)}
@@ -56,18 +61,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         confirmText="Oui, basculer"
       />
 
-      <aside className="w-64 bg-[#184F53] rounded-[2rem] flex flex-col shadow-xl shrink-0 relative overflow-hidden">
-        <div className="p-6 flex items-center gap-3">
-          <Image src="/logo.svg" alt="Logo MemoRise" width={32} height={32} />
-          <h2 className="font-heading font-bold text-xl text-white tracking-wide">MemoRise</h2>
+      {/* Overlay sombre sur mobile quand le menu est ouvert */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* SIDEBAR (Fixe sur PC, glissante sur Mobile) */}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#184F53] flex flex-col shadow-xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        
+        <div className="p-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Image src="/logo.svg" alt="Logo MemoRise" width={32} height={32} />
+            <h2 className="font-heading font-bold text-xl text-white tracking-wide">MemoRise</h2>
+          </div>
+          <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-white/70 hover:text-white">
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2 mt-4">
+        <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
           {adminLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
             return (
-              <Link key={link.href} href={link.href} className={`flex items-center gap-3 px-5 py-3.5 rounded-full transition-all duration-200 ${isActive ? "bg-[#CEEC22] text-[#0A1E1E] shadow-lg font-bold" : "text-white/70 hover:bg-white/10 hover:text-white font-medium"}`}>
+              <Link 
+                key={link.href} 
+                href={link.href} 
+                className={`flex items-center gap-3 px-5 py-3.5 rounded-full transition-all duration-200 ${isActive ? "bg-[#CEEC22] text-[#0A1E1E] shadow-lg font-bold" : "text-white/70 hover:bg-white/10 hover:text-white font-medium"}`}
+              >
                 <Icon className="w-5 h-5" /> {link.label}
               </Link>
             );
@@ -78,13 +102,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="relative group">
             <div className="absolute bottom-full left-0 w-full mb-2 bg-[#0A1E1E] rounded-2xl shadow-xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
               <div className="p-2 space-y-1">
-                <button 
-                  onClick={() => setIsSwitchModalOpen(true)} 
-                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-[#CEEC22] hover:bg-white/10 transition-colors text-left"
-                >
+                <button onClick={() => setIsSwitchModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-[#CEEC22] hover:bg-white/10 transition-colors text-left">
                   <GraduationCap className="w-4 h-4" /> Mode Étudiant
                 </button>
-                
                 <Link href="/admin/parametres" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors">
                   <Settings className="w-4 h-4" /> Paramètres
                 </Link>
@@ -108,11 +128,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <main className="flex-1 bg-white dark:bg-[#0A1E1E] rounded-[2rem] shadow-sm overflow-y-auto">
-        <div className="p-6 md:p-10">
-          {children}
-        </div>
-      </main>
+      {/* CONTENU PRINCIPAL */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden w-full">
+        {/* Mobile Header pour Admin */}
+        <header className="lg:hidden bg-white dark:bg-[#0A1E1E] border-b border-neutral-200 dark:border-neutral-800 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+             <Image src="/logo.svg" alt="Logo" width={24} height={24} />
+             <span className="font-bold text-[#0A1E1E] dark:text-white">Admin</span>
+          </div>
+          <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+            <Menu className="w-5 h-5" />
+          </button>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] shadow-sm min-h-full p-4 md:p-10">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

@@ -197,3 +197,12 @@ html.dark body {
   --color-input: var(--input);
   --color-ring: var(--ring);
 }
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
