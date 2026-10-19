@@ -1,16 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Search, MoreHorizontal, ShieldCheck, GraduationCap, Eye, Ban } from "lucide-react";
 import { trpc } from "@/trpc/client";
-import { UserAvatar } from "@/components/ui/UserAvatar"; // 👈 IMPORT
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<"tous" | "etudiant" | "admin">("tous");
+  
+  // 👇 NOUVEL ÉTAT POUR LE MENU DÉROULANT
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const { data: users, isLoading } = trpc.admin.listUsers.useQuery();
+
+  // Fermer le menu si on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   if (isLoading) {
     return <div className="p-8 text-[#184F53] dark:text-[#CEEC22] font-medium">Chargement des utilisateurs...</div>;
@@ -71,19 +81,14 @@ export default function AdminUsersPage() {
             return (
               <div 
                 key={user.id} 
-                className="group flex items-center justify-between bg-[#F4F5F7] dark:bg-[#0A1E1E] hover:bg-white dark:hover:bg-[#184F53] transition-all duration-200 rounded-[2rem] px-4 py-3 sm:px-6 border border-transparent hover:border-[#184F53]/20 dark:hover:border-[#CEEC22]/30 hover:shadow-md"
+                className="group flex items-center justify-between bg-[#F4F5F7] dark:bg-[#0A1E1E] hover:bg-white dark:hover:bg-[#184F53] transition-all duration-200 rounded-[2rem] px-4 py-3 sm:px-6 border border-transparent hover:border-[#184F53]/20 dark:hover:border-[#CEEC22]/30 hover:shadow-md relative"
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  {/* 👇 UTILISATION DE UserAvatar ICI */}
-                  <UserAvatar 
-                    name={user.name} 
-                    image={user.image} 
-                    className={`w-10 h-10 text-sm border-2 transition-colors ${
-                      isAdmin 
-                        ? "border-[#CEEC22] group-hover:ring-2 group-hover:ring-[#CEEC22]/50" 
-                        : "border-white dark:border-[#0A1E1E] group-hover:ring-2 group-hover:ring-[#CEEC22]/30"
-                    }`} 
-                  />
+                  <div className={`relative w-10 h-10 rounded-full overflow-hidden shrink-0 border-2 transition-colors ${
+                    isAdmin ? "border-[#CEEC22] group-hover:ring-2 group-hover:ring-[#CEEC22]/50" : "border-white dark:border-[#0A1E1E] group-hover:ring-2 group-hover:ring-[#CEEC22]/30"
+                  }`}>
+                    <Image src={user.image || "/images/authors/authors1.jpg"} alt={user.name || "Utilisateur"} fill className="object-cover" />
+                  </div>
 
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-[#0A1E1E] dark:text-white text-sm truncate pr-4 group-hover:text-[#184F53] dark:group-hover:text-white transition-colors">
@@ -108,28 +113,37 @@ export default function AdminUsersPage() {
                     </span>
                   )}
 
-                  <div className="relative group/menu">
-                    <button className="p-2 text-neutral-400 dark:text-white/50 hover:bg-neutral-200 dark:hover:bg-black/20 rounded-full transition-colors">
+                  {/* 👇 MENU DÉROULANT CLIQUABLE (Corrigé pour mobile) */}
+                  <div className="relative">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(openMenuId === user.id ? null : user.id);
+                      }}
+                      className="p-2 text-neutral-400 dark:text-white/50 hover:bg-neutral-200 dark:hover:bg-black/20 rounded-full transition-colors"
+                    >
                       <MoreHorizontal className="w-5 h-5" />
                     </button>
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-xl border border-neutral-100 dark:border-neutral-800 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-200 z-20 overflow-hidden">
-                      
-                      <Link 
-                        href="/explorer" 
-                        className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:bg-[#F4F5F7] dark:hover:bg-[#184F53] text-left transition-colors"
-                      >
-                        <Eye className="w-4 h-4" /> Voir les publications
-                      </Link>
-                      
-                      <div className="h-px bg-neutral-100 dark:bg-neutral-800 my-1" />
-                      
-                      <button 
-                        disabled
-                        className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-400 dark:text-neutral-600 cursor-not-allowed text-left"
-                      >
-                        <Ban className="w-4 h-4" /> Bannir (bientôt)
-                      </button>
-                    </div>
+                    
+                    {openMenuId === user.id && (
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden animate-in fade-in zoom-in-95">
+                        <Link 
+                          href="/explorer" 
+                          className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:bg-[#F4F5F7] dark:hover:bg-[#184F53] text-left transition-colors"
+                        >
+                          <Eye className="w-4 h-4" /> Voir les publications
+                        </Link>
+                        
+                        <div className="h-px bg-neutral-100 dark:bg-neutral-800 my-1" />
+                        
+                        <button 
+                          disabled
+                          className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-400 dark:text-neutral-600 cursor-not-allowed text-left"
+                        >
+                          <Ban className="w-4 h-4" /> Bannir (bientôt)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
