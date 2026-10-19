@@ -1,0 +1,17 @@
+﻿{
+  "name": "MemoRise - Mémoires ESPA",
+  "short_name": "MemoRise",
+  "description": "Plateforme de découverte et d'exploration des mémoires de fin d'études de l'ESPA.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F4F5F7",
+  "theme_color": "#184F53",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
