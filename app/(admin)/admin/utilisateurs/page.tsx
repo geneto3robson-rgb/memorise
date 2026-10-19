@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Search, MoreHorizontal, ShieldCheck, GraduationCap, Eye, Ban } from "lucide-react";
 import { trpc } from "@/trpc/client";
+import { UserAvatar } from "@/components/ui/UserAvatar"; // 👈 IMPORT
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
@@ -74,11 +74,16 @@ export default function AdminUsersPage() {
                 className="group flex items-center justify-between bg-[#F4F5F7] dark:bg-[#0A1E1E] hover:bg-white dark:hover:bg-[#184F53] transition-all duration-200 rounded-[2rem] px-4 py-3 sm:px-6 border border-transparent hover:border-[#184F53]/20 dark:hover:border-[#CEEC22]/30 hover:shadow-md"
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className={`relative w-10 h-10 rounded-full overflow-hidden shrink-0 border-2 transition-colors ${
-                    isAdmin ? "border-[#CEEC22] group-hover:ring-2 group-hover:ring-[#CEEC22]/50" : "border-white dark:border-[#0A1E1E] group-hover:ring-2 group-hover:ring-[#CEEC22]/30"
-                  }`}>
-                    <Image src={user.image || "/images/authors/authors1.jpg"} alt={user.name || "Utilisateur"} fill className="object-cover" />
-                  </div>
+                  {/* 👇 UTILISATION DE UserAvatar ICI */}
+                  <UserAvatar 
+                    name={user.name} 
+                    image={user.image} 
+                    className={`w-10 h-10 text-sm border-2 transition-colors ${
+                      isAdmin 
+                        ? "border-[#CEEC22] group-hover:ring-2 group-hover:ring-[#CEEC22]/50" 
+                        : "border-white dark:border-[#0A1E1E] group-hover:ring-2 group-hover:ring-[#CEEC22]/30"
+                    }`} 
+                  />
 
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-[#0A1E1E] dark:text-white text-sm truncate pr-4 group-hover:text-[#184F53] dark:group-hover:text-white transition-colors">
@@ -89,7 +94,6 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
-                  {/* 👇 MODIFICATION ICI : Utilisation directe des données de la BDD */}
                   <span className="hidden md:inline-block text-[11px] font-bold text-[#184F53] dark:text-[#CEEC22]">
                     {user.filiereCode ? `${user.filiereCode} — ${user.filiereName}` : "Non définie"}
                   </span>

@@ -45,7 +45,6 @@ const labelClass = "block text-xs font-bold text-[#184F53] dark:text-primary-300
 const btnPrimary = "px-6 py-3 rounded-full bg-[#CEEC22] hover:bg-[#b5d11b] text-[#0A1E1E] text-sm font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-50";
 
 const roles = ["Étudiant actuel", "Ancien étudiant", "Enseignant"];
-
 const sections = [
   { id: "profil", label: "Informations personnelles", icon: User },
   { id: "securite", label: "Sécurité et connexion", icon: Lock },
@@ -289,7 +288,7 @@ export default function ParametresPage() {
                       <div className="relative">
                         <WhatsappIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#25D366]" />
                         <span className="absolute left-11 top-1/2 -translate-y-1/2 text-sm text-neutral-500 font-bold">+261</span>
-                        <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(formatWhatsAppInput(e.target.value))} placeholder="34 78 805 02" className="w-full pl-[6rem] pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-[#F4F5F7] dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#184F53] focus:border-transparent transition-all shadow-sm disabled:opacity-50 font-medium" disabled={isSaving} />
+                        <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(formatWhatsAppInput(e.target.value))} placeholder="-- -- --- --" className="w-full pl-[6rem] pr-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-[#F4F5F7] dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#184F53] focus:border-transparent transition-all shadow-sm disabled:opacity-50 font-medium" disabled={isSaving} />
                       </div>
                     </div>
                   </div>

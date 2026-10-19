@@ -8,6 +8,7 @@ import { Project } from "@/lib/data/projects";
 import { trpc } from "@/trpc/client";
 import { authClient } from "@/lib/auth-client";
 import { AuthPromptModal } from "@/components/layout/AuthPromptModal";
+import { UserAvatar } from "@/components/ui/UserAvatar"; // 👈 IMPORT DU COMPOSANT
 
 interface ProjectCardProps {
   project: Project;
@@ -129,16 +130,9 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
             {project.title}
           </h3>
 
+          {/* 👇 UTILISATION DE UserAvatar ICI */}
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-full overflow-hidden relative shrink-0">
-              <Image
-                src={project.authorAvatar}
-                alt={project.author}
-                fill
-                sizes="24px"
-                className="object-cover"
-              />
-            </div>
+            <UserAvatar name={project.author} image={project.authorAvatar} className="w-6 h-6 text-[10px]" />
             <span className="text-xs text-neutral-700 dark:text-neutral-300 truncate">
               {project.author}
             </span>

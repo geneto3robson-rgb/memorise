@@ -9,7 +9,36 @@ import { trpc } from "@/trpc/client";
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 
-// Dictionnaire de couleurs pour les filières
+// 👇 Dictionnaire d'images de fond par filière
+const filiereImages: Record<string, string> = {
+  TCO: "/images/projects/telecom.jpg",
+  EN: "/images/projects/energie.jpg", 
+  GE: "/images/projects/genie.jpg",
+  BTP: "/images/projects/btp.jpg",
+  ISA: "/images/projects/isa.jpg", // ⚠️ Assure-toi que cette image existe dans public/images/projects/
+  default: "/images/projects/telecom.jpg", 
+};
+
+// 👇 Dictionnaire des parcours par filière
+const parcoursParFiliere: Record<string, string[]> = {
+  IGAT: ["IGF", "GT"],
+  GMI: ["GI", "GMD", "STGI", "IM", "MA"],
+  GPCI: ["VRM", "BIO", "STGP", "LP"],
+  IMIN: ["STM", "GEO-ENERGIE", "GLB"],
+  GE: ["SERI", "IE", "REER", "ME", "AI"],
+  GPAE: ["TAA", "EE"],
+  GGEO: ["GEA", "GM", "GSS"],
+  IPE: ["STP", "PCH", "BEEN"],
+  BTP: ["BTP", "Géotechnique"],
+  HYDR: ["AEH", "AEP", "AHA"],
+  EN: ["EA", "IA"],
+  ISA: ["Ingénierie Mécatronique", "Ingénierie de Sciences Cognitives"],
+  UAGC: [],
+  MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"],
+  SIM: ["MOC", "MCM", "GMAT"],
+  TCO: ["STI", "RS", "RC"],
+};
+
 const filiereColorMap: Record<string, string> = {
   TCO: "bg-primary-500", 
   EN: "bg-warning-500", 
@@ -22,17 +51,16 @@ export default function TableauDeBordPage() {
   const { data: session, isPending } = authClient.useSession();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Récupération des données via tRPC
+  const { data: profileData, isLoading: isLoadingProfile } = trpc.profile.get.useQuery(undefined, { enabled: !!session });
+  
   const { data: myPublications = [] } = trpc.memoire.mine.useQuery(undefined, { enabled: !!session });
   const { data: favorites = [] } = trpc.favori.list.useQuery(undefined, { enabled: !!session });
-  
-  // Requête pour les mémoires récents (adaptée selon tes paramètres)
   const { data: recentMemoires = [] } = trpc.memoire.list.useQuery(
     { search: "", filiere: "", domaine: "", parcours: "", niveau: "", annee: undefined }, 
     { enabled: !!session }
   );
 
-  if (isPending) {
+  if (isPending || isLoadingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
         <div className="w-8 h-8 rounded-full border-4 border-[#CEEC22] border-t-transparent animate-spin" />
@@ -40,10 +68,17 @@ export default function TableauDeBordPage() {
     );
   }
 
-  // Extraction sécurisée du prénom
   const firstName = session?.user?.name ? session.user.name.split(" ")[0] : "Étudiant";
+  
+  // Infos du profil pour la carte Explorer
+  const userFiliereCode = profileData?.filiereCode ?? "TCO"; 
+  const userParcours = profileData?.profile?.parcours ?? "";
+  const parcoursDisponibles = parcoursParFiliere[userFiliereCode] ?? [];
+  
+  // Image de fond dynamique
+  const bgImage = filiereImages[userFiliereCode] || filiereImages["default"];
 
-  // 👇 FORMATAGE DE LA PREMIÈRE PUBLICATION POUR LE COMPOSANT PROJECTCARD
+  // Formatage de la 1ère publication
   const firstPublication = myPublications[0];
   const formattedPublication = firstPublication ? {
     id: String(firstPublication.id),
@@ -55,8 +90,8 @@ export default function TableauDeBordPage() {
     filiereCode: firstPublication.filiereCode ?? "",
     filiereColor: filiereColorMap[firstPublication.filiereCode ?? ""] ?? "bg-primary-500",
     author: session?.user?.name ?? "Vous",
-    authorAvatar: session?.user?.image ?? "/images/authors/authors1.jpg",
-    authorImage: session?.user?.image ?? "/images/authors/authors1.jpg",
+    authorAvatar: session?.user?.image ?? "", 
+    authorImage: session?.user?.image ?? "",
     niveau: firstPublication.niveau || "",
     year: firstPublication.annee || new Date().getFullYear(),
     pages: 0,
@@ -72,11 +107,10 @@ export default function TableauDeBordPage() {
   };
 
   return (
-    // pt-8 et pt-12 pour corriger le texte écrasé par le haut
     <div className="pt-8 md:pt-12 pb-16">
       <Container>
         
-        {/* En-tête avec le Bonjour */}
+        {/* En-tête "Bonjour" */}
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-5xl font-bold text-[#0A1E1E] dark:text-white mb-4 font-heading">
             Bonjour, {firstName} !
@@ -86,7 +120,7 @@ export default function TableauDeBordPage() {
           </p>
         </div>
 
-        {/* Barre de recherche centrale */}
+        {/* Barre de recherche */}
         <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-12 relative">
           <input
             type="text"
@@ -103,37 +137,64 @@ export default function TableauDeBordPage() {
           </button>
         </form>
 
-        {/* Grille des 3 cartes principales */}
+        {/* Grille des 3 cartes */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           
-          {/* Carte 1 : Explorer */}
-          <div className="relative rounded-[2rem] overflow-hidden bg-[#184F53] text-white p-8 flex flex-col justify-between min-h-[300px] shadow-lg group">
-            <div className="relative z-10">
-              <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold mb-4">Explorer</span>
-              <h2 className="text-2xl font-bold leading-tight mb-4">Parcourez les travaux de votre filière</h2>
-            </div>
-            <div className="relative z-10 mt-auto">
-              <p className="text-sm text-white/70 mb-3 uppercase tracking-wider font-semibold">Parcours</p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-[#CEEC22] text-[#0A1E1E] rounded-full text-xs font-bold">STI</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold">RS</span>
-                <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold">RC</span>
+          {/* Carte 1 : Explorer (avec image dynamique) */}
+          <div className="relative rounded-[2rem] overflow-hidden bg-[#184F53] text-white flex flex-col justify-between min-h-[350px] shadow-lg group">
+            
+            {/* 1. Image de fond (z-0) */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center z-0 transition-transform duration-700 group-hover:scale-105" 
+              style={{ backgroundImage: `url(${bgImage})` }}
+            />
+            {/* 2. Dégradé sombre (z-0) */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A1E1E] via-[#0A1E1E]/80 to-transparent z-0" />
+            
+            {/* 3. Lien global sur la carte (z-10) */}
+            <Link href={`/explorer?filiere=${userFiliereCode}`} className="absolute inset-0 z-10" aria-label="Explorer les mémoires" />
+
+            {/* 4. Contenu (z-20 pour être au-dessus du lien global) */}
+            <div className="relative z-20 p-8 flex flex-col h-full pointer-events-none">
+              <div className="pointer-events-auto">
+                <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-bold mb-4">Explorer</span>
+                <h2 className="text-2xl font-bold leading-tight mb-4">Parcourez les travaux de votre filière</h2>
+              </div>
+              
+              <div className="mt-auto pointer-events-auto">
+                <p className="text-sm text-white/70 mb-3 uppercase tracking-wider font-semibold">Parcours</p>
+                <div className="flex flex-wrap gap-2">
+                  {parcoursDisponibles.length > 0 ? (
+                    parcoursDisponibles.map((p) => (
+                      <Link 
+                        key={p} 
+                        href={`/explorer?filiere=${userFiliereCode}&parcours=${encodeURIComponent(p)}`}
+                        className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                          userParcours === p 
+                            ? "bg-[#CEEC22] text-[#0A1E1E]" 
+                            : "bg-white/20 hover:bg-white/30 text-white"
+                        }`}
+                      >
+                        {p}
+                      </Link>
+                    ))
+                  ) : (
+                    <span className="text-xs text-white/50">Aucun parcours défini</span>
+                  )}
+                </div>
               </div>
             </div>
-            <Link href="/explorer" className="absolute inset-0 z-20" aria-label="Explorer les mémoires" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-0" />
           </div>
 
           {/* Carte 2 : Mes publications */}
-          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-8 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[300px]">
+          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-8 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[350px]">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-[#0A1E1E] dark:text-white">Mes publications</h2>
-              <Link href="/publication" className="text-xs font-bold text-neutral-500 hover:text-[#184F53] dark:hover:text-[#CEEC22] bg-neutral-100 dark:bg-white/5 px-3 py-1 rounded-full">
+              <Link href="/publication" className="text-xs font-bold text-neutral-500 hover:text-[#184F53] dark:hover:text-[#CEEC22] bg-neutral-100 dark:bg-white/5 px-3 py-1 rounded-full transition-colors">
                 Voir tout
               </Link>
             </div>
             
-            {/* 👇 CORRECTION ICI : Utilisation de formattedPublication */}
             {formattedPublication ? (
               <div className="flex-1 flex flex-col justify-center">
                 <ProjectCard project={formattedPublication} />
@@ -149,13 +210,15 @@ export default function TableauDeBordPage() {
           </div>
 
           {/* Carte 3 : Enregistrements */}
-          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-8 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[300px] items-center justify-center text-center">
+          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-8 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[350px] items-center justify-center text-center">
             <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center mb-4">
               <Bookmark className="w-6 h-6 text-[#184F53] dark:text-[#CEEC22]" />
             </div>
             <h2 className="text-xl font-bold text-[#0A1E1E] dark:text-white mb-2">Enregistrements</h2>
             <p className="text-5xl font-black text-[#CEEC22] mb-2">{favorites.length}</p>
-            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-6">Mémoire{favorites.length > 1 ? "s" : ""} enregistré{favorites.length > 1 ? "s" : ""}</p>
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-6">
+              Mémoire{favorites.length > 1 ? "s" : ""} enregistré{favorites.length > 1 ? "s" : ""}
+            </p>
             
             <Link href="/favoris" className="inline-flex items-center gap-2 px-6 py-3 bg-[#CEEC22] text-[#0A1E1E] text-sm font-bold rounded-full hover:bg-[#b5d11b] transition-colors w-full justify-center">
               Voir tout <ArrowRight className="w-4 h-4" />
@@ -175,7 +238,6 @@ export default function TableauDeBordPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {recentMemoires.slice(0, 4).map((memoire: any) => {
-               // Formatage des mémoires récents pour ProjectCard (si tu veux les afficher en vraie carte)
                const formattedRecent = {
                   id: String(memoire.id),
                   slug: memoire.slug || "",
@@ -186,8 +248,8 @@ export default function TableauDeBordPage() {
                   filiereCode: memoire.filiereCode ?? "",
                   filiereColor: filiereColorMap[memoire.filiereCode ?? ""] ?? "bg-primary-500",
                   author: memoire.authorName ?? "Auteur",
-                  authorAvatar: memoire.authorImage ?? "/images/authors/authors1.jpg",
-                  authorImage: memoire.authorImage ?? "/images/authors/authors1.jpg",
+                  authorAvatar: memoire.authorImage ?? "",  
+                  authorImage: memoire.authorImage ?? "",
                   niveau: memoire.niveau || "",
                   year: memoire.annee || new Date().getFullYear(),
                   pages: 0,

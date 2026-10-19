@@ -396,7 +396,7 @@ export default function PublierClient() {
                     onChange={(e) => setWhatsapp(formatWhatsAppInput(e.target.value))} 
                     onFocus={() => { if (!whatsapp && myProfile?.whatsapp) setWhatsapp(formatWhatsAppInput(myProfile.whatsapp)); }} 
                     disabled={isSubmitting || limiteAtteinte} 
-                    placeholder={myProfile?.whatsapp ? "Utiliser le profil" : "34 78 805 02"} 
+                    placeholder={myProfile?.whatsapp ? "Utiliser le profil" : "-- -- --- --"} 
                     className="w-full pl-[5.5rem] pr-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 disabled:opacity-60 shadow-sm" 
                   />
                 </div>

@@ -14,9 +14,8 @@ import { trpc } from "@/trpc/client";
 import { Navbar } from "@/components/layout/Navbar";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { AppFooter } from "@/components/layout/AppFooter"; 
-
-// 👇 CORRECTION DE L'IMPORT ICI (avec le bon chemin)
 import { Footer } from "@/components/layout/Footer"; 
+import { UserAvatar } from "@/components/ui/UserAvatar"; // 👈 IMPORT
 
 const navLinks = [
   { href: "/tableau-de-bord", label: "Tableau de bord", short: "Accueil", icon: LayoutDashboard },
@@ -159,9 +158,8 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
 
           <div className="relative" onMouseEnter={() => setIsUserOpen(true)} onMouseLeave={() => setIsUserOpen(false)}>
             <button className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-neutral-200 dark:hover:bg-primary-900 transition-colors">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0">
-                <Image src={session?.user?.image || "/images/authors/authors1.jpg"} alt="Profil" fill sizes="32px" className="object-cover" />
-              </div>
+              {/* 👇 UTILISATION DE UserAvatar ICI */}
+              <UserAvatar name={session?.user?.name} image={session?.user?.image} className="w-8 h-8 text-xs" />
               <span className="hidden sm:block text-sm font-medium text-primary-900 dark:text-white">{userName}</span>
               <ChevronDown className={`w-3.5 h-3.5 text-neutral-500 transition-transform duration-200 ${isUserOpen ? "rotate-180" : ""}`} />
             </button>
@@ -217,7 +215,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1">
           {children}
         </main>
-        {/*  UTILISATION DU GRAND FOOTER ICI */}
         <Footer /> 
       </div>
     );
@@ -235,7 +232,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
 
         <div className="px-4 md:px-8 pb-6">
-          <AppFooter /> {/* 👈 Le petit footer pour le dashboard */}
+          <AppFooter />
         </div>
       </div>
     </div>
