@@ -120,18 +120,9 @@ export default function ExplorerClient() {
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] pb-24">
       
-      {/* 👇 SECTION HERO CORRIGÉE POUR LE FOND SOMBRE 👇 */}
       {!session && (
         <div className="relative pt-24 pb-16 px-4 overflow-hidden">
-          {/* L'image est bien visible */}
-          <Image 
-            src="/images/hero-bg.jpg" 
-            alt="Hero" 
-            fill 
-            priority
-            className="object-cover" 
-          />
-          {/* Un dégradé sombre par-dessus pour lire le texte blanc */}
+          <Image src="/images/hero-bg.jpg" alt="Hero" fill priority className="object-cover" />
           <div className="absolute inset-0 bg-[#0A1E1E]/70" />
           
           <Container className="relative z-10 text-center">
@@ -148,10 +139,10 @@ export default function ExplorerClient() {
         </div>
       )}
 
-      <Container className={session ? "pt-8" : "pt-0 relative z-20 -mt-8"}>
-        {/* 👆 Le -mt-8 fait remonter la barre de recherche sur le dégradé */}
+      {/* 👇 CORRECTION ICI : -mt-12 pour le chevauchement, plus de fond gris 👇 */}
+      <Container className={session ? "pt-8" : "pt-0 relative z-20 -mt-12"}>
         
-        <div className="sticky top-16 lg:top-0 z-30 pt-4 pb-4 bg-[#F4F5F7]/90 dark:bg-[#051414]/90 backdrop-blur-md">
+        <div className="pt-4 pb-4">
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <input
@@ -159,7 +150,7 @@ export default function ExplorerClient() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Rechercher un mémoire, un auteur..."
-                className="w-full h-14 pl-14 pr-4 rounded-full bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 shadow-lg border border-neutral-200 dark:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#184F53] text-base"
+                className="w-full h-14 pl-14 pr-4 rounded-full bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 shadow-xl border border-neutral-200 dark:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#184F53] text-base"
               />
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
             </div>
@@ -184,9 +175,10 @@ export default function ExplorerClient() {
           </div>
         </div>
 
+        {/* Filtres avancés */}
         <div className={`${showFilters ? "block" : "hidden"} lg:block bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 mb-8 shadow-sm`}>
           <div className="flex flex-wrap items-center gap-3">
-            
+            {/* ... (Reste des filtres inchangé) ... */}
             <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
                 <option value="recent">Plus récents</option>
@@ -195,7 +187,6 @@ export default function ExplorerClient() {
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
             </div>
-
             <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={niveau} onChange={(e) => setNiveau(e.target.value)} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
                 <option value="">Tous les niveaux</option>
@@ -203,7 +194,6 @@ export default function ExplorerClient() {
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
             </div>
-
             <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={showCustomYear ? "custom" : annee} onChange={handleYearChange} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
                 <option value="">Toutes les années</option>
@@ -212,14 +202,11 @@ export default function ExplorerClient() {
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
             </div>
-
             {showCustomYear && (
               <input type="number" placeholder="2021" value={annee || ""} onChange={(e) => setAnnee(e.target.value ? Number(e.target.value) : "")} className="h-10 w-24 px-3 bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none" />
             )}
-
             <button onClick={resetFilters} className="text-xs font-bold text-red-500 hover:underline ml-auto w-full sm:w-auto text-left sm:text-right mt-2 sm:mt-0">Effacer les filtres</button>
           </div>
-
           {(parcoursDisponibles.length > 0 || domainesDisponibles.length > 0) && (
             <div className="space-y-3 mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
               {parcoursDisponibles.length > 0 && (
@@ -244,10 +231,10 @@ export default function ExplorerClient() {
           )}
         </div>
 
+        {/* Résultats et Pagination */}
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm font-bold text-neutral-500">{formatted.length} mémoire{formatted.length > 1 ? "s" : ""} trouvé{formatted.length > 1 ? "s" : ""}</p>
         </div>
-        
         {isLoading ? (
           <div className="py-20 text-center flex flex-col items-center">
             <div className="w-8 h-8 rounded-full border-4 border-[#184F53] border-t-[#CEEC22] animate-spin mb-4" />
@@ -266,7 +253,6 @@ export default function ExplorerClient() {
                 <ProjectCard key={project.id} project={project} onOpen={(slug) => setSelectedSlug(slug)} />
               ))}
             </div>
-
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-12 pb-8">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="w-10 h-10 rounded-full bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-[#0A1E1E] dark:text-white disabled:opacity-30">

@@ -61,13 +61,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         confirmText="Oui, basculer"
       />
 
-      {/* Overlay sombre sur mobile */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMenuOpen(false)} />
       )}
 
-      {/* 👇 SIDEBAR ADMIN FLOTTANTE 👇 */}
-      <aside className={`fixed top-4 bottom-4 left-4 z-50 w-64 bg-[#0A1E1E] flex flex-col rounded-[2rem] shadow-2xl border border-white/5 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* 👇 CHANGEMENT DE COULEUR ICI : bg-[#184F53] 👇 */}
+      <aside className={`fixed top-4 bottom-4 left-4 z-50 w-64 bg-[#184F53] flex flex-col rounded-[2rem] shadow-2xl border border-white/10 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -131,7 +130,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* CONTENU PRINCIPAL */}
       <div className="flex-1 flex flex-col h-full overflow-hidden w-full lg:pl-72">
         <header className="lg:hidden bg-[#F4F5F7] dark:bg-[#051414] p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">

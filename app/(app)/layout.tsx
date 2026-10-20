@@ -3,11 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, X } from "lucide-react"; // 👈 X ajouté
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Search, Plus, Bookmark, FileText, Settings,
-  Bell, ChevronDown, User, LogOut, CheckCircle, X
+  Bell, ChevronDown, User, LogOut, CheckCircle
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
@@ -33,8 +33,7 @@ export function Sidebar() {
   const pathname = usePathname();
   return (
     <>
-      {/* 👇 SIDEBAR FLOTTANTE DESKTOP 👇 */}
-      <aside className="hidden lg:flex fixed top-4 bottom-4 left-4 w-64 flex-col bg-[#0A1E1E] border border-white/5 rounded-[2rem] shadow-2xl p-4 z-40">
+      <aside className="hidden lg:flex fixed top-4 bottom-4 left-4 w-64 flex-col bg-[#184F53] border border-white/10 rounded-[2rem] shadow-2xl p-4 z-40">
         <Link href="/" className="flex items-center gap-2 px-2 py-3 mb-6">
           <Image src="/logo.svg" alt="MemoRise" width={32} height={32} unoptimized />
           <span className="text-lg font-bold text-white font-heading">MemoRise</span>
@@ -72,7 +71,6 @@ export function Sidebar() {
         </div>
       </aside>
       
-      {/* NAVBAR MOBILE (En bas) */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/90 dark:bg-[#0A1E1E]/90 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 flex justify-around py-2 pb-[env(safe-area-inset-bottom)]">
         {navLinks.map((link) => {
           const Icon = link.icon;
@@ -95,7 +93,6 @@ export function Sidebar() {
   );
 }
 
-// AppHeader reste identique à ton code précédent
 export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
   const router = useRouter();
   const [isUserOpen, setIsUserOpen] = useState(false);
@@ -110,6 +107,15 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
   const utils = trpc.useUtils();
   const { data: notifications = [] } = trpc.notification.list.useQuery(undefined, { enabled: !!session });
   const { data: unreadCount = 0 } = trpc.notification.unreadCount.useQuery(undefined, { enabled: !!session });
+
+  const markRead = trpc.notification.markAsRead.useMutation({ onMutate: async ({ id }) => { /*...*/ }, onSettled: () => { utils.notification.list.invalidate(); utils.notification.unreadCount.invalidate(); } });
+  const markAllAsRead = trpc.notification.markAllAsRead.useMutation({ onMutate: async () => { /*...*/ }, onSettled: () => { utils.notification.list.invalidate(); utils.notification.unreadCount.invalidate(); } });
+  
+  // 👇 Mutation pour supprimer une notification
+  const deleteNotif = trpc.notification.delete.useMutation({ 
+    onMutate: async ({ id }) => { /*...*/ }, 
+    onSettled: () => { utils.notification.list.invalidate(); utils.notification.unreadCount.invalidate(); } 
+  });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -133,7 +139,7 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
 
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#051414]/80 backdrop-blur-lg border-b border-neutral-200/50 dark:border-neutral-800/50">
         <div className="flex items-center justify-end gap-3 px-4 md:px-8 py-3">
-          {/* Notifications */}
+          
           <div className="relative" ref={notifRef}>
             <button 
               onClick={() => { setIsNotifOpen(!isNotifOpen); setIsUserOpen(false); }}
@@ -156,9 +162,16 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
                         notifications.map((n) => (
                           <div key={n.id} className={`group relative flex items-start gap-3 p-4 border-b border-neutral-100 dark:border-white/5 last:border-b-0 transition-colors hover:bg-neutral-50 dark:hover:bg-white/5 ${!n.isRead ? "bg-cta-50/50 dark:bg-primary-900/30" : ""}`}>
                             <CheckCircle className={`w-4 h-4 shrink-0 mt-0.5 ${!n.isRead ? "text-cta-500" : "text-neutral-300"}`} />
-                            <Link href={n.link || "#"} className="flex-1">
+                            <Link href={n.link || "#"} className="flex-1 pr-6">
                               <p className={`text-sm ${!n.isRead ? "font-medium" : "text-neutral-600 dark:text-neutral-400"}`}>{n.message}</p>
                             </Link>
+                            {/* 👇 BOUTON X POUR SUPPRIMER LA NOTIFICATION 👇 */}
+                            <button 
+                              onClick={(e) => { e.preventDefault(); deleteNotif.mutate({ id: n.id }); }} 
+                              className="absolute right-3 top-3 p-1 text-neutral-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         ))
                       )}
@@ -168,7 +181,6 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
             )}
           </div>
 
-          {/* Menu Profil */}
           <div className="relative" ref={menuRef}>
             <button 
               onClick={() => { setIsUserOpen(!isUserOpen); setIsNotifOpen(false); }}
@@ -231,11 +243,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // LAYOUT PRIVÉ AVEC SIDEBAR FLOTTANTE
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] flex flex-col">
       <Sidebar />
-      {/* On décale le contenu de 72 (w-64 + left-4 + marge) */}
       <div className="lg:pl-72 flex flex-col flex-1 pb-16 lg:pb-0">
         <AppHeader isAdmin={isAdmin} />
         <main className="flex-1 p-4 md:p-8">{children}</main>

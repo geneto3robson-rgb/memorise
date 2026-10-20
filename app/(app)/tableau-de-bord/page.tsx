@@ -10,13 +10,12 @@ import { trpc } from "@/trpc/client";
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 
-// 👇 Image 404 corrigée (plus de isa.jpg inexistant)
 const filiereImages: Record<string, string> = {
   TCO: "/images/projects/telecom.jpg",
   EN: "/images/projects/energie.jpg", 
   GE: "/images/projects/genie.jpg",
   BTP: "/images/projects/btp.jpg",
-  ISA: "/images/projects/telecom.jpg", // 👈 Utilise une image existante en attendant
+  ISA: "/images/projects/telecom.jpg",
   IMIN: "/images/projects/telecom.jpg", 
   default: "/images/projects/telecom.jpg", 
 };
@@ -56,7 +55,6 @@ export default function TableauDeBordPage() {
   }
 
   const firstName = session?.user?.name ? session.user.name.split(" ")[0] : "Étudiant";
-  
   const userFiliereCode = profileData?.filiereCode ?? "TCO"; 
   const userParcours = profileData?.profile?.parcours ?? "";
   const parcoursDisponibles = parcoursParFiliere[userFiliereCode] ?? [];
@@ -78,20 +76,16 @@ export default function TableauDeBordPage() {
     if (searchQuery.trim()) router.push(`/explorer?q=${encodeURIComponent(searchQuery)}`);
   };
 
-  // Fonction pour scroller manuellement (boutons sur PC, swipe sur mobile)
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const { current } = scrollRef;
-      const scrollAmount = direction === "left" ? -300 : 300;
-      current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      current.scrollBy({ left: direction === "left" ? -300 : 300, behavior: "smooth" });
     }
   };
 
   return (
     <div className="pt-8 md:pt-12 pb-24 lg:pb-16">
       <Container>
-        
-        {/* En-tête */}
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-3xl md:text-5xl font-bold text-[#0A1E1E] dark:text-white mb-3 font-heading">
             Bonjour, {firstName} !
@@ -101,7 +95,6 @@ export default function TableauDeBordPage() {
           </p>
         </div>
 
-        {/* Barre de recherche */}
         <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-10 relative">
           <input
             type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
@@ -113,10 +106,9 @@ export default function TableauDeBordPage() {
           </button>
         </form>
 
-               {/* Grille des 3 cartes */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-12 items-stretch">
           
-          {/* Carte 1 : Explorer (Texte en haut) */}
+          {/* Carte 1 : Explorer */}
           <div className="relative rounded-[2rem] overflow-hidden bg-[#184F53] text-white flex flex-col p-6 md:p-8 shadow-lg group min-h-[350px]">
             <div className="absolute inset-0 bg-cover bg-center z-0 transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${bgImage})` }} />
             <div className="absolute inset-0 bg-gradient-to-b from-[#0A1E1E]/90 via-[#0A1E1E]/50 to-transparent z-0" />
@@ -143,13 +135,13 @@ export default function TableauDeBordPage() {
               
               <div className="mt-auto pt-6 pointer-events-auto">
                  <span className="inline-flex items-center gap-2 text-sm font-bold text-white group-hover:text-[#CEEC22] transition-colors">
-                   Voir tout le catalogue <ArrowRight className="w-4 h-4" />
+                   Parcours <ArrowRight className="w-4 h-4" />
                  </span>
               </div>
             </div>
           </div>
 
-          {/* Carte 2 : Mes publications (Remplit tout l'espace) */}
+          {/* Carte 2 : Mes publications */}
           <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-5 md:p-6 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[350px]">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg md:text-xl font-bold text-[#0A1E1E] dark:text-white">Mes publications</h2>
@@ -192,12 +184,10 @@ export default function TableauDeBordPage() {
           </div>
         </div>
 
-        {/* Section : Récemment publiés (Carrousel horizontal sur mobile) */}
         <div className="mt-8 md:mt-16 relative">
           <div className="flex items-center justify-between mb-4 md:mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-[#0A1E1E] dark:text-white">Récemment publiés</h2>
             <div className="flex items-center gap-2">
-              {/* Boutons de scroll (cachés sur mobile car on swipe) */}
               <button onClick={() => scroll("left")} className="hidden lg:flex w-8 h-8 rounded-full bg-white dark:bg-neutral-800 shadow-sm items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50"><ChevronLeft className="w-5 h-5"/></button>
               <button onClick={() => scroll("right")} className="hidden lg:flex w-8 h-8 rounded-full bg-white dark:bg-neutral-800 shadow-sm items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50"><ChevronRight className="w-5 h-5"/></button>
               <Link href="/explorer" className="text-xs md:text-sm font-bold text-[#184F53] dark:text-[#CEEC22] flex items-center gap-1 hover:underline ml-2">
@@ -206,11 +196,7 @@ export default function TableauDeBordPage() {
             </div>
           </div>
 
-          {/* Conteneur avec Scroll Horizontal */}
-          <div 
-            ref={scrollRef}
-            className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-4 lg:overflow-visible"
-          >
+          <div ref={scrollRef} className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-4 lg:overflow-visible">
             {recentMemoires.slice(0, 4).map((memoire: any) => {
                const formattedRecent = {
                   id: String(memoire.id), slug: memoire.slug || "", title: memoire.title || "Sans titre",
@@ -221,7 +207,6 @@ export default function TableauDeBordPage() {
                   niveau: memoire.niveau || "", year: memoire.annee || new Date().getFullYear(),
                   pages: 0, encadreur: memoire.encadreur || "", keywords: [] as string[],
                };
-               
                return (
                  <div key={memoire.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] lg:min-w-full lg:max-w-full snap-center shrink-0">
                     <ProjectCard project={formattedRecent} />

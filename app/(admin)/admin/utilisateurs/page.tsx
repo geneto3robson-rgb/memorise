@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect, useRef } from "react"; // 👈 Ajout de useRef
 import Link from "next/link";
 import { Search, MoreHorizontal, ShieldCheck, GraduationCap, Eye, Ban } from "lucide-react";
 import { trpc } from "@/trpc/client";
@@ -11,16 +10,20 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<"tous" | "etudiant" | "admin">("tous");
   
-  // État pour le menu 3 points
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null); // 👈 Création de la référence
 
   const { data: users, isLoading } = trpc.admin.listUsers.useQuery();
 
-  // Fermer le menu 3 points si on clique ailleurs
+  // 👇 CORRECTION : Fermer le menu uniquement si on clique en dehors du menu
   useEffect(() => {
-    const handleClickOutside = () => setOpenMenuId(null);
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   if (isLoading) {
@@ -110,17 +113,23 @@ export default function AdminUsersPage() {
                     </span>
                   )}
 
-                  {/* MENU 3 POINTS CLIQUABLE */}
+                  {/* 👇 MENU 3 POINTS AVEC REF 👇 */}
                   <div className="relative">
                     <button 
-                      onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === user.id ? null : user.id); }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setOpenMenuId(openMenuId === user.id ? null : user.id); 
+                      }}
                       className="p-2 text-neutral-400 dark:text-white/50 hover:bg-neutral-200 dark:hover:bg-black/20 rounded-full transition-colors"
                     >
                       <MoreHorizontal className="w-5 h-5" />
                     </button>
                     
                     {openMenuId === user.id && (
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden animate-in fade-in zoom-in-95">
+                      <div 
+                        ref={menuRef} // 👈 On attache la référence ici
+                        className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden animate-in fade-in zoom-in-95"
+                      >
                         <Link href="/explorer" className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:bg-[#F4F5F7] dark:hover:bg-[#184F53] text-left transition-colors">
                           <Eye className="w-4 h-4" /> Voir les publications
                         </Link>

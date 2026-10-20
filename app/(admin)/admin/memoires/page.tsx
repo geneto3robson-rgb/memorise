@@ -1,10 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { 
-  Search, Trash2, FileText, Calendar, GraduationCap, 
-  AlertTriangle, MoreHorizontal, Eye 
-} from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Search, Trash2, FileText, Calendar, GraduationCap, AlertTriangle, MoreHorizontal, Eye } from "lucide-react";
 import { trpc } from "@/trpc/client";
 import { MemoireModal } from "@/components/memoire/MemoireModal";
 
@@ -13,9 +10,8 @@ export default function AdminMemoiresPage() {
   const [sortOrder, setSortOrder] = useState<"recent" | "oldest">("recent");
   const [memoireToDelete, setMemoireToDelete] = useState<{ id: number; title: string } | null>(null);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
-  
-  // État pour le menu 3 points
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const utils = trpc.useUtils();
   const { data: memoires, isLoading } = trpc.admin.listAllMemoires.useQuery();
@@ -31,11 +27,15 @@ export default function AdminMemoiresPage() {
     }
   });
 
-  // Fermer le menu 3 points si on clique ailleurs
+  // Fermer le menu si on clique ailleurs
   useEffect(() => {
-    const handleClickOutside = () => setOpenMenuId(null);
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const filteredMemoires = useMemo(() => {
@@ -56,7 +56,6 @@ export default function AdminMemoiresPage() {
   return (
     <div className="space-y-6 md:space-y-8 max-w-[1400px] mx-auto pb-10 relative">
       
-      {/* MODAL DE SUPPRESSION */}
       {memoireToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0A1E1E]/40 dark:bg-black/60 backdrop-blur-md">
           <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-6 md:p-8 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 animate-in zoom-in-95">
@@ -77,13 +76,11 @@ export default function AdminMemoiresPage() {
         </div>
       )}
 
-      {/* En-tête */}
       <div>
         <h2 className="text-2xl md:text-3xl font-bold text-[#0A1E1E] dark:text-white tracking-tight">Mémoires</h2>
         <p className="text-sm md:text-base text-neutral-500 mt-1">Modérez les publications de la plateforme.</p>
       </div>
 
-      {/* Barre d'outils */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4">
         <div className="relative w-full sm:max-w-md group">
           <input
@@ -107,7 +104,6 @@ export default function AdminMemoiresPage() {
         </div>
       </div>
 
-      {/* Liste */}
       <div className="space-y-3">
         {filteredMemoires.length === 0 ? (
           <p className="text-neutral-500 text-sm text-center py-10">Aucun mémoire trouvé.</p>
@@ -138,17 +134,24 @@ export default function AdminMemoiresPage() {
                   {memoire.filiereName || "Non définie"}
                 </span>
 
-                {/* MENU 3 POINTS CLIQUABLE */}
-                <div className="relative">
+                {/* 👇 MENU 3 POINTS CLIQUABLE CORRIGÉ 👇 */}
+                <div className="relative" ref={menuRef}>
                   <button 
-                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === memoire.id ? null : memoire.id); }}
+                    onClick={(e) => { 
+                      e.preventDefault();
+                      e.stopPropagation(); 
+                      setOpenMenuId(openMenuId === memoire.id ? null : memoire.id); 
+                    }}
                     className="p-2 text-neutral-400 dark:text-white/50 hover:bg-neutral-200 dark:hover:bg-black/20 rounded-full transition-colors"
                   >
                     <MoreHorizontal className="w-5 h-5" />
                   </button>
                   
                   {openMenuId === memoire.id && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden animate-in fade-in zoom-in-95">
+                    <div 
+                      className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden animate-in fade-in zoom-in-95"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <button onClick={() => { setSelectedSlug(memoire.slug); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:bg-[#F4F5F7] dark:hover:bg-[#184F53] text-left transition-colors">
                         <Eye className="w-4 h-4" /> Voir le détail
                       </button>
@@ -164,7 +167,6 @@ export default function AdminMemoiresPage() {
           ))
         )}
       </div>
-
       <MemoireModal slug={selectedSlug} onClose={() => setSelectedSlug(null)} />
     </div>
   );
