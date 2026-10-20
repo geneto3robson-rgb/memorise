@@ -3,10 +3,10 @@ import Image from "next/image";
 
 export function Footer() {
   return (
-    <footer className="bg-[#0A1E1E] text-white pt-16 pb-8">
+    <footer className="bg-[#0A1E1E] text-white pt-16 pb-8 border-t border-white/10">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         
-        {/* 👇 GRILLE PRINCIPALE : 2 colonnes sur mobile, 4 sur PC 👇 */}
+        {/* GRILLE PRINCIPALE */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-12">
           
           {/* Colonne Logo & Description (Prend toute la largeur sur mobile) */}
@@ -18,6 +18,27 @@ export function Footer() {
             <p className="text-sm text-white/60 leading-relaxed max-w-xs">
               Découvrez et explorez les mémoires de fin d'études réalisés à l'ESPA.
             </p>
+            
+            {/* 👇 LOGO ESPA AJOUTÉ ICI 👇 */}
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <p className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold">En partenariat avec</p>
+              <a 
+                href="https://www.espa.mg" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-block bg-white p-1 rounded-full hover:scale-105 transition-transform shadow-md"
+                title="École Supérieure Polytechnique d'Antananarivo"
+              >
+                <Image 
+                  src="/images/espa-logo.png" 
+                  alt="Logo ESPA" 
+                  width={60} 
+                  height={60} 
+                  className="object-contain rounded-full" 
+                />
+              </a>
+            </div>
+
           </div>
 
           {/* Colonne 1 : Explorer */}
@@ -55,7 +76,7 @@ export function Footer() {
         </div>
 
         {/* Bas du footer (Copyright) */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs md:text-sm text-white/40">
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs md:text-sm text-white/40 text-center md:text-left">
           <p>© {new Date().getFullYear()} MemoRise. Tous droits réservés.</p>
           <p>École Supérieure Polytechnique d'Antananarivo (ESPA)</p>
         </div>

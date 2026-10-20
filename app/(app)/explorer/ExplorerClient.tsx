@@ -139,7 +139,6 @@ export default function ExplorerClient() {
         </div>
       )}
 
-      {/* 👇 CORRECTION ICI : -mt-12 pour le chevauchement, plus de fond gris 👇 */}
       <Container className={session ? "pt-8" : "pt-0 relative z-20 -mt-12"}>
         
         <div className="pt-4 pb-4">
@@ -178,30 +177,34 @@ export default function ExplorerClient() {
         {/* Filtres avancés */}
         <div className={`${showFilters ? "block" : "hidden"} lg:block bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 mb-8 shadow-sm`}>
           <div className="flex flex-wrap items-center gap-3">
-            {/* ... (Reste des filtres inchangé) ... */}
+            
+            {/* 👇 CORRECTION MODE SOMBRE ICI 👇 */}
             <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
-                <option value="recent">Plus récents</option>
-                <option value="oldest">Plus anciens</option>
-                <option value="alphabetical">Titre (A-Z)</option>
+                <option value="recent" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Plus récents</option>
+                <option value="oldest" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Plus anciens</option>
+                <option value="alphabetical" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Titre (A-Z)</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
             </div>
+            
             <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={niveau} onChange={(e) => setNiveau(e.target.value)} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
-                <option value="">Tous les niveaux</option>
-                {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
+                <option value="" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Tous les niveaux</option>
+                {niveaux.map(n => <option key={n} value={n} className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">{n}</option>)}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
             </div>
+            
             <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={showCustomYear ? "custom" : annee} onChange={handleYearChange} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
-                <option value="">Toutes les années</option>
-                {annees.map(a => <option key={a} value={a}>{a}</option>)}
-                <option value="custom">Autre...</option>
+                <option value="" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Toutes les années</option>
+                {annees.map(a => <option key={a} value={a} className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">{a}</option>)}
+                <option value="custom" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Autre...</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
             </div>
+
             {showCustomYear && (
               <input type="number" placeholder="2021" value={annee || ""} onChange={(e) => setAnnee(e.target.value ? Number(e.target.value) : "")} className="h-10 w-24 px-3 bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none" />
             )}

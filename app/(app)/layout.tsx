@@ -190,7 +190,6 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
               <div className="absolute top-full right-0 mt-2 w-56">
                 <div className="bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl overflow-hidden">
                   
-                  {/* 👇 BOUTON MODE ADMIN RESTAURÉ ICI 👇 */}
                   {isAdmin && (
                     <button 
                       onClick={() => { setIsUserOpen(false); setIsAdminModalOpen(true); }} 
@@ -219,11 +218,14 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
-  const { data: profileData, isLoading: isLoadingProfile } = trpc.profile.get.useQuery(undefined, { enabled: !!session }); 
+  
+  // 👇 OPTIMISATION MAJEURE ICI : On ne met PAS isLoadingProfile dans la condition bloquante
+  const { data: profileData } = trpc.profile.get.useQuery(undefined, { enabled: !!session }); 
   
   const isAdmin = profileData?.profile?.role === "admin"; 
 
-  if (isPending || (session && isLoadingProfile)) {
+  // On attend uniquement la session (très rapide)
+  if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
         <div className="w-8 h-8 rounded-full border-4 border-[#CEEC22] border-t-transparent animate-spin" />
@@ -246,7 +248,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="lg:pl-72 flex flex-col flex-1 pb-16 lg:pb-0">
         <AppHeader isAdmin={isAdmin} />
-        <main className="flex-1 p-4 md:p-8">{children}</main>
+        <main className="flex-1 p-4 md:p-8">
+          {children}
+        </main>
         <div className="px-4 md:px-8 pb-6 hidden lg:block">
           <AppFooter />
         </div>
