@@ -6,33 +6,39 @@ import { profiles, filieres } from "@/db/schema";
 
 export const profileRouter = router({
   get: protectedProcedure.query(async ({ ctx }) => {
-    const [p] = await db
-      .select({ 
-        profile: profiles, 
-        filiereCode: filieres.code 
-      })
-      .from(profiles)
-      .leftJoin(filieres, eq(profiles.filiereId, filieres.id))
-      .where(eq(profiles.userId, ctx.session.user.id));
-      
-    return { 
-      profile: p?.profile || null, 
-      filiereCode: p?.filiereCode || null 
-    };
-  }),
+    try {
+      const [p] = await db
+        .select({ 
+          profile: profiles, 
+          filiereCode: filieres.code 
+        })
+        .from(profiles)
+        .leftJoin(filieres, eq(profiles.filiereId, filieres.id))
+        .where(eq(profiles.userId, ctx.session.user.id));
+        
+      return { 
+        profile: p?.profile || null, 
+        filiereCode: p?.filiereCode || null 
+      };
+    } catch (error) {
+      // On capture l'erreur pour éviter que le site ne plante
+      console.error("Erreur profile.get:", error);
+      return { profile: null, filiereCode: null };
+    }
+  }), // Le try est maintenant correctement fermé
 
   update: protectedProcedure
     .input(
       z.object({
         role: z.string().optional(),
-        filiereCode: z.string().nullish(), 
+        filiereCode: z.string().nullish(),
         parcours: z.string().optional(),
-        statut: z.string().optional(), // 👈 Ajouté pour le formulaire Paramètres
+        statut: z.string().optional(),
         facebook: z.string().optional(),
         linkedin: z.string().optional(),
         whatsapp: z.string().optional(),
-        notifyNews: z.boolean().optional(), // 👈 Ajouté pour les notifications
-        notifyPublications: z.boolean().optional(), // 👈 Ajouté pour les notifications
+        notifyNews: z.boolean().optional(),
+        notifyPublications: z.boolean().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -48,7 +54,7 @@ export const profileRouter = router({
         role: input.role || "etudiant",
         filiereId: finalFiliereId, 
         parcours: input.parcours || null,
-        statut: input.statut || "Étudiant actuel", // 👈 Ajouté
+        statut: input.statut || "Étudiant actuel",
         facebook: input.facebook || null,
         linkedin: input.linkedin || null,
         whatsapp: input.whatsapp || null,
@@ -59,10 +65,7 @@ export const profileRouter = router({
       if (existingProfile.length > 0) {
         await db.update(profiles).set(profileData).where(eq(profiles.userId, ctx.session.user.id));
       } else {
-        await db.insert(profiles).values({
-          userId: ctx.session.user.id,
-          ...profileData,
-        });
+        await db.insert(profiles).values({ userId: ctx.session.user.id, ...profileData });
       }
       return { success: true };
     }),

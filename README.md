@@ -50,7 +50,7 @@ app/                Routes Next.js (App Router)
 │  ├─ favoris/
 │  ├─ publication/
 │  └─ parametres/
-├─ (admin)/          Espace administrateur (en cours)
+├─ (admin)/          Espace administrateur
 ├─ api/              Routes API (tRPC + authentification)
 ├─ connexion/        Page d'authentification
 ├─ explorer/         Catalogue public avec layout adaptatif
@@ -93,5 +93,3 @@ Auteur
 RAVELOTIARAY Jacsilin Geneto Robson
 Licence Télécommunication — Parcours STI
 ESPA Antananarivo, 2026
-npm install
-npm run dev 
