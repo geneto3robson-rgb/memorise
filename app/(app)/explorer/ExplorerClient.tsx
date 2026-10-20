@@ -61,7 +61,6 @@ export default function ExplorerClient() {
     setPage(1);
   }, [searchParams]);
 
-  // 👇 RÉINTÉGRATION DE LA LOGIQUE DES DOMAINES
   const domainesDisponibles = filiereCode ? (domainesParFiliere[filiereCode] ?? []) : [];
   const parcoursDisponibles = filiereCode ? (parcoursParFiliere[filiereCode] ?? []) : [];
 
@@ -121,24 +120,36 @@ export default function ExplorerClient() {
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] pb-24">
       
+      {/* 👇 SECTION HERO CORRIGÉE POUR LE FOND SOMBRE 👇 */}
       {!session && (
-        <div className="relative pt-24 pb-12 px-4">
-          <Image src="/images/hero-bg.jpg" alt="Hero" fill className="object-cover opacity-20 dark:opacity-10" />
+        <div className="relative pt-24 pb-16 px-4 overflow-hidden">
+          {/* L'image est bien visible */}
+          <Image 
+            src="/images/hero-bg.jpg" 
+            alt="Hero" 
+            fill 
+            priority
+            className="object-cover" 
+          />
+          {/* Un dégradé sombre par-dessus pour lire le texte blanc */}
+          <div className="absolute inset-0 bg-[#0A1E1E]/70" />
+          
           <Container className="relative z-10 text-center">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-[#184F53] dark:text-[#CEEC22] mb-6 hover:underline">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-white/80 hover:text-white mb-6 transition-colors">
               <ArrowLeft className="w-4 h-4" /> Retour à l'accueil
             </Link>
-            <h1 className="text-4xl md:text-5xl font-bold text-[#0A1E1E] dark:text-white mb-4 font-heading">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 font-heading">
               Explorer les mémoires
             </h1>
-            <p className="text-neutral-500 dark:text-neutral-400 max-w-2xl mx-auto">
+            <p className="text-white/80 max-w-2xl mx-auto">
               Parcourez le catalogue des travaux de fin d'études de l'ESPA.
             </p>
           </Container>
         </div>
       )}
 
-      <Container className={session ? "pt-8" : "pt-0"}>
+      <Container className={session ? "pt-8" : "pt-0 relative z-20 -mt-8"}>
+        {/* 👆 Le -mt-8 fait remonter la barre de recherche sur le dégradé */}
         
         <div className="sticky top-16 lg:top-0 z-30 pt-4 pb-4 bg-[#F4F5F7]/90 dark:bg-[#051414]/90 backdrop-blur-md">
           <div className="flex items-center gap-3">
@@ -148,7 +159,7 @@ export default function ExplorerClient() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Rechercher un mémoire, un auteur..."
-                className="w-full h-14 pl-14 pr-4 rounded-full bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 shadow-sm border border-neutral-200 dark:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#184F53] text-base"
+                className="w-full h-14 pl-14 pr-4 rounded-full bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 shadow-lg border border-neutral-200 dark:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#184F53] text-base"
               />
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
             </div>
@@ -209,7 +220,6 @@ export default function ExplorerClient() {
             <button onClick={resetFilters} className="text-xs font-bold text-red-500 hover:underline ml-auto w-full sm:w-auto text-left sm:text-right mt-2 sm:mt-0">Effacer les filtres</button>
           </div>
 
-          {/* 👇 AFFICHAGE DES PARCOURS ET DOMAINES 👇 */}
           {(parcoursDisponibles.length > 0 || domainesDisponibles.length > 0) && (
             <div className="space-y-3 mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
               {parcoursDisponibles.length > 0 && (
