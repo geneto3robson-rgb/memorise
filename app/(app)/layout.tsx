@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
+import { Navbar } from "@/components/layout/Navbar"; 
+import { Footer } from "@/components/layout/Footer"; 
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { AppFooter } from "@/components/layout/AppFooter"; 
 import { UserAvatar } from "@/components/ui/UserAvatar";
@@ -31,12 +33,13 @@ export function Sidebar() {
   const pathname = usePathname();
   return (
     <>
-      {/* SIDEBAR DESKTOP */}
-      <aside className="hidden lg:flex fixed inset-y-0 left-0 w-60 flex-col bg-primary-500 dark:bg-primary-950 border-r border-white/10 p-4 z-40">
+      {/* 👇 SIDEBAR FLOTTANTE DESKTOP 👇 */}
+      <aside className="hidden lg:flex fixed top-4 bottom-4 left-4 w-64 flex-col bg-[#0A1E1E] border border-white/5 rounded-[2rem] shadow-2xl p-4 z-40">
         <Link href="/" className="flex items-center gap-2 px-2 py-3 mb-6">
           <Image src="/logo.svg" alt="MemoRise" width={32} height={32} unoptimized />
           <span className="text-lg font-bold text-white font-heading">MemoRise</span>
         </Link>
+        
         <nav className="flex-1 space-y-1">
           {navLinks.map((link) => {
             const Icon = link.icon;
@@ -45,8 +48,8 @@ export function Sidebar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  active ? "bg-cta-500 text-primary-900" : "text-white/80 hover:bg-white/10 hover:text-white"
+                className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-colors ${
+                  active ? "bg-[#CEEC22] text-[#0A1E1E] shadow-md font-bold" : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -56,15 +59,17 @@ export function Sidebar() {
           })}
         </nav>
         
-        <Link
-          href="/parametres"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mt-4 border-t border-white/10 pt-4 transition-colors ${
-            isActivePath(pathname, "/parametres") ? "bg-cta-500 text-primary-900" : "text-white/80 hover:bg-white/10 hover:text-white"
-          }`}
-        >
-          <Settings className="w-4 h-4 shrink-0" />
-          Paramètres
-        </Link>
+        <div className="mt-auto pt-4">
+          <Link
+            href="/parametres"
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-colors ${
+              isActivePath(pathname, "/parametres") ? "bg-[#CEEC22] text-[#0A1E1E] shadow-md font-bold" : "text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <Settings className="w-4 h-4 shrink-0" />
+            Paramètres
+          </Link>
+        </div>
       </aside>
       
       {/* NAVBAR MOBILE (En bas) */}
@@ -90,6 +95,7 @@ export function Sidebar() {
   );
 }
 
+// AppHeader reste identique à ton code précédent
 export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
   const router = useRouter();
   const [isUserOpen, setIsUserOpen] = useState(false);
@@ -105,11 +111,6 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
   const { data: notifications = [] } = trpc.notification.list.useQuery(undefined, { enabled: !!session });
   const { data: unreadCount = 0 } = trpc.notification.unreadCount.useQuery(undefined, { enabled: !!session });
 
-  const markRead = trpc.notification.markAsRead.useMutation({ onMutate: async ({ id }) => { /*...*/ }, onSettled: () => { utils.notification.list.invalidate(); utils.notification.unreadCount.invalidate(); } });
-  const markAllAsRead = trpc.notification.markAllAsRead.useMutation({ onMutate: async () => { /*...*/ }, onSettled: () => { utils.notification.list.invalidate(); utils.notification.unreadCount.invalidate(); } });
-  const deleteNotif = trpc.notification.delete.useMutation({ onMutate: async ({ id }) => { /*...*/ }, onSettled: () => { utils.notification.list.invalidate(); utils.notification.unreadCount.invalidate(); } });
-
-  // Fermer les menus si on clique ailleurs
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) setIsUserOpen(false);
@@ -130,9 +131,8 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
         confirmText="Oui, basculer"
       />
 
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0A1E1E]/80 backdrop-blur-lg border-b border-neutral-200/50 dark:border-neutral-800/50">
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#051414]/80 backdrop-blur-lg border-b border-neutral-200/50 dark:border-neutral-800/50">
         <div className="flex items-center justify-end gap-3 px-4 md:px-8 py-3">
-          
           {/* Notifications */}
           <div className="relative" ref={notifRef}>
             <button 
@@ -208,20 +208,11 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const { data: profileData, isLoading: isLoadingProfile } = trpc.profile.get.useQuery(undefined, { enabled: !!session }); 
   
   const isAdmin = profileData?.profile?.role === "admin"; 
 
-  // REDIRECTION DE SÉCURITÉ : Si pas de session, on renvoie vers la connexion
-  useEffect(() => {
-    if (!isPending && !session) {
-      router.push("/connexion");
-    }
-  }, [session, isPending, router]);
-
-  // 1. Écran de chargement (évite le flash de la Navbar publique)
   if (isPending || (session && isLoadingProfile)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
@@ -230,22 +221,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 2. Si pas de session, on n'affiche rien (en attendant la redirection)
   if (!session) {
-    return null;
+    return (
+      <div className="min-h-screen flex flex-col bg-[#F4F5F7] dark:bg-[#051414]">
+        <Navbar />
+        <main className="flex-1">{children}</main>
+        <Footer /> 
+      </div>
+    );
   }
 
-  // 3. VUE PRIVÉE (Connecté) - Uniquement Sidebar + Header
+  // LAYOUT PRIVÉ AVEC SIDEBAR FLOTTANTE
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] flex flex-col">
       <Sidebar />
-      <div className="lg:pl-60 flex flex-col flex-1 pb-16 lg:pb-0">
+      {/* On décale le contenu de 72 (w-64 + left-4 + marge) */}
+      <div className="lg:pl-72 flex flex-col flex-1 pb-16 lg:pb-0">
         <AppHeader isAdmin={isAdmin} />
-        
-        <main className="flex-1 p-4 md:p-8">
-          {children}
-        </main>
-
+        <main className="flex-1 p-4 md:p-8">{children}</main>
         <div className="px-4 md:px-8 pb-6 hidden lg:block">
           <AppFooter />
         </div>
@@ -253,5 +246,3 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
-// force update layout v2

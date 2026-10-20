@@ -46,13 +46,6 @@ export default function FavorisPage() {
               {formatted.length} mémoire{formatted.length > 1 ? "s" : ""} enregistré{formatted.length > 1 ? "s" : ""}
             </p>
           </div>
-          
-          <Link 
-            href="/explorer" 
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-800 text-primary-900 dark:text-white text-sm font-bold rounded-full hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors shadow-sm w-fit"
-          >
-            <Compass className="w-4 h-4" /> Explorer le catalogue
-          </Link>
         </div>
 
         {isLoading ? (

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Search, ArrowLeft, SlidersHorizontal, X } from "lucide-react"; 
+import { Search, ArrowLeft, SlidersHorizontal, X, ChevronDown } from "lucide-react"; 
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 import { MemoireModal } from "@/components/memoire/MemoireModal";
@@ -13,9 +13,10 @@ import { trpc } from "@/trpc/client";
 import { domainesParFiliere } from "@/lib/data/domaines";
 import { authClient } from "@/lib/auth-client";
 
-const PER_PAGE = 16;
+const PER_PAGE = 10;
 const niveaux = ["L3", "M2"];
-const annees = [2026, 2025, 2024, 2023, 2022];
+const currentYear = new Date().getFullYear();
+const annees = Array.from({ length: 15 }, (_, i) => currentYear - i);
 
 const filiereColorMap: Record<string, string> = {
   TCO: "bg-primary-500", EN: "bg-warning-500", GE: "bg-success-500", BTP: "bg-purple-600",
@@ -23,7 +24,7 @@ const filiereColorMap: Record<string, string> = {
 
 const parcoursParFiliere: Record<string, string[]> = {
   IGAT: ["IGF", "GT"], GMI: ["GI", "GMD", "STGI", "IM", "MA"], GPCI: ["VRM", "BIO", "STGP", "LP"],
-  IMIN: ["STM", "GEO-ENERGIE", "GLB"], GE: ["SERI", "IE", "REER", "MEAI"], GPAE: ["TAA", "EE"],
+  IMIN: ["STM", "GEO-ENERGIE", "GLB"], GE: ["SERI", "IE", "REER", "ME", "AI"], GPAE: ["TAA", "EE"],
   GGEO: ["GEA", "GM", "GSS"], IPE: ["STP", "PCH", "BEEN"], BTP: ["BTP", "Géotechnique"],
   HYDR: ["AEH", "AEP", "AHA"], EN: ["EA", "IA"], ISA: ["Ingénierie Mécatronique", "Ingénierie de Sciences Cognitives"],
   UAGC: [], MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"], SIM: ["MOC", "MCM", "GMAT"], TCO: ["STI", "RS", "RC"],
@@ -50,7 +51,6 @@ export default function ExplorerClient() {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<"recent" | "oldest" | "alphabetical">("recent");
   
-  // État pour afficher/masquer les filtres avancés sur mobile
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
@@ -61,6 +61,7 @@ export default function ExplorerClient() {
     setPage(1);
   }, [searchParams]);
 
+  // 👇 RÉINTÉGRATION DE LA LOGIQUE DES DOMAINES
   const domainesDisponibles = filiereCode ? (domainesParFiliere[filiereCode] ?? []) : [];
   const parcoursDisponibles = filiereCode ? (parcoursParFiliere[filiereCode] ?? []) : [];
 
@@ -120,7 +121,6 @@ export default function ExplorerClient() {
   return (
     <div className="min-h-screen bg-[#F4F5F7] dark:bg-[#051414] pb-24">
       
-      {/* Header avec image floutée pour la version publique */}
       {!session && (
         <div className="relative pt-24 pb-12 px-4">
           <Image src="/images/hero-bg.jpg" alt="Hero" fill className="object-cover opacity-20 dark:opacity-10" />
@@ -140,7 +140,6 @@ export default function ExplorerClient() {
 
       <Container className={session ? "pt-8" : "pt-0"}>
         
-        {/* BARRE DE RECHERCHE FLOTTANTE (Style Image 5) */}
         <div className="sticky top-16 lg:top-0 z-30 pt-4 pb-4 bg-[#F4F5F7]/90 dark:bg-[#051414]/90 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
@@ -154,7 +153,6 @@ export default function ExplorerClient() {
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
             </div>
             
-            {/* Bouton pour afficher les filtres avancés sur mobile */}
             <button 
               onClick={() => setShowFilters(!showFilters)}
               className="lg:hidden w-14 h-14 shrink-0 rounded-full bg-[#184F53] dark:bg-[#CEEC22] text-white dark:text-[#0A1E1E] flex items-center justify-center shadow-md"
@@ -163,7 +161,6 @@ export default function ExplorerClient() {
             </button>
           </div>
 
-          {/* Pilules de filtres rapides (Filières) - Scroll horizontal */}
           <div className="flex overflow-x-auto gap-2 mt-4 pb-2 scrollbar-hide">
             <button onClick={() => changeFiliere("")} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filiereCode === "" ? "bg-[#0A1E1E] text-white dark:bg-[#CEEC22] dark:text-[#0A1E1E]" : "bg-white dark:bg-[#0A1E1E] text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800"}`}>
               Toutes les filières
@@ -176,53 +173,67 @@ export default function ExplorerClient() {
           </div>
         </div>
 
-        {/* Filtres avancés (Cachés par défaut sur mobile, visibles sur PC) */}
         <div className={`${showFilters ? "block" : "hidden"} lg:block bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 mb-8 shadow-sm`}>
           <div className="flex flex-wrap items-center gap-3">
             
-            <div className="relative min-w-[140px]">
+            <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
                 <option value="recent">Plus récents</option>
                 <option value="oldest">Plus anciens</option>
                 <option value="alphabetical">Titre (A-Z)</option>
               </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
             </div>
 
-            <div className="relative min-w-[140px]">
+            <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={niveau} onChange={(e) => setNiveau(e.target.value)} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
                 <option value="">Tous les niveaux</option>
                 {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
               </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
             </div>
 
-            <div className="relative min-w-[140px]">
+            <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={showCustomYear ? "custom" : annee} onChange={handleYearChange} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
                 <option value="">Toutes les années</option>
                 {annees.map(a => <option key={a} value={a}>{a}</option>)}
                 <option value="custom">Autre...</option>
               </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
             </div>
 
             {showCustomYear && (
               <input type="number" placeholder="2021" value={annee || ""} onChange={(e) => setAnnee(e.target.value ? Number(e.target.value) : "")} className="h-10 w-24 px-3 bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none" />
             )}
 
-            {/* Parcours (si une filière est sélectionnée) */}
-            {parcoursDisponibles.length > 0 && (
-              <div className="flex flex-wrap gap-2 w-full mt-2 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                <span className="text-xs font-bold text-neutral-400 py-1 mr-2 uppercase">Parcours :</span>
-                <button onClick={() => changeParcours("")} className={`px-3 py-1 rounded-full text-xs font-bold ${parcours === "" ? "bg-[#CEEC22] text-[#0A1E1E]" : "bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-neutral-300"}`}>Tous</button>
-                {parcoursDisponibles.map(p => (
-                  <button key={p} onClick={() => changeParcours(p)} className={`px-3 py-1 rounded-full text-xs font-bold ${parcours === p ? "bg-[#CEEC22] text-[#0A1E1E]" : "bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-neutral-300"}`}>{p}</button>
-                ))}
-              </div>
-            )}
-
-            <button onClick={resetFilters} className="text-xs font-bold text-red-500 hover:underline ml-auto">Effacer les filtres</button>
+            <button onClick={resetFilters} className="text-xs font-bold text-red-500 hover:underline ml-auto w-full sm:w-auto text-left sm:text-right mt-2 sm:mt-0">Effacer les filtres</button>
           </div>
+
+          {/* 👇 AFFICHAGE DES PARCOURS ET DOMAINES 👇 */}
+          {(parcoursDisponibles.length > 0 || domainesDisponibles.length > 0) && (
+            <div className="space-y-3 mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+              {parcoursDisponibles.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-neutral-400 py-1 mr-2 uppercase">Parcours :</span>
+                  <button onClick={() => changeParcours("")} className={`px-3 py-1 rounded-full text-xs font-bold ${parcours === "" ? "bg-[#CEEC22] text-[#0A1E1E]" : "bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-neutral-300"}`}>Tous</button>
+                  {parcoursDisponibles.map(p => (
+                    <button key={p} onClick={() => changeParcours(p)} className={`px-3 py-1 rounded-full text-xs font-bold ${parcours === p ? "bg-[#CEEC22] text-[#0A1E1E]" : "bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-neutral-300"}`}>{p}</button>
+                  ))}
+                </div>
+              )}
+              {domainesDisponibles.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-neutral-400 py-1 mr-2 uppercase">Domaine :</span>
+                  <button onClick={() => setDomaine("")} className={`px-3 py-1 rounded-full text-xs font-bold ${domaine === "" ? "bg-[#184F53] text-white dark:bg-[#CEEC22] dark:text-[#0A1E1E]" : "bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-neutral-300"}`}>Tous</button>
+                  {domainesDisponibles.map(d => (
+                    <button key={d} onClick={() => setDomaine(d)} className={`px-3 py-1 rounded-full text-xs font-bold ${domaine === d ? "bg-[#184F53] text-white dark:bg-[#CEEC22] dark:text-[#0A1E1E]" : "bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-neutral-300"}`}>{d}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Résultats */}
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm font-bold text-neutral-500">{formatted.length} mémoire{formatted.length > 1 ? "s" : ""} trouvé{formatted.length > 1 ? "s" : ""}</p>
         </div>
@@ -240,14 +251,12 @@ export default function ExplorerClient() {
           </div>
         ) : (
           <>
-            {/* GRILLE DE CARTES IMMERSIVES */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {paginated.map((project) => (
                 <ProjectCard key={project.id} project={project} onOpen={(slug) => setSelectedSlug(slug)} />
               ))}
             </div>
 
-            {/* PAGINATION */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-12 pb-8">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="w-10 h-10 rounded-full bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-[#0A1E1E] dark:text-white disabled:opacity-30">

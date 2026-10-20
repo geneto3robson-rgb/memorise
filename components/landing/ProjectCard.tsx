@@ -84,8 +84,9 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A1E1E] via-[#0A1E1E]/40 to-transparent opacity-90" />
 
         {/* Badge Filière en haut à gauche */}
-        <div className="absolute top-4 left-4 z-10">
-          <span className={`px-3 py-1 text-[10px] font-bold text-white rounded-full bg-black/40 backdrop-blur-md border border-white/20`}>
+        <div className="absolute top-4 left-4 z-10 max-w-[80%]"> {/*Ajout de max-w-[80%] */}
+          <span className={`block truncate px-3 py-1 text-[10px] font-bold text-white rounded-full bg-black/40 backdrop-blur-md border border-white/20`}>
+            {/*Ajout de block et truncate */}
             {project.filiere}
           </span>
         </div>
@@ -100,40 +101,40 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
           <Bookmark className={`w-4 h-4 transition-colors ${isSaved ? "text-[#CEEC22] fill-[#CEEC22]" : "text-white"}`} />
         </button>
 
-        {/* Contenu en bas */}
-        <div className="relative mt-auto p-5 z-10 flex flex-col justify-end">
+                {/* Contenu en bas */}
+        <div className="relative mt-auto p-3 md:p-5 z-10 flex flex-col justify-end">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-bold text-white bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md">
+            <span className="text-[9px] md:text-[10px] font-bold text-white bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md">
               {project.niveau}
             </span>
-            <span className="text-[10px] font-bold text-white bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md">
+            <span className="text-[9px] md:text-[10px] font-bold text-white bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md">
               {project.year}
             </span>
           </div>
 
-          <h3 className="text-lg font-bold text-white leading-tight line-clamp-2 mb-1 group-hover:text-[#CEEC22] transition-colors">
+          <h3 className="text-xs md:text-lg font-bold text-white leading-tight line-clamp-2 mb-1 group-hover:text-[#CEEC22] transition-colors">
             {project.title}
           </h3>
           
-          <p className="text-xs text-white/80 line-clamp-1 mb-3">
+          <p className="text-[10px] md:text-xs text-white/80 line-clamp-1 mb-2 md:mb-3">
             Par {project.author}
           </p>
 
           {onOpen ? (
             <button
               onClick={handleOpen}
-              className="inline-flex items-center justify-between w-full text-sm font-bold text-white border-t border-white/20 pt-3 hover:text-[#CEEC22] transition-colors"
+              className="inline-flex items-center justify-between w-full text-[10px] md:text-sm font-bold text-white border-t border-white/20 pt-2 md:pt-3 hover:text-[#CEEC22] transition-colors"
             >
               Voir le détail
-              <ArrowUpRight className="w-4 h-4" />
+              <ArrowUpRight className="w-3 h-3 md:w-4 md:h-4" />
             </button>
           ) : (
             <Link
               href={`/memoires/${project.slug}`}
-              className="inline-flex items-center justify-between w-full text-sm font-bold text-white border-t border-white/20 pt-3 hover:text-[#CEEC22] transition-colors"
+              className="inline-flex items-center justify-between w-full text-[10px] md:text-sm font-bold text-white border-t border-white/20 pt-2 md:pt-3 hover:text-[#CEEC22] transition-colors"
             >
               Voir le détail
-              <ArrowUpRight className="w-4 h-4" />
+              <ArrowUpRight className="w-3 h-3 md:w-4 md:h-4" />
             </Link>
           )}
         </div>

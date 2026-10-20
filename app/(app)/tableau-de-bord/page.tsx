@@ -113,18 +113,18 @@ export default function TableauDeBordPage() {
           </button>
         </form>
 
-        {/* Grille des 3 cartes (S'empilent parfaitement sur mobile) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-12 items-start">
+               {/* Grille des 3 cartes */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-12 items-stretch">
           
-          {/* Carte 1 : Explorer */}
-          <div className="relative rounded-[2rem] overflow-hidden bg-[#184F53] text-white flex flex-col justify-end min-h-[220px] md:min-h-[350px] shadow-lg group">
+          {/* Carte 1 : Explorer (Texte en haut) */}
+          <div className="relative rounded-[2rem] overflow-hidden bg-[#184F53] text-white flex flex-col p-6 md:p-8 shadow-lg group min-h-[350px]">
             <div className="absolute inset-0 bg-cover bg-center z-0 transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${bgImage})` }} />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A1E1E] via-[#0A1E1E]/70 to-transparent z-0" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0A1E1E]/90 via-[#0A1E1E]/50 to-transparent z-0" />
             <Link href={`/explorer?filiere=${userFiliereCode}`} className="absolute inset-0 z-10" aria-label="Explorer les mémoires" />
 
-            <div className="relative z-20 p-6 md:p-8 pointer-events-none">
-              <div className="pointer-events-auto mb-4">
-                <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] md:text-xs font-bold mb-2">Explorer</span>
+            <div className="relative z-20 pointer-events-none flex flex-col h-full">
+              <div className="pointer-events-auto mb-6">
+                <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] md:text-xs font-bold mb-3">Explorer</span>
                 <h2 className="text-xl md:text-2xl font-bold leading-tight">Parcourez les travaux de votre filière</h2>
               </div>
               
@@ -140,26 +140,32 @@ export default function TableauDeBordPage() {
                   ) : <span className="text-[10px] text-white/50">Aucun parcours défini</span>}
                 </div>
               </div>
+              
+              <div className="mt-auto pt-6 pointer-events-auto">
+                 <span className="inline-flex items-center gap-2 text-sm font-bold text-white group-hover:text-[#CEEC22] transition-colors">
+                   Voir tout le catalogue <ArrowRight className="w-4 h-4" />
+                 </span>
+              </div>
             </div>
           </div>
 
-          {/* Carte 2 : Mes publications */}
-          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-5 md:p-6 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[220px] md:min-h-[350px]">
-            <div className="flex items-center justify-between mb-3">
+          {/* Carte 2 : Mes publications (Remplit tout l'espace) */}
+          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-5 md:p-6 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[350px]">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg md:text-xl font-bold text-[#0A1E1E] dark:text-white">Mes publications</h2>
               <Link href="/publication" className="text-[10px] md:text-xs font-bold text-neutral-500 hover:text-[#184F53] bg-neutral-100 dark:bg-white/5 px-3 py-1 rounded-full">Voir tout</Link>
             </div>
             
             {formattedPublication ? (
               <div className="flex-1 flex flex-col">
-                <div className="relative w-full h-28 md:h-32 rounded-xl overflow-hidden mb-3">
+                <div className="relative w-full flex-1 min-h-[140px] rounded-xl overflow-hidden mb-4">
                   <Image src={formattedPublication.image} alt={formattedPublication.title} fill className="object-cover" />
-                  <span className={`absolute top-2 left-2 ${formattedPublication.filiereColor} text-white text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded-full`}>{formattedPublication.filiere}</span>
+                  <span className={`absolute top-2 left-2 ${formattedPublication.filiereColor} text-white text-[10px] font-bold px-2 py-1 rounded-full`}>{formattedPublication.filiere}</span>
                 </div>
-                <h3 className="font-bold text-[#0A1E1E] dark:text-white line-clamp-2 text-xs md:text-sm mb-1">{formattedPublication.title}</h3>
+                <h3 className="font-bold text-[#0A1E1E] dark:text-white line-clamp-2 text-sm md:text-base mb-1">{formattedPublication.title}</h3>
                 <p className="text-[10px] md:text-xs text-neutral-500 mb-3">{formattedPublication.niveau} · {formattedPublication.year}</p>
-                <Link href={`/memoires/${formattedPublication.slug}`} className="mt-auto w-full py-2 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 text-[#0A1E1E] dark:text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors">
-                  Voir le détail <ArrowUpRight className="w-3 h-3" />
+                <Link href={`/memoires/${formattedPublication.slug}`} className="mt-auto w-full py-2.5 bg-[#CEEC22] hover:bg-[#b5d11b] text-[#0A1E1E] text-xs md:text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors">
+                  Voir le détail <ArrowUpRight className="w-4 h-4" />
                 </Link>
               </div>
             ) : (
@@ -173,13 +179,13 @@ export default function TableauDeBordPage() {
           </div>
 
           {/* Carte 3 : Enregistrements */}
-          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-6 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[220px] md:min-h-[350px] items-center justify-center text-center">
+          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-6 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[350px] items-center justify-center text-center">
             <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center mb-3">
               <Bookmark className="w-5 h-5 md:w-6 md:h-6 text-[#184F53] dark:text-[#CEEC22]" />
             </div>
             <h2 className="text-lg md:text-xl font-bold text-[#0A1E1E] dark:text-white mb-1">Enregistrements</h2>
             <p className="text-4xl md:text-5xl font-black text-[#CEEC22] mb-1">{favorites.length}</p>
-            <p className="text-[10px] md:text-xs font-bold text-neutral-400 uppercase tracking-widest mb-4">Mémoire{favorites.length > 1 ? "s" : ""} enregistré{favorites.length > 1 ? "s" : ""}</p>
+            <p className="text-[10px] md:text-xs font-bold text-neutral-400 uppercase tracking-widest mb-6">Mémoire{favorites.length > 1 ? "s" : ""} enregistré{favorites.length > 1 ? "s" : ""}</p>
             <Link href="/favoris" className="inline-flex items-center gap-2 px-6 py-2.5 md:py-3 bg-[#CEEC22] text-[#0A1E1E] text-xs md:text-sm font-bold rounded-full hover:bg-[#b5d11b] transition-colors w-full justify-center mt-auto">
               Voir tout <ArrowRight className="w-4 h-4" />
             </Link>

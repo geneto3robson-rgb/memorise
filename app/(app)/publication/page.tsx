@@ -62,7 +62,7 @@ export default function MesPublicationsPage() {
         </div>
       )}
 
-      {/* En-tête */}
+           {/* En-tête */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
           <div className="w-16 h-1 bg-[#CEEC22] mb-4 rounded-full" />
@@ -73,13 +73,7 @@ export default function MesPublicationsPage() {
             {memoires?.length || 0} / 3 publication{(memoires?.length || 0) > 1 ? "s" : ""}
           </p>
         </div>
-        
-        <Link 
-          href="/publier" 
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#CEEC22] hover:bg-[#b5d11b] text-[#0A1E1E] text-sm font-bold rounded-full transition-colors shadow-sm w-full sm:w-auto"
-        >
-          <Plus className="w-4 h-4" /> Publier un mémoire
-        </Link>
+        {/* 👇 LE BOUTON A ÉTÉ SUPPRIMÉ ICI 👇 */}
       </div>
 
       {/* LISTE DES PUBLICATIONS */}

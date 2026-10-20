@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false); // 👈 NOUVEL ÉTAT
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -63,14 +63,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Overlay sombre sur mobile */}
       {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMenuOpen(false)} />
       )}
 
-      {/* SIDEBAR */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#184F53] flex flex-col shadow-xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* 👇 SIDEBAR ADMIN FLOTTANTE 👇 */}
+      <aside className={`fixed top-4 bottom-4 left-4 z-50 w-64 bg-[#0A1E1E] flex flex-col rounded-[2rem] shadow-2xl border border-white/5 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -90,7 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link 
                 key={link.href} 
                 href={link.href} 
-                className={`flex items-center gap-3 px-5 py-3.5 rounded-full transition-all duration-200 ${isActive ? "bg-[#CEEC22] text-[#0A1E1E] shadow-lg font-bold" : "text-white/70 hover:bg-white/10 hover:text-white font-medium"}`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 ${isActive ? "bg-[#CEEC22] text-[#0A1E1E] shadow-md font-bold" : "text-white/60 hover:bg-white/10 hover:text-white font-medium"}`}
               >
                 <Icon className="w-5 h-5" /> {link.label}
               </Link>
@@ -98,10 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        {/* MENU PROFIL (Modifié pour être au clic) */}
         <div className="p-4 mt-auto relative">
-          
-          {/* Menu déroulant (s'affiche au-dessus du profil) */}
           {isProfileMenuOpen && (
             <div className="absolute bottom-full left-4 right-4 mb-2 bg-[#0A1E1E] rounded-2xl shadow-xl overflow-hidden z-50 border border-white/10">
               <div className="p-2 space-y-1">
@@ -119,7 +113,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           )}
 
-          {/* Bouton du profil (ouvre le menu au clic) */}
           <button 
             onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
             className="w-full flex items-center justify-between gap-3 px-3 py-3 rounded-2xl hover:bg-white/10 transition-colors cursor-pointer border border-white/10 bg-white/5"
@@ -139,19 +132,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* CONTENU PRINCIPAL */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden w-full">
-        <header className="lg:hidden bg-white dark:bg-[#0A1E1E] border-b border-neutral-200 dark:border-neutral-800 p-4 flex items-center justify-between">
+      <div className="flex-1 flex flex-col h-full overflow-hidden w-full lg:pl-72">
+        <header className="lg:hidden bg-[#F4F5F7] dark:bg-[#051414] p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
              <Image src="/logo.svg" alt="Logo" width={24} height={24} />
              <span className="font-bold text-[#0A1E1E] dark:text-white">Admin</span>
           </div>
-          <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-neutral-600 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+          <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-neutral-600 dark:text-neutral-400 bg-white dark:bg-neutral-800 rounded-xl shadow-sm">
             <Menu className="w-5 h-5" />
           </button>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] shadow-sm min-h-full p-4 md:p-10">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pt-0 md:pt-8">
+          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] shadow-sm min-h-full p-4 md:p-10 border border-neutral-100 dark:border-neutral-800">
             {children}
           </div>
         </main>
