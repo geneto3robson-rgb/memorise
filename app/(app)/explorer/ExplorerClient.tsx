@@ -27,7 +27,7 @@ const parcoursParFiliere: Record<string, string[]> = {
   IMIN: ["STM", "GEO-ENERGIE", "GLB"], GE: ["SERI", "IE", "REER", "ME", "AI"], GPAE: ["TAA", "EE"],
   GGEO: ["GEA", "GM", "GSS"], IPE: ["STP", "PCH", "BEEN"], BTP: ["BTP", "Géotechnique"],
   HYDR: ["AEH", "AEP", "AHA"], EN: ["EA", "IA"], ISA: ["Ingénierie Mécatronique", "Ingénierie de Sciences Cognitives"],
-  UAGC: [], MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"], SIM: ["MOC", "MCM", "GMAT"], TCO: ["STI", "RS", "RC"],
+  UAGC: [], MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"], SIM: ["MOC", "MCM", "GMAT"], TCO: ["STI","TRI", "RS", "RC"],
 };
 
 export default function ExplorerClient() {

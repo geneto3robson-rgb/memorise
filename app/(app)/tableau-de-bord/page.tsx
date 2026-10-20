@@ -38,7 +38,7 @@ const parcoursParFiliere: Record<string, string[]> = {
   UAGC: [], 
   MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"], 
   SIM: ["MOC", "MCM", "GMAT"], 
-  TCO: ["STI", "RS", "RC"],
+  TCO: ["STI", "TRI", "RS", "RC"],
 };
 
 const filiereColorMap: Record<string, string> = {

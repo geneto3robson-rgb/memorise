@@ -6,7 +6,6 @@ import { profiles, filieres } from "@/db/schema";
 
 export const profileRouter = router({
   get: protectedProcedure.query(async ({ ctx }) => {
-    // 👇 On fait une jointure pour récupérer le code de la filière
     const [p] = await db
       .select({ 
         profile: profiles, 
@@ -26,8 +25,9 @@ export const profileRouter = router({
     .input(
       z.object({
         role: z.string().optional(),
-        filiereCode: z.string().nullish(), // 👈 On demande le CODE (ex: "TCO") et non l'ID
+        filiereCode: z.string().nullish(), 
         parcours: z.string().optional(),
+        statut: z.string().optional(), // 👈 AJOUT ICI
         facebook: z.string().optional(),
         linkedin: z.string().optional(),
         whatsapp: z.string().optional(),
@@ -38,7 +38,6 @@ export const profileRouter = router({
     .mutation(async ({ input, ctx }) => {
       const existingProfile = await db.select().from(profiles).where(eq(profiles.userId, ctx.session.user.id));
 
-      // 👇 On cherche l'ID numérique correspondant au code envoyé par le frontend
       let finalFiliereId: number | null = null;
       if (input.filiereCode) {
         const [f] = await db.select().from(filieres).where(eq(filieres.code, input.filiereCode));
@@ -47,8 +46,9 @@ export const profileRouter = router({
 
       const profileData = {
         role: input.role || "etudiant",
-        filiereId: finalFiliereId, // 👈 On enregistre le bon ID numérique en BDD
+        filiereId: finalFiliereId, 
         parcours: input.parcours || null,
+        statut: input.statut || "Étudiant actuel", // 👈 AJOUT ICI
         facebook: input.facebook || null,
         linkedin: input.linkedin || null,
         whatsapp: input.whatsapp || null,

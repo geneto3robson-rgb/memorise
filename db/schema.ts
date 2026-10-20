@@ -38,6 +38,7 @@ export const memoires = pgTable("memoires", {
   encadreur: text("encadreur").notNull(),
   domaine: text("domaine"),
   pages: integer("pages"),
+  statut: text("statut").default("Étudiant actuel"),
   userId: text("user_id").notNull(),
   filiereId: integer("filiere_id").notNull().references(() => filieres.id),
   parcours: text("parcours"),
