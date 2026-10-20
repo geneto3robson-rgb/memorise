@@ -13,7 +13,8 @@ import { trpc } from "@/trpc/client";
 import { domainesParFiliere } from "@/lib/data/domaines";
 import { authClient } from "@/lib/auth-client";
 
-const PER_PAGE = 10;
+// 👇 MODIFICATION ICI : On passe de 10 à 12 cartes par page
+const PER_PAGE = 12; 
 const niveaux = ["L3", "M2"];
 const currentYear = new Date().getFullYear();
 const annees = Array.from({ length: 15 }, (_, i) => currentYear - i);
@@ -178,7 +179,6 @@ export default function ExplorerClient() {
         <div className={`${showFilters ? "block" : "hidden"} lg:block bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-800 rounded-3xl p-5 mb-8 shadow-sm`}>
           <div className="flex flex-wrap items-center gap-3">
             
-            {/* 👇 CORRECTION MODE SOMBRE ICI 👇 */}
             <div className="relative min-w-[140px] flex-1 sm:flex-none">
               <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="w-full h-10 pl-4 pr-8 appearance-none bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-neutral-700 rounded-full text-xs font-bold text-[#0A1E1E] dark:text-white focus:outline-none">
                 <option value="recent" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Plus récents</option>

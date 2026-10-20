@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react"; // 👈 Ajout de useEffect
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -34,7 +34,6 @@ export default function TableauDeBordPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 👇 On ne bloque plus sur isLoadingProfile 👇
   const { data: profileData } = trpc.profile.get.useQuery(undefined, { enabled: !!session, staleTime: 5 * 60 * 1000 });
   const { data: myPublications = [] } = trpc.memoire.mine.useQuery(undefined, { enabled: !!session });
   const { data: favorites = [] } = trpc.favori.list.useQuery(undefined, { enabled: !!session });
@@ -43,7 +42,22 @@ export default function TableauDeBordPage() {
     { enabled: !!session }
   );
 
-  // On attend uniquement la session (qui est rapide)
+  // 👇 NOUVEAU : Mutation pour créer la notification de profil incomplet
+  const notifyProfileIncomplete = trpc.memoire.notifyProfileIncomplete.useMutation();
+  const hasCheckedProfile = useRef(false); // Évite de lancer la requête en boucle
+
+  // 👇 Vérification au chargement de la page
+  useEffect(() => {
+    if (profileData?.profile && !hasCheckedProfile.current) {
+      const isProfileIncomplete = !profileData.profile.parcours || !profileData.profile.whatsapp;
+      
+      if (isProfileIncomplete) {
+        notifyProfileIncomplete.mutate();
+      }
+      hasCheckedProfile.current = true;
+    }
+  }, [profileData, notifyProfileIncomplete]);
+
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
