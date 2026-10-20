@@ -12,8 +12,9 @@ import { MemoireModal } from "@/components/memoire/MemoireModal";
 
 export default function MesPublicationsPage() {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
-  const [memoireToDelete, setMemoireToDelete] = useState<{ id: number; title: string } | null>(null);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  // 👇 On stocke bien le slug et le titre dans l'état
+  const [memoireToDelete, setMemoireToDelete] = useState<{ slug: string; title: string } | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const utils = trpc.useUtils();
   const { data: memoires, isLoading } = trpc.memoire.mine.useQuery();
@@ -41,6 +42,7 @@ export default function MesPublicationsPage() {
   return (
     <div className="max-w-5xl mx-auto pt-6 md:pt-10 pb-24 px-4 md:px-8 relative">
       
+      {/* MODAL DE SUPPRESSION */}
       {memoireToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0A1E1E]/40 dark:bg-black/60 backdrop-blur-md">
           <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-6 md:p-8 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 animate-in zoom-in-95">
@@ -53,7 +55,9 @@ export default function MesPublicationsPage() {
             </p>
             <div className="flex gap-3">
               <button onClick={() => setMemoireToDelete(null)} className="flex-1 px-4 py-2.5 md:py-3 rounded-full border-2 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm md:text-base">Annuler</button>
-              <button onClick={() => deleteMutation.mutate({ id: memoireToDelete.id })} disabled={deleteMutation.isPending} className="flex-1 px-4 py-2.5 md:py-3 rounded-full bg-red-500 text-white font-bold hover:bg-red-600 transition-colors shadow-md disabled:opacity-50 text-sm md:text-base">
+              
+              {/* 👇 CORRECTION ICI : On envoie { slug: memoireToDelete.slug } */}
+              <button onClick={() => deleteMutation.mutate({ slug: memoireToDelete.slug })} disabled={deleteMutation.isPending} className="flex-1 px-4 py-2.5 md:py-3 rounded-full bg-red-500 text-white font-bold hover:bg-red-600 transition-colors shadow-md disabled:opacity-50 text-sm md:text-base">
                 {deleteMutation.isPending ? "Suppression..." : "Supprimer"}
               </button>
             </div>
@@ -61,6 +65,7 @@ export default function MesPublicationsPage() {
         </div>
       )}
 
+      {/* En-tête */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
           <div className="w-16 h-1 bg-[#CEEC22] mb-4 rounded-full" />
@@ -73,6 +78,7 @@ export default function MesPublicationsPage() {
         </div>
       </div>
 
+      {/* LISTE DES PUBLICATIONS */}
       {!memoires || memoires.length === 0 ? (
         <div className="rounded-[2rem] border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-white dark:bg-[#0A1E1E] p-10 md:p-16 text-center max-w-2xl mx-auto">
           <div className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-6">
@@ -92,7 +98,6 @@ export default function MesPublicationsPage() {
           </Link>
         </div>
       ) : (
-        /* 👇 GRILLE 1 COLONNE POUR PRENDRE TOUTE LA LARGEUR 👇 */
         <div className="grid grid-cols-1 gap-5 md:gap-6">
           {memoires.map((memoire) => (
             <div 
@@ -124,17 +129,18 @@ export default function MesPublicationsPage() {
                   {/* Menu 3 points (mobile) */}
                   <div className="md:hidden relative">
                     <button 
-                      onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === memoire.id ? null : memoire.id); }}
+                      onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === memoire.slug ? null : memoire.slug); }}
                       className="p-1.5 text-neutral-400 bg-neutral-100 dark:bg-white/5 rounded-full"
                     >
                       <MoreHorizontal className="w-5 h-5" />
                     </button>
-                    {openMenuId === memoire.id && (
+                    {openMenuId === memoire.slug && (
                       <div className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden">
                         <Link href={`/publier?edit=${memoire.slug}`} className="w-full flex items-center gap-2 px-4 py-3 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:bg-[#F4F5F7] dark:hover:bg-white/5">
                           <Edit className="w-3.5 h-3.5" /> Modifier
                         </Link>
-                        <button onClick={() => { setMemoireToDelete({ id: memoire.id, title: memoire.title }); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-3 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                        {/* 👇 CORRECTION ICI : On passe { slug: memoire.slug } */}
+                        <button onClick={() => { setMemoireToDelete({ slug: memoire.slug, title: memoire.title }); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-3 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
                           <Trash2 className="w-3.5 h-3.5" /> Supprimer
                         </button>
                       </div>
@@ -167,7 +173,8 @@ export default function MesPublicationsPage() {
                     <Link href={`/publier?edit=${memoire.slug}`} className="p-2.5 text-neutral-500 hover:text-[#184F53] bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 rounded-full transition-colors" title="Modifier">
                       <Edit className="w-5 h-5" />
                     </Link>
-                    <button onClick={() => setMemoireToDelete({ id: memoire.id, title: memoire.title })} className="p-2.5 text-neutral-500 hover:text-red-500 bg-neutral-100 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors" title="Supprimer">
+                    {/* 👇 CORRECTION ICI : On passe { slug: memoire.slug } */}
+                    <button onClick={() => setMemoireToDelete({ slug: memoire.slug, title: memoire.title })} className="p-2.5 text-neutral-500 hover:text-red-500 bg-neutral-100 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors" title="Supprimer">
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
