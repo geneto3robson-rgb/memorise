@@ -77,7 +77,8 @@ export default function ParametresPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: profileData, isLoading: isLoadingProfile } = trpc.profile.get.useQuery(undefined, { enabled: !!session });
+  // 👇 On ne bloque plus sur isLoadingProfile 👇
+  const { data: profileData } = trpc.profile.get.useQuery(undefined, { enabled: !!session, staleTime: 5 * 60 * 1000 });
   
   const updateProfile = trpc.profile.update.useMutation({
     onSuccess: () => {
@@ -103,7 +104,8 @@ export default function ParametresPage() {
     }
   }, [session, profileData]);
 
-  if (isPending || isLoadingProfile) {
+  // 👇 On attend uniquement la session 👇
+  if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
         <Loader2 className="w-8 h-8 animate-spin text-[#184F53] dark:text-[#CEEC22]" />
@@ -244,8 +246,8 @@ export default function ParametresPage() {
                   <label className={labelClass}>Filière</label>
                   <div className="relative">
                     <select value={filiereCode} onChange={(e) => setFiliereCode(e.target.value)} className={inputClass + " appearance-none pr-10"}>
-                      <option value="">Sélectionner...</option>
-                      {filieres.map(f => <option key={f.id} value={f.code}>{f.code} — {f.name}</option>)}
+                      <option value="" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Sélectionner...</option>
+                      {filieres.map(f => <option key={f.id} value={f.code} className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">{f.code} — {f.name}</option>)}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
                   </div>
@@ -259,9 +261,9 @@ export default function ParametresPage() {
                   <label className={labelClass}>Statut</label>
                   <div className="relative">
                     <select value={statut} onChange={(e) => setStatut(e.target.value)} className={inputClass + " appearance-none pr-10"}>
-                      <option value="Étudiant actuel">Étudiant actuel</option>
-                      <option value="Ancien étudiant">Ancien étudiant</option>
-                      <option value="Enseignant">Enseignant</option>
+                      <option value="Étudiant actuel" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Étudiant actuel</option>
+                      <option value="Ancien étudiant" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Ancien étudiant</option>
+                      <option value="Enseignant" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Enseignant</option>
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
                   </div>
@@ -390,8 +392,8 @@ export default function ParametresPage() {
                   <p className="text-xs text-neutral-500 mt-1 mb-3">Votre nom et prénom sont visibles sur vos publications.</p>
                   <div className="relative max-w-xs">
                     <select className={inputClass + " appearance-none pr-10"}>
-                      <option>Public (Recommandé)</option>
-                      <option>Privé (Masquer mon nom)</option>
+                      <option className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Public (Recommandé)</option>
+                      <option className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Privé (Masquer mon nom)</option>
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
                   </div>

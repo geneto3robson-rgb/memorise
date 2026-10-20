@@ -21,7 +21,7 @@ const parcoursParFiliere: Record<string, string[]> = {
   IMIN: ["STM", "GEO-ENERGIE", "GLB"], GE: ["SERI", "IE", "REER", "ME", "AI"], GPAE: ["TAA", "EE"],
   GGEO: ["GEA", "GM", "GSS"], IPE: ["STP", "PCH", "BEEN"], BTP: ["BTP", "Géotechnique"],
   HYDR: ["AEH", "AEP", "AHA"], EN: ["EA", "IA"], ISA: ["Ingénierie Mécatronique", "Ingénierie de Sciences Cognitives"],
-  UAGC: [], MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"], SIM: ["MOC", "MCM", "GMAT"], TCO: ["STI", "RS", "RC"],
+  UAGC: [], MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"], SIM: ["MOC", "MCM", "GMAT"], TCO: ["STI","TRI", "RS", "RC"],
 };
 
 const filiereColorMap: Record<string, string> = {
@@ -34,7 +34,8 @@ export default function TableauDeBordPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { data: profileData, isLoading: isLoadingProfile } = trpc.profile.get.useQuery(undefined, { enabled: !!session });
+  // 👇 On ne bloque plus sur isLoadingProfile 👇
+  const { data: profileData } = trpc.profile.get.useQuery(undefined, { enabled: !!session, staleTime: 5 * 60 * 1000 });
   const { data: myPublications = [] } = trpc.memoire.mine.useQuery(undefined, { enabled: !!session });
   const { data: favorites = [] } = trpc.favori.list.useQuery(undefined, { enabled: !!session });
   const { data: recentMemoires = [] } = trpc.memoire.list.useQuery(
@@ -42,7 +43,8 @@ export default function TableauDeBordPage() {
     { enabled: !!session }
   );
 
-  if (isPending || isLoadingProfile) {
+  // On attend uniquement la session (qui est rapide)
+  if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
         <div className="w-8 h-8 rounded-full border-4 border-[#CEEC22] border-t-transparent animate-spin" />
@@ -104,7 +106,6 @@ export default function TableauDeBordPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-12 items-stretch">
           
-          {/* Carte 1 : Explorer */}
           <div className="relative rounded-[2rem] overflow-hidden bg-[#184F53] text-white flex flex-col p-6 md:p-8 shadow-lg group min-h-[350px]">
             <div className="absolute inset-0 bg-cover bg-center z-0 transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${bgImage})` }} />
             <div className="absolute inset-0 bg-gradient-to-b from-[#0A1E1E]/90 via-[#0A1E1E]/50 to-[#0A1E1E]/90 z-0" />
@@ -116,7 +117,6 @@ export default function TableauDeBordPage() {
                 <h2 className="text-xl md:text-2xl font-bold leading-tight mb-4">Parcourez les travaux de votre filière</h2>
               </div>
               
-              {/* 👇 BLOC PARCOURS DÉPLACÉ EN BAS 👇 */}
               <div className="mt-auto pt-6 pointer-events-auto">
                 <p className="text-[10px] md:text-sm text-white/70 mb-2 uppercase tracking-wider font-semibold">Parcours</p>
                 <div className="flex flex-wrap gap-2">
@@ -132,7 +132,6 @@ export default function TableauDeBordPage() {
             </div>
           </div>
 
-          {/* Carte 2 : Mes publications */}
           <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-5 md:p-6 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[350px]">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg md:text-xl font-bold text-[#0A1E1E] dark:text-white">Mes publications</h2>
@@ -161,7 +160,6 @@ export default function TableauDeBordPage() {
             )}
           </div>
 
-          {/* Carte 3 : Enregistrements */}
           <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-6 shadow-sm border border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[350px] items-center justify-center text-center">
             <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center mb-3">
               <Bookmark className="w-5 h-5 md:w-6 md:h-6 text-[#184F53] dark:text-[#CEEC22]" />
@@ -175,7 +173,6 @@ export default function TableauDeBordPage() {
           </div>
         </div>
 
-        {/* Section : Récemment publiés */}
         <div className="mt-8 md:mt-16 relative">
           <div className="flex items-center justify-between mb-4 md:mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-[#0A1E1E] dark:text-white">Récemment publiés</h2>

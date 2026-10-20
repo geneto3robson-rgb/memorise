@@ -19,7 +19,7 @@ export function Footer() {
               Découvrez et explorez les mémoires de fin d'études réalisés à l'ESPA.
             </p>
             
-            {/* 👇 LOGO ESPA AJOUTÉ ICI 👇 */}
+            {/* LOGO ESPA */}
             <div className="mt-6 pt-6 border-t border-white/10">
               <p className="text-[10px] uppercase tracking-widest text-white/40 mb-3 font-bold">En partenariat avec</p>
               <a 
@@ -29,12 +29,14 @@ export function Footer() {
                 className="inline-block bg-white p-1 rounded-full hover:scale-105 transition-transform shadow-md"
                 title="École Supérieure Polytechnique d'Antananarivo"
               >
+                {/* 👇 Vérifie bien le nom du fichier ici 👇 */}
                 <Image 
                   src="/images/espa-logo.png" 
                   alt="Logo ESPA" 
                   width={60} 
                   height={60} 
                   className="object-contain rounded-full" 
+                  unoptimized // 👈 Ajouté pour éviter les bugs d'optimisation sur Vercel
                 />
               </a>
             </div>
@@ -61,7 +63,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Colonne 3 : Informations (Se place en dessous sur mobile) */}
+          {/* Colonne 3 : Informations */}
           <div className="col-span-2 md:col-span-1">
             <h3 className="font-bold text-lg mb-4">Informations</h3>
             <ul className="grid grid-cols-2 md:flex md:flex-col gap-3 text-sm text-white/60">

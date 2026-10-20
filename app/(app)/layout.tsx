@@ -219,12 +219,14 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
   
-  // 👇 OPTIMISATION MAJEURE ICI : On ne met PAS isLoadingProfile dans la condition bloquante
-  const { data: profileData } = trpc.profile.get.useQuery(undefined, { enabled: !!session }); 
+  // 👇 AJOUT DU STALETIME POUR ÉVITER DE RECHARGER LE PROFIL À CHAQUE PAGE 👇
+  const { data: profileData } = trpc.profile.get.useQuery(undefined, { 
+    enabled: !!session,
+    staleTime: 5 * 60 * 1000, // Le profil est gardé en cache pendant 5 minutes
+  }); 
   
   const isAdmin = profileData?.profile?.role === "admin"; 
 
-  // On attend uniquement la session (très rapide)
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
