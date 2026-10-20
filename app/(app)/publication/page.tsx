@@ -41,7 +41,6 @@ export default function MesPublicationsPage() {
   return (
     <div className="max-w-5xl mx-auto pt-6 md:pt-10 pb-24 px-4 md:px-8 relative">
       
-      {/* MODAL DE SUPPRESSION */}
       {memoireToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0A1E1E]/40 dark:bg-black/60 backdrop-blur-md">
           <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-6 md:p-8 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 animate-in zoom-in-95">
@@ -50,7 +49,7 @@ export default function MesPublicationsPage() {
             </div>
             <h3 className="text-lg md:text-xl font-bold text-center text-[#0A1E1E] dark:text-white mb-2">Supprimer ce mémoire ?</h3>
             <p className="text-xs md:text-sm text-center text-neutral-500 dark:text-neutral-400 mb-6">
-              Êtes-vous sûr de vouloir supprimer définitivement <span className="font-bold text-[#0A1E1E] dark:text-white">"{memoireToDelete.title}"</span> ? Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer définitivement <span className="font-bold text-[#0A1E1E] dark:text-white">"{memoireToDelete.title}"</span> ?
             </p>
             <div className="flex gap-3">
               <button onClick={() => setMemoireToDelete(null)} className="flex-1 px-4 py-2.5 md:py-3 rounded-full border-2 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm md:text-base">Annuler</button>
@@ -62,7 +61,6 @@ export default function MesPublicationsPage() {
         </div>
       )}
 
-           {/* En-tête */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
           <div className="w-16 h-1 bg-[#CEEC22] mb-4 rounded-full" />
@@ -73,10 +71,8 @@ export default function MesPublicationsPage() {
             {memoires?.length || 0} / 3 publication{(memoires?.length || 0) > 1 ? "s" : ""}
           </p>
         </div>
-        {/* 👇 LE BOUTON A ÉTÉ SUPPRIMÉ ICI 👇 */}
       </div>
 
-      {/* LISTE DES PUBLICATIONS */}
       {!memoires || memoires.length === 0 ? (
         <div className="rounded-[2rem] border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-white dark:bg-[#0A1E1E] p-10 md:p-16 text-center max-w-2xl mx-auto">
           <div className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-6">
@@ -96,14 +92,15 @@ export default function MesPublicationsPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+        /* 👇 GRILLE 1 COLONNE POUR PRENDRE TOUTE LA LARGEUR 👇 */
+        <div className="grid grid-cols-1 gap-5 md:gap-6">
           {memoires.map((memoire) => (
             <div 
               key={memoire.id} 
-              className="group bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-4 shadow-sm border border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row gap-4 relative overflow-hidden hover:shadow-md transition-all"
+              className="group bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-4 md:p-6 shadow-sm border border-neutral-200 dark:border-neutral-800 flex flex-col md:flex-row gap-5 md:gap-8 relative overflow-hidden hover:shadow-md transition-all"
             >
-              {/* Image de couverture */}
-              <div className="relative w-full sm:w-40 h-40 shrink-0 rounded-[1.5rem] overflow-hidden">
+              {/* Image de couverture large */}
+              <div className="relative w-full md:w-64 h-48 md:h-40 shrink-0 rounded-[1.5rem] overflow-hidden">
                 <Image 
                   src={memoire.image || "/images/projects/telecom.jpg"} 
                   alt={memoire.title} 
@@ -111,26 +108,26 @@ export default function MesPublicationsPage() {
                   className="object-cover"
                 />
                 <div className="absolute top-2 left-2">
-                  <span className="text-[9px] md:text-[10px] font-bold text-[#0A1E1E] bg-[#CEEC22] px-2 py-1 rounded-full">
+                  <span className="text-[10px] md:text-xs font-bold text-[#0A1E1E] bg-[#CEEC22] px-3 py-1 rounded-full">
                     {memoire.filiereCode || "Général"}
                   </span>
                 </div>
               </div>
 
               {/* Contenu */}
-              <div className="flex-1 flex flex-col min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="font-bold text-[#0A1E1E] dark:text-white text-sm md:text-base line-clamp-2 leading-tight">
+              <div className="flex-1 flex flex-col min-w-0 py-2">
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <h3 className="font-bold text-[#0A1E1E] dark:text-white text-lg md:text-xl line-clamp-2 leading-tight">
                     {memoire.title}
                   </h3>
                   
-                  {/* Menu 3 points sur mobile, boutons directs sur PC */}
+                  {/* Menu 3 points (mobile) */}
                   <div className="md:hidden relative">
                     <button 
                       onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === memoire.id ? null : memoire.id); }}
                       className="p-1.5 text-neutral-400 bg-neutral-100 dark:bg-white/5 rounded-full"
                     >
-                      <MoreHorizontal className="w-4 h-4" />
+                      <MoreHorizontal className="w-5 h-5" />
                     </button>
                     {openMenuId === memoire.id && (
                       <div className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden">
@@ -145,32 +142,33 @@ export default function MesPublicationsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-[10px] md:text-xs text-neutral-500 mb-3">
-                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {memoire.annee}</span>
+                <div className="flex items-center gap-3 text-xs text-neutral-500 mb-4">
+                  <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {memoire.annee}</span>
                   <span className="opacity-50">•</span>
-                  <span className="flex items-center gap-1"><GraduationCap className="w-3 h-3" /> {memoire.niveau}</span>
+                  <span className="flex items-center gap-1"><GraduationCap className="w-3.5 h-3.5" /> {memoire.niveau}</span>
+                  <span className="opacity-50">•</span>
+                  <span className="flex items-center gap-1">Encadreur : {memoire.encadreur}</span>
                 </div>
 
-                <p className="text-xs text-neutral-500 line-clamp-2 mb-4 hidden sm:block">
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-3 mb-6">
                   {memoire.summary}
                 </p>
 
-                {/* Actions en bas */}
-                <div className="mt-auto flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                <div className="mt-auto flex items-center justify-between pt-4 border-t border-neutral-100 dark:border-neutral-800">
                   <button 
                     onClick={() => setSelectedSlug(memoire.slug)}
-                    className="text-xs font-bold text-[#184F53] dark:text-[#CEEC22] flex items-center gap-1 hover:underline"
+                    className="text-sm font-bold text-[#184F53] dark:text-[#CEEC22] flex items-center gap-1 hover:underline"
                   >
-                    Voir le détail <ArrowUpRight className="w-3 h-3" />
+                    Voir le détail <ArrowUpRight className="w-4 h-4" />
                   </button>
 
-                  {/* Boutons visibles uniquement sur PC */}
-                  <div className="hidden md:flex items-center gap-2">
-                    <Link href={`/publier?edit=${memoire.slug}`} className="p-2 text-neutral-400 hover:text-[#184F53] hover:bg-neutral-100 dark:hover:bg-white/5 rounded-full transition-colors" title="Modifier">
-                      <Edit className="w-4 h-4" />
+                  {/* Boutons PC */}
+                  <div className="hidden md:flex items-center gap-3">
+                    <Link href={`/publier?edit=${memoire.slug}`} className="p-2.5 text-neutral-500 hover:text-[#184F53] bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 rounded-full transition-colors" title="Modifier">
+                      <Edit className="w-5 h-5" />
                     </Link>
-                    <button onClick={() => setMemoireToDelete({ id: memoire.id, title: memoire.title })} className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors" title="Supprimer">
-                      <Trash2 className="w-4 h-4" />
+                    <button onClick={() => setMemoireToDelete({ id: memoire.id, title: memoire.title })} className="p-2.5 text-neutral-500 hover:text-red-500 bg-neutral-100 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors" title="Supprimer">
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>

@@ -10,6 +10,7 @@ import { trpc } from "@/trpc/client";
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 
+// Dictionnaire d'images par filière
 const filiereImages: Record<string, string> = {
   TCO: "/images/projects/telecom.jpg",
   EN: "/images/projects/energie.jpg", 
@@ -20,16 +21,31 @@ const filiereImages: Record<string, string> = {
   default: "/images/projects/telecom.jpg", 
 };
 
+// Dictionnaire des parcours par filière
 const parcoursParFiliere: Record<string, string[]> = {
-  IGAT: ["IGF", "GT"], GMI: ["GI", "GMD", "STGI", "IM", "MA"], GPCI: ["VRM", "BIO", "STGP", "LP"],
-  IMIN: ["STM", "GEO-ENERGIE", "GLB"], GE: ["SERI", "IE", "REER", "ME", "AI"], GPAE: ["TAA", "EE"],
-  GGEO: ["GEA", "GM", "GSS"], IPE: ["STP", "PCH", "BEEN"], BTP: ["BTP", "Géotechnique"],
-  HYDR: ["AEH", "AEP", "AHA"], EN: ["EA", "IA"], ISA: ["Ingénierie Mécatronique", "Ingénierie de Sciences Cognitives"],
-  UAGC: [], MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"], SIM: ["MOC", "MCM", "GMAT"], TCO: ["STI", "RS", "RC"],
+  IGAT: ["IGF", "GT"], 
+  GMI: ["GI", "GMD", "STGI", "IM", "MA"], 
+  GPCI: ["VRM", "BIO", "STGP", "LP"],
+  IMIN: ["STM", "GEO-ENERGIE", "GLB"], 
+  GE: ["SERI", "IE", "REER", "ME", "AI"], 
+  GPAE: ["TAA", "EE"],
+  GGEO: ["GEA", "GM", "GSS"], 
+  IPE: ["STP", "PCH", "BEEN"], 
+  BTP: ["BTP", "Géotechnique"],
+  HYDR: ["AEH", "AEP", "AHA"], 
+  EN: ["EA", "IA"], 
+  ISA: ["Ingénierie Mécatronique", "Ingénierie de Sciences Cognitives"],
+  UAGC: [], 
+  MTO: ["Science de l'Atmosphère", "Météorologie Appliquée", "Hydrologie"], 
+  SIM: ["MOC", "MCM", "GMAT"], 
+  TCO: ["STI", "RS", "RC"],
 };
 
 const filiereColorMap: Record<string, string> = {
-  TCO: "bg-primary-500", EN: "bg-warning-500", GE: "bg-success-500", BTP: "bg-purple-600",
+  TCO: "bg-primary-500", 
+  EN: "bg-warning-500", 
+  GE: "bg-success-500", 
+  BTP: "bg-purple-600",
 };
 
 export default function TableauDeBordPage() {
@@ -55,6 +71,7 @@ export default function TableauDeBordPage() {
   }
 
   const firstName = session?.user?.name ? session.user.name.split(" ")[0] : "Étudiant";
+  
   const userFiliereCode = profileData?.filiereCode ?? "TCO"; 
   const userParcours = profileData?.profile?.parcours ?? "";
   const parcoursDisponibles = parcoursParFiliere[userFiliereCode] ?? [];
@@ -62,13 +79,22 @@ export default function TableauDeBordPage() {
 
   const firstPublication = myPublications[0];
   const formattedPublication = firstPublication ? {
-    id: String(firstPublication.id), slug: firstPublication.slug || "", title: firstPublication.title || "Sans titre",
-    summary: firstPublication.summary || "", image: firstPublication.image ?? "/images/projects/telecom.jpg",
-    filiere: firstPublication.filiereName ?? "", filiereCode: firstPublication.filiereCode ?? "",
+    id: String(firstPublication.id), 
+    slug: firstPublication.slug || "", 
+    title: firstPublication.title || "Sans titre",
+    summary: firstPublication.summary || "", 
+    image: firstPublication.image ?? "/images/projects/telecom.jpg",
+    filiere: firstPublication.filiereName ?? "", 
+    filiereCode: firstPublication.filiereCode ?? "",
     filiereColor: filiereColorMap[firstPublication.filiereCode ?? ""] ?? "bg-primary-500",
-    author: session?.user?.name ?? "Vous", authorAvatar: session?.user?.image ?? "", authorImage: session?.user?.image ?? "",
-    niveau: firstPublication.niveau || "", year: firstPublication.annee || new Date().getFullYear(),
-    pages: 0, encadreur: firstPublication.encadreur || "", keywords: [] as string[],
+    author: session?.user?.name ?? "Vous", 
+    authorAvatar: session?.user?.image ?? "", 
+    authorImage: session?.user?.image ?? "",
+    niveau: firstPublication.niveau || "", 
+    year: firstPublication.annee || new Date().getFullYear(),
+    pages: 0, 
+    encadreur: firstPublication.encadreur || "", 
+    keywords: [] as string[],
   } : null;
 
   const handleSearch = (e: React.FormEvent) => {
@@ -79,13 +105,16 @@ export default function TableauDeBordPage() {
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const { current } = scrollRef;
-      current.scrollBy({ left: direction === "left" ? -300 : 300, behavior: "smooth" });
+      const scrollAmount = direction === "left" ? -300 : 300;
+      current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
 
   return (
     <div className="pt-8 md:pt-12 pb-24 lg:pb-16">
       <Container>
+        
+        {/* En-tête */}
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-3xl md:text-5xl font-bold text-[#0A1E1E] dark:text-white mb-3 font-heading">
             Bonjour, {firstName} !
@@ -95,9 +124,12 @@ export default function TableauDeBordPage() {
           </p>
         </div>
 
+        {/* Barre de recherche */}
         <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-10 relative">
           <input
-            type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            type="text" 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher un mémoire, une filière..."
             className="w-full h-12 md:h-14 pl-6 pr-14 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#184F53] shadow-sm text-base"
           />
@@ -106,36 +138,39 @@ export default function TableauDeBordPage() {
           </button>
         </form>
 
+        {/* Grille des 3 cartes */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-12 items-stretch">
           
           {/* Carte 1 : Explorer */}
           <div className="relative rounded-[2rem] overflow-hidden bg-[#184F53] text-white flex flex-col p-6 md:p-8 shadow-lg group min-h-[350px]">
             <div className="absolute inset-0 bg-cover bg-center z-0 transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${bgImage})` }} />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0A1E1E]/90 via-[#0A1E1E]/50 to-transparent z-0" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0A1E1E]/90 via-[#0A1E1E]/60 to-[#0A1E1E]/90 z-0" />
             <Link href={`/explorer?filiere=${userFiliereCode}`} className="absolute inset-0 z-10" aria-label="Explorer les mémoires" />
 
             <div className="relative z-20 pointer-events-none flex flex-col h-full">
-              <div className="pointer-events-auto mb-6">
+              <div className="pointer-events-auto mb-4">
                 <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] md:text-xs font-bold mb-3">Explorer</span>
-                <h2 className="text-xl md:text-2xl font-bold leading-tight">Parcourez les travaux de votre filière</h2>
-              </div>
-              
-              <div className="pointer-events-auto">
-                <p className="text-[10px] md:text-sm text-white/70 mb-2 uppercase tracking-wider font-semibold">Parcours</p>
-                <div className="flex flex-wrap gap-2">
-                  {parcoursDisponibles.length > 0 ? (
-                    parcoursDisponibles.map((p) => (
-                      <Link key={p} href={`/explorer?filiere=${userFiliereCode}&parcours=${encodeURIComponent(p)}`} className={`px-3 py-1 rounded-full text-[10px] md:text-xs font-bold transition-colors ${userParcours === p ? "bg-[#CEEC22] text-[#0A1E1E]" : "bg-white/20 hover:bg-white/30 text-white"}`}>
-                        {p}
-                      </Link>
-                    ))
-                  ) : <span className="text-[10px] text-white/50">Aucun parcours défini</span>}
+                <h2 className="text-xl md:text-2xl font-bold leading-tight mb-4">Parcourez les travaux de votre filière</h2>
+                
+                {/* 👇 BLOC PARCOURS DÉPLACÉ ICI 👇 */}
+                <div>
+                  <p className="text-[10px] md:text-sm text-white/70 mb-2 uppercase tracking-wider font-semibold">Parcours</p>
+                  <div className="flex flex-wrap gap-2">
+                    {parcoursDisponibles.length > 0 ? (
+                      parcoursDisponibles.map((p) => (
+                        <Link key={p} href={`/explorer?filiere=${userFiliereCode}&parcours=${encodeURIComponent(p)}`} className={`px-3 py-1 rounded-full text-[10px] md:text-xs font-bold transition-colors ${userParcours === p ? "bg-[#CEEC22] text-[#0A1E1E]" : "bg-white/20 hover:bg-white/30 text-white"}`}>
+                          {p}
+                        </Link>
+                      ))
+                    ) : <span className="text-[10px] text-white/50">Aucun parcours défini</span>}
+                  </div>
                 </div>
               </div>
               
+              {/* 👇 TEXTE EN BAS MODIFIÉ 👇 */}
               <div className="mt-auto pt-6 pointer-events-auto">
                  <span className="inline-flex items-center gap-2 text-sm font-bold text-white group-hover:text-[#CEEC22] transition-colors">
-                   Parcours <ArrowRight className="w-4 h-4" />
+                   Voir le catalogue <ArrowRight className="w-4 h-4" />
                  </span>
               </div>
             </div>
@@ -184,6 +219,7 @@ export default function TableauDeBordPage() {
           </div>
         </div>
 
+        {/* Section : Récemment publiés */}
         <div className="mt-8 md:mt-16 relative">
           <div className="flex items-center justify-between mb-4 md:mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-[#0A1E1E] dark:text-white">Récemment publiés</h2>
@@ -196,17 +232,30 @@ export default function TableauDeBordPage() {
             </div>
           </div>
 
-          <div ref={scrollRef} className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-4 lg:overflow-visible">
+          <div 
+            ref={scrollRef}
+            className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide lg:grid lg:grid-cols-4 lg:overflow-visible"
+          >
             {recentMemoires.slice(0, 4).map((memoire: any) => {
                const formattedRecent = {
-                  id: String(memoire.id), slug: memoire.slug || "", title: memoire.title || "Sans titre",
-                  summary: memoire.summary || "", image: memoire.image ?? "/images/projects/telecom.jpg",
-                  filiere: memoire.filiereName ?? "", filiereCode: memoire.filiereCode ?? "",
+                  id: String(memoire.id), 
+                  slug: memoire.slug || "", 
+                  title: memoire.title || "Sans titre",
+                  summary: memoire.summary || "", 
+                  image: memoire.image ?? "/images/projects/telecom.jpg",
+                  filiere: memoire.filiereName ?? "", 
+                  filiereCode: memoire.filiereCode ?? "",
                   filiereColor: filiereColorMap[memoire.filiereCode ?? ""] ?? "bg-primary-500",
-                  author: memoire.authorName ?? "Auteur", authorAvatar: memoire.authorImage ?? "", authorImage: memoire.authorImage ?? "",
-                  niveau: memoire.niveau || "", year: memoire.annee || new Date().getFullYear(),
-                  pages: 0, encadreur: memoire.encadreur || "", keywords: [] as string[],
+                  author: memoire.authorName ?? "Auteur", 
+                  authorAvatar: memoire.authorImage ?? "", 
+                  authorImage: memoire.authorImage ?? "",
+                  niveau: memoire.niveau || "", 
+                  year: memoire.annee || new Date().getFullYear(),
+                  pages: 0, 
+                  encadreur: memoire.encadreur || "", 
+                  keywords: [] as string[],
                };
+               
                return (
                  <div key={memoire.id} className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] lg:min-w-full lg:max-w-full snap-center shrink-0">
                     <ProjectCard project={formattedRecent} />

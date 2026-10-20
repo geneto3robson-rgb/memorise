@@ -55,15 +55,11 @@ export function RecentProjectsSection() {
           ) : projects.length === 0 ? (
             <p className="text-center text-neutral-500 py-12">Aucun mémoire publié pour l&apos;instant.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {projects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onOpen={(slug) => setSelectedSlug(slug)}
-                />
-              ))}
-            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+            {projects.map((project) => (
+          <ProjectCard key={project.id} project={project} />
+          ))}
+          </div>
           )}
         </Container>
       </section>
