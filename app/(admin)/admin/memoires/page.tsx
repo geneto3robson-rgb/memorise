@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Trash2, FileText, Calendar, GraduationCap, AlertTriangle, MoreHorizontal, Eye } from "lucide-react";
 import { trpc } from "@/trpc/client";
 import { MemoireModal } from "@/components/memoire/MemoireModal";
@@ -11,7 +11,6 @@ export default function AdminMemoiresPage() {
   const [memoireToDelete, setMemoireToDelete] = useState<{ id: number; title: string } | null>(null);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   const utils = trpc.useUtils();
   const { data: memoires, isLoading } = trpc.admin.listAllMemoires.useQuery();
@@ -27,10 +26,10 @@ export default function AdminMemoiresPage() {
     }
   });
 
-  // Fermer le menu si on clique ailleurs
+  // 👇 CORRECTION CLIC EXTÉRIEUR AVEC CLOSEST 👇
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (!(event.target as Element).closest('.dropdown-menu-wrapper')) {
         setOpenMenuId(null);
       }
     }
@@ -134,8 +133,8 @@ export default function AdminMemoiresPage() {
                   {memoire.filiereName || "Non définie"}
                 </span>
 
-                {/* 👇 MENU 3 POINTS CLIQUABLE CORRIGÉ 👇 */}
-                <div className="relative" ref={menuRef}>
+                {/* 👇 MENU 3 POINTS CORRIGÉ 👇 */}
+                <div className="relative dropdown-menu-wrapper">
                   <button 
                     onClick={(e) => { 
                       e.preventDefault();
@@ -148,10 +147,7 @@ export default function AdminMemoiresPage() {
                   </button>
                   
                   {openMenuId === memoire.id && (
-                    <div 
-                      className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden animate-in fade-in zoom-in-95"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden animate-in fade-in zoom-in-95">
                       <button onClick={() => { setSelectedSlug(memoire.slug); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:bg-[#F4F5F7] dark:hover:bg-[#184F53] text-left transition-colors">
                         <Eye className="w-4 h-4" /> Voir le détail
                       </button>

@@ -15,10 +15,9 @@ export async function POST(request: Request) {
 
     // Envoi de l'e-mail
     await resend.emails.send({
-      // ⚠️ IMPORTANT : Pour tester, tu dois utiliser "onboarding@resend.dev" comme expéditeur.
-      // Une fois ton domaine (memorise.mg) validé sur Resend, tu pourras mettre "contact@memorise.mg".
+      // ⚠️ On garde onboarding@resend.dev pour les tests (ton domaine n'est pas encore validé)
       from: "MemoRise <onboarding@resend.dev>", 
-      to: "ton-email-reel@gmail.com", // 👈 REMPLACE PAR TON VRAI EMAIL ICI
+      to: "geneto3robson@gmail.com", // Ton email est bien configuré ici
       subject: `[MemoRise] Nouveau message : ${subject || "Sans sujet"}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">

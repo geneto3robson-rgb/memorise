@@ -20,6 +20,7 @@ export const profiles = pgTable("profiles", {
   role: text("role").notNull().default("etudiant"),
   filiereId: integer("filiere_id").references(() => filieres.id),
   parcours: text("parcours"),
+  statut: text("statut").default("Étudiant actuel"),
   facebook: text("facebook"),
   linkedin: text("linkedin"),
   whatsapp: text("whatsapp"),

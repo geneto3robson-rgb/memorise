@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
-import { ShieldAlert, X } from "lucide-react"; // 👈 X ajouté
+import { ShieldAlert, X } from "lucide-react"; 
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Search, Plus, Bookmark, FileText, Settings,
@@ -108,10 +108,6 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
   const { data: notifications = [] } = trpc.notification.list.useQuery(undefined, { enabled: !!session });
   const { data: unreadCount = 0 } = trpc.notification.unreadCount.useQuery(undefined, { enabled: !!session });
 
-  const markRead = trpc.notification.markAsRead.useMutation({ onMutate: async ({ id }) => { /*...*/ }, onSettled: () => { utils.notification.list.invalidate(); utils.notification.unreadCount.invalidate(); } });
-  const markAllAsRead = trpc.notification.markAllAsRead.useMutation({ onMutate: async () => { /*...*/ }, onSettled: () => { utils.notification.list.invalidate(); utils.notification.unreadCount.invalidate(); } });
-  
-  // 👇 Mutation pour supprimer une notification
   const deleteNotif = trpc.notification.delete.useMutation({ 
     onMutate: async ({ id }) => { /*...*/ }, 
     onSettled: () => { utils.notification.list.invalidate(); utils.notification.unreadCount.invalidate(); } 
@@ -165,7 +161,6 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
                             <Link href={n.link || "#"} className="flex-1 pr-6">
                               <p className={`text-sm ${!n.isRead ? "font-medium" : "text-neutral-600 dark:text-neutral-400"}`}>{n.message}</p>
                             </Link>
-                            {/* 👇 BOUTON X POUR SUPPRIMER LA NOTIFICATION 👇 */}
                             <button 
                               onClick={(e) => { e.preventDefault(); deleteNotif.mutate({ id: n.id }); }} 
                               className="absolute right-3 top-3 p-1 text-neutral-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
@@ -194,6 +189,8 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
             {isUserOpen && (
               <div className="absolute top-full right-0 mt-2 w-56">
                 <div className="bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl overflow-hidden">
+                  
+                  {/* 👇 BOUTON MODE ADMIN RESTAURÉ ICI 👇 */}
                   {isAdmin && (
                     <button 
                       onClick={() => { setIsUserOpen(false); setIsAdminModalOpen(true); }} 
@@ -202,6 +199,7 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
                       <ShieldAlert className="w-4 h-4" /> Mode Admin
                     </button>
                   )}
+
                   <Link href="/parametres" onClick={() => setIsUserOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-primary-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors">
                     <User className="w-4 h-4" /> Mon profil
                   </Link>

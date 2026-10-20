@@ -27,12 +27,12 @@ export const profileRouter = router({
         role: z.string().optional(),
         filiereCode: z.string().nullish(), 
         parcours: z.string().optional(),
-        statut: z.string().optional(), // 👈 AJOUT ICI
+        statut: z.string().optional(), // 👈 Ajouté pour le formulaire Paramètres
         facebook: z.string().optional(),
         linkedin: z.string().optional(),
         whatsapp: z.string().optional(),
-        notifyNews: z.boolean().optional(),
-        notifyPublications: z.boolean().optional(),
+        notifyNews: z.boolean().optional(), // 👈 Ajouté pour les notifications
+        notifyPublications: z.boolean().optional(), // 👈 Ajouté pour les notifications
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -48,7 +48,7 @@ export const profileRouter = router({
         role: input.role || "etudiant",
         filiereId: finalFiliereId, 
         parcours: input.parcours || null,
-        statut: input.statut || "Étudiant actuel", // 👈 AJOUT ICI
+        statut: input.statut || "Étudiant actuel", // 👈 Ajouté
         facebook: input.facebook || null,
         linkedin: input.linkedin || null,
         whatsapp: input.whatsapp || null,

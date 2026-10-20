@@ -4,14 +4,14 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { 
   User, Lock, Bell, Palette, Shield, Upload, Moon, Sun, 
-  ChevronDown, CheckCircle2, Loader2 
+  ChevronDown, CheckCircle2, Loader2, Eye, EyeOff 
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
 import { useTheme } from "@/lib/theme-context";
 import { filieres } from "@/lib/data/filieres";
+import { useRouter } from "next/navigation";
 
-// 👇 Logos des réseaux sociaux
 function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -34,7 +34,6 @@ function WhatsappIcon({ className }: { className?: string }) {
   );
 }
 
-// Formate le numéro WhatsApp pour retirer le +261 ou le 0 initial
 function formatWhatsAppInput(value: string) {
   let cleaned = value.replace(/\D/g, "");
   if (cleaned.startsWith("261")) cleaned = cleaned.substring(3);
@@ -42,17 +41,17 @@ function formatWhatsAppInput(value: string) {
   return cleaned;
 }
 
-// Classes CSS réutilisables
 const inputClass = "w-full px-4 py-3 rounded-xl bg-[#F4F5F7] dark:bg-white/5 border border-neutral-200 dark:border-neutral-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#184F53] transition-all";
 const labelClass = "block text-xs font-bold text-[#184F53] dark:text-[#CEEC22] mb-2 uppercase tracking-wide";
 
 export default function ParametresPage() {
+  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const { theme, toggle } = useTheme();
   
   const [activeTab, setActiveTab] = useState<"profil" | "securite" | "notifications" | "affichage" | "confidentialite">("profil");
   
-  // États du formulaire
+  // Infos
   const [nom, setNom] = useState("");
   const [image, setImage] = useState("");
   const [filiereCode, setFiliereCode] = useState("");
@@ -62,13 +61,24 @@ export default function ParametresPage() {
   const [linkedin, setLinkedin] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   
+  // Sécurité
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isChangingPwd, setIsChangingPwd] = useState(false);
+
+  // Notifications
+  const [notifyNews, setNotifyNews] = useState(true);
+  const [notifyPublications, setNotifyPublications] = useState(true);
+
   const [isSuccess, setIsSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Récupération du profil depuis la base de données
   const { data: profileData, isLoading: isLoadingProfile } = trpc.profile.get.useQuery(undefined, { enabled: !!session });
   
-  // Mutation pour sauvegarder les infos du profil
   const updateProfile = trpc.profile.update.useMutation({
     onSuccess: () => {
       setIsSuccess(true);
@@ -76,7 +86,6 @@ export default function ParametresPage() {
     }
   });
 
-  // Remplir les champs avec les données existantes
   useEffect(() => {
     if (session?.user) {
       setNom(session.user.name || "");
@@ -88,9 +97,9 @@ export default function ParametresPage() {
       setStatut(profileData.profile.statut || "Étudiant actuel");
       setFacebook(profileData.profile.facebook || "");
       setLinkedin(profileData.profile.linkedin || "");
-      if (profileData.profile.whatsapp) {
-        setWhatsapp(formatWhatsAppInput(profileData.profile.whatsapp));
-      }
+      setNotifyNews(profileData.profile.notifyNews ?? true);
+      setNotifyPublications(profileData.profile.notifyPublications ?? true);
+      if (profileData.profile.whatsapp) setWhatsapp(formatWhatsAppInput(profileData.profile.whatsapp));
     }
   }, [session, profileData]);
 
@@ -112,10 +121,7 @@ export default function ParametresPage() {
   };
 
   const handleSave = async () => {
-    // 1. Mise à jour du nom et de la photo (Better Auth)
     await authClient.updateUser({ name: nom, image: image || undefined });
-    
-    // 2. Mise à jour des infos du profil (tRPC)
     updateProfile.mutate({
       filiereCode: filiereCode || null,
       parcours: parcours,
@@ -124,6 +130,48 @@ export default function ParametresPage() {
       linkedin: linkedin || undefined,
       whatsapp: whatsapp ? `+261${formatWhatsAppInput(whatsapp)}` : undefined,
     });
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (newPassword !== confirmPassword) return alert("Les nouveaux mots de passe ne correspondent pas.");
+    if (newPassword.length < 6) return alert("Le mot de passe doit faire au moins 6 caractères.");
+    
+    setIsChangingPwd(true);
+    const { error } = await authClient.changePassword({
+      currentPassword,
+      newPassword,
+      revokeOtherSessions: true,
+    });
+    setIsChangingPwd(false);
+
+    if (error) {
+      alert("Erreur : " + error.message);
+    } else {
+      alert("Mot de passe modifié avec succès !");
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+    }
+  };
+
+  const handleToggleNotifications = (type: "news" | "pubs", value: boolean) => {
+    if (type === "news") setNotifyNews(value);
+    if (type === "pubs") setNotifyPublications(value);
+    
+    updateProfile.mutate({
+      notifyNews: type === "news" ? value : notifyNews,
+      notifyPublications: type === "pubs" ? value : notifyPublications,
+    });
+  };
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action est irréversible.")) {
+      const { error } = await authClient.deleteUser();
+      if (error) {
+        alert("Erreur lors de la suppression : " + error.message);
+      } else {
+        alert("Votre compte a été supprimé.");
+        router.push("/");
+      }
+    }
   };
 
   const tabs = [
@@ -143,7 +191,6 @@ export default function ParametresPage() {
 
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
         
-        {/* MENU DE GAUCHE */}
         <aside className="w-full lg:w-64 shrink-0 bg-white dark:bg-[#0A1E1E] rounded-3xl p-2 md:p-4 shadow-sm border border-neutral-100 dark:border-neutral-800">
           <div className="flex lg:flex-col overflow-x-auto lg:overflow-visible gap-2 pb-2 lg:pb-0 scrollbar-hide">
             {tabs.map((tab) => {
@@ -164,38 +211,25 @@ export default function ParametresPage() {
           </div>
         </aside>
 
-        {/* CONTENU PRINCIPAL */}
         <main className="w-full flex-1 bg-white dark:bg-[#0A1E1E] rounded-3xl p-5 md:p-8 shadow-sm border border-neutral-100 dark:border-neutral-800 min-h-[500px]">
           
-          {/* 1. INFORMATIONS */}
           {activeTab === "profil" && (
             <div className="space-y-6 animate-in fade-in">
               <h2 className="text-xl font-bold text-[#0A1E1E] dark:text-white mb-4">Informations personnelles</h2>
               
-              {/* Photo de profil */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#F4F5F7] dark:bg-white/5 p-4 rounded-2xl">
                 <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden shrink-0 border-2 border-white dark:border-neutral-800 shadow-sm">
-                  {image ? (
-                    <Image src={image} alt="Profil" fill className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-[#184F53] text-[#CEEC22] flex items-center justify-center text-xl font-bold">
-                      {nom.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  {image ? <Image src={image} alt="Profil" fill className="object-cover" /> : <div className="w-full h-full bg-[#184F53] text-[#CEEC22] flex items-center justify-center text-xl font-bold">{nom.charAt(0).toUpperCase()}</div>}
                 </div>
                 <div className="flex flex-col gap-2">
                   <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
-                  <button 
-                    onClick={() => fileInputRef.current?.click()} 
-                    className="cursor-pointer px-4 py-2 bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-700 rounded-full text-xs md:text-sm font-bold text-[#184F53] dark:text-[#CEEC22] flex items-center gap-2 shadow-sm hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors w-fit"
-                  >
+                  <button onClick={() => fileInputRef.current?.click()} className="cursor-pointer px-4 py-2 bg-white dark:bg-[#0A1E1E] border border-neutral-200 dark:border-neutral-700 rounded-full text-xs md:text-sm font-bold text-[#184F53] dark:text-[#CEEC22] flex items-center gap-2 shadow-sm hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors w-fit">
                     <Upload className="w-4 h-4" /> Changer la photo
                   </button>
                   <p className="text-[10px] md:text-xs text-neutral-500">JPG, PNG ou GIF. Max 2MB.</p>
                 </div>
               </div>
 
-              {/* Champs texte */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label className={labelClass}>Nom complet</label>
@@ -234,7 +268,6 @@ export default function ParametresPage() {
                 </div>
               </div>
 
-              {/* Contacts publics */}
               <div className="border-t border-neutral-100 dark:border-neutral-800 pt-6 mt-6">
                 <h3 className="text-sm font-bold text-[#0A1E1E] dark:text-white mb-4">Contacts publics (facultatif)</h3>
                 <div className="grid sm:grid-cols-3 gap-4">
@@ -254,7 +287,6 @@ export default function ParametresPage() {
                 </div>
               </div>
 
-              {/* Bouton Enregistrer */}
               <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-end gap-4">
                 {isSuccess && <span className="text-green-600 text-sm font-medium flex items-center gap-1 animate-in fade-in"><CheckCircle2 className="w-4 h-4" /> Enregistré !</span>}
                 <button 
@@ -269,23 +301,39 @@ export default function ParametresPage() {
             </div>
           )}
 
-          {/* 2. SÉCURITÉ */}
           {activeTab === "securite" && (
             <div className="space-y-6 animate-in fade-in">
               <h2 className="text-xl font-bold text-[#0A1E1E] dark:text-white mb-4">Sécurité et connexion</h2>
               <div className="bg-[#F4F5F7] dark:bg-white/5 p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800">
                 <h3 className="font-bold text-sm text-[#0A1E1E] dark:text-white mb-4">Changer le mot de passe</h3>
                 <div className="space-y-4 max-w-md">
-                  <input type="password" placeholder="Mot de passe actuel" className={inputClass} />
-                  <input type="password" placeholder="Nouveau mot de passe" className={inputClass} />
-                  <input type="password" placeholder="Confirmer le nouveau mot de passe" className={inputClass} />
-                  <button className="px-6 py-2.5 bg-[#184F53] text-white text-sm font-bold rounded-full hover:bg-[#123a3d] transition-colors mt-2">Mettre à jour le mot de passe</button>
+                  <div className="relative">
+                    <input type={showCurrent ? "text" : "password"} placeholder="Mot de passe actuel" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={inputClass + " pr-10"} />
+                    <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-[#184F53]">
+                      {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input type={showNew ? "text" : "password"} placeholder="Nouveau mot de passe" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass + " pr-10"} />
+                    <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-[#184F53]">
+                      {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input type={showConfirm ? "text" : "password"} placeholder="Confirmer le nouveau mot de passe" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass + " pr-10"} />
+                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-[#184F53]">
+                      {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <button onClick={handlePasswordUpdate} disabled={isChangingPwd} className="px-6 py-2.5 bg-[#184F53] text-white text-sm font-bold rounded-full hover:bg-[#123a3d] transition-colors mt-2 flex items-center gap-2">
+                    {isChangingPwd && <Loader2 className="w-4 h-4 animate-spin" />}
+                    Mettre à jour le mot de passe
+                  </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 3. NOTIFICATIONS */}
           {activeTab === "notifications" && (
             <div className="space-y-6 animate-in fade-in">
               <h2 className="text-xl font-bold text-[#0A1E1E] dark:text-white mb-4">Préférences de notification</h2>
@@ -295,20 +343,29 @@ export default function ParametresPage() {
                     <p className="font-bold text-sm text-[#0A1E1E] dark:text-white">Nouvelles publications</p>
                     <p className="text-xs text-neutral-500 mt-1">Recevoir un e-mail quand un nouveau mémoire est publié.</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="w-5 h-5 accent-[#184F53]" />
+                  <input 
+                    type="checkbox" 
+                    checked={notifyNews} 
+                    onChange={(e) => handleToggleNotifications("news", e.target.checked)} 
+                    className="w-5 h-5 accent-[#184F53] cursor-pointer" 
+                  />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-[#F4F5F7] dark:bg-white/5 rounded-2xl border border-neutral-200 dark:border-neutral-800">
                   <div>
                     <p className="font-bold text-sm text-[#0A1E1E] dark:text-white">Mises à jour de la plateforme</p>
                     <p className="text-xs text-neutral-500 mt-1">Recevoir des informations sur les nouvelles fonctionnalités.</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="w-5 h-5 accent-[#184F53]" />
+                  <input 
+                    type="checkbox" 
+                    checked={notifyPublications} 
+                    onChange={(e) => handleToggleNotifications("pubs", e.target.checked)} 
+                    className="w-5 h-5 accent-[#184F53] cursor-pointer" 
+                  />
                 </div>
               </div>
             </div>
           )}
 
-          {/* 4. AFFICHAGE */}
           {activeTab === "affichage" && (
             <div className="space-y-6 animate-in fade-in">
               <h2 className="text-xl font-bold text-[#0A1E1E] dark:text-white mb-4">Préférences d'affichage</h2>
@@ -324,7 +381,6 @@ export default function ParametresPage() {
             </div>
           )}
 
-          {/* 5. CONFIDENTIALITÉ */}
           {activeTab === "confidentialite" && (
             <div className="space-y-6 animate-in fade-in">
               <h2 className="text-xl font-bold text-[#0A1E1E] dark:text-white mb-4">Confidentialité et compte</h2>
@@ -332,15 +388,18 @@ export default function ParametresPage() {
                 <div>
                   <p className="font-bold text-sm text-[#0A1E1E] dark:text-white">Visibilité du profil</p>
                   <p className="text-xs text-neutral-500 mt-1 mb-3">Votre nom et prénom sont visibles sur vos publications.</p>
-                  <select className={inputClass + " max-w-xs"}>
-                    <option>Public (Recommandé)</option>
-                    <option>Privé (Masquer mon nom)</option>
-                  </select>
+                  <div className="relative max-w-xs">
+                    <select className={inputClass + " appearance-none pr-10"}>
+                      <option>Public (Recommandé)</option>
+                      <option>Privé (Masquer mon nom)</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" />
+                  </div>
                 </div>
                 <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700">
                   <p className="font-bold text-sm text-red-500">Zone de danger</p>
                   <p className="text-xs text-neutral-500 mt-1 mb-3">La suppression de votre compte est irréversible.</p>
-                  <button className="px-4 py-2 border-2 border-red-500 text-red-500 text-xs font-bold rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Supprimer mon compte</button>
+                  <button onClick={handleDeleteAccount} className="px-4 py-2 border-2 border-red-500 text-red-500 text-xs font-bold rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Supprimer mon compte</button>
                 </div>
               </div>
             </div>
