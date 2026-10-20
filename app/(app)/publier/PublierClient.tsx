@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Info, Upload, X, Image as ImageIcon, Lock } from "lucide-react"; // 👈 Ajout de Lock
+import { Info, Upload, X, Image as ImageIcon, Lock } from "lucide-react";
 import { Container } from "@/components/layout/Container";
 import { filieres } from "@/lib/data/filieres";
 import { domainesParFiliere } from "@/lib/data/domaines";
@@ -51,7 +51,7 @@ const textInputClass = inputClass.replace("appearance-none", "").replace(/bg-\[u
 const iconInputClass =
   "w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 disabled:opacity-60 shadow-sm";
 
-const labelClass = "block text-sm font-medium text-primary-900 dark:text-white mb-2";
+const labelClass = "block text-sm font-bold text-primary-900 dark:text-white mb-2";
 
 export default function PublierClient() {
   const router = useRouter();
@@ -113,16 +113,13 @@ export default function PublierClient() {
       setFacebook(myProfile.facebook ?? "");
       setLinkedin(myProfile.linkedin ?? "");
       if (myProfile.whatsapp) setWhatsapp(formatWhatsAppInput(myProfile.whatsapp));
-      
-      if (myProfile.filiereCode) {
-        setFiliereCode(myProfile.filiereCode);
-      }
+      if (myProfile.filiereCode) setFiliereCode(myProfile.filiereCode);
     }
   }, [myProfile, isEditMode]);
 
   const createMutation = trpc.memoire.create.useMutation({
     onSuccess: () => {
-      sessionStorage.setItem("flashMessage", JSON.stringify({ text: "Votre publication a bien été publiée avec succès.", link: "/publication", linkText: "Voir la publication" }));
+      sessionStorage.setItem("flashMessage", JSON.stringify({ text: "Votre publication a bien été publiée.", link: "/publication", linkText: "Voir la publication" }));
       router.push("/tableau-de-bord");
     },
     onError: (err) => setFeedback(err.message || "Erreur lors de la publication."),
@@ -130,7 +127,7 @@ export default function PublierClient() {
 
   const updateMutation = trpc.memoire.update.useMutation({
     onSuccess: () => {
-      sessionStorage.setItem("flashMessage", JSON.stringify({ text: "Votre publication a bien été modifiée avec succès.", link: "/publication", linkText: "Voir la publication" }));
+      sessionStorage.setItem("flashMessage", JSON.stringify({ text: "Votre publication a bien été modifiée.", link: "/publication", linkText: "Voir la publication" }));
       router.push("/tableau-de-bord");
     },
     onError: (err) => setFeedback(err.message || "Erreur lors de la modification."),
@@ -166,61 +163,32 @@ export default function PublierClient() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback("");
-
     if (limiteAtteinte) return setFeedback("Vous avez atteint la limite de 3 publications.");
     if (!title || !summary || !filiereCode || !encadreur) return setFeedback("Veuillez remplir tous les champs obligatoires.");
     if (wordCount > MAX_WORDS) return setFeedback(`La description dépasse ${MAX_WORDS} mots.`);
 
     const finalWhatsapp = whatsapp ? `+261${formatWhatsAppInput(whatsapp)}` : undefined;
-
-    const payload = {
-      title, summary, filiereCode, domaine, parcours, niveau, annee: year, encadreur, keywords,
-      image: photo ?? undefined,
-      facebook: facebook || undefined,
-      linkedin: linkedin || undefined,
-      whatsapp: finalWhatsapp,
-    };
+    const payload = { title, summary, filiereCode, domaine, parcours, niveau, annee: year, encadreur, keywords, image: photo ?? undefined, facebook: facebook || undefined, linkedin: linkedin || undefined, whatsapp: finalWhatsapp };
 
     if (isEditMode && editSlug) updateMutation.mutate({ ...payload, slug: editSlug });
     else createMutation.mutate(payload);
   };
 
-  // 👇 ÉTAT DE CHARGEMENT INITIAL (évite le flash)
   if (isPending) return <Container className="py-20 text-center text-neutral-500">Chargement…</Container>;
 
-  // 👇 MODAL POUR UTILISATEUR NON CONNECTÉ (Fond flouté)
   if (!session) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        {/* Le fond flouté qui recouvre tout l'écran */}
         <div className="absolute inset-0 bg-black/50 backdrop-blur-md" />
-        
-        {/* La carte du modal */}
-        <div className="relative bg-white dark:bg-[#0A1E1E] rounded-3xl p-8 md:p-10 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 text-center animate-in fade-in zoom-in-95 duration-200">
-          <div className="w-16 h-16 rounded-full bg-cta-500/20 flex items-center justify-center mx-auto mb-6">
-            <Lock className="w-8 h-8 text-primary-500 dark:text-[#CEEC22]" />
+        <div className="relative bg-white dark:bg-[#0A1E1E] rounded-3xl p-8 md:p-10 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 text-center animate-in fade-in zoom-in-95">
+          <div className="w-16 h-16 rounded-full bg-[#CEEC22]/20 flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-8 h-8 text-[#184F53] dark:text-[#CEEC22]" />
           </div>
-          
-          <h2 className="text-2xl font-bold text-primary-900 dark:text-white font-heading mb-3">
-            Connexion requise
-          </h2>
-          <p className="text-neutral-500 dark:text-neutral-400 mb-8">
-            Vous devez être connecté à votre compte étudiant pour pouvoir publier un mémoire.
-          </p>
-          
+          <h2 className="text-2xl font-bold text-primary-900 dark:text-white mb-3">Connexion requise</h2>
+          <p className="text-neutral-500 dark:text-neutral-400 mb-8">Vous devez être connecté pour publier un mémoire.</p>
           <div className="flex flex-col gap-3">
-            <Link 
-              href="/connexion" 
-              className="w-full py-3 rounded-full bg-cta-500 hover:bg-cta-400 text-primary-900 font-bold transition-colors shadow-md"
-            >
-              Se connecter
-            </Link>
-            <button 
-              onClick={() => router.push("/")}
-              className="w-full py-3 rounded-full border-2 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-            >
-              Retour à l'accueil
-            </button>
+            <Link href="/connexion" className="w-full py-3 rounded-full bg-[#CEEC22] hover:bg-[#b5d11b] text-[#0A1E1E] font-bold transition-colors">Se connecter</Link>
+            <button onClick={() => router.push("/")} className="w-full py-3 rounded-full border-2 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">Retour à l'accueil</button>
           </div>
         </div>
       </div>
@@ -248,32 +216,32 @@ export default function PublierClient() {
         </div>
       )}
 
-      <Container className="py-10 md:py-14">
+      <div className="max-w-4xl mx-auto py-8 md:py-14 px-4 md:px-0">
         <div className="w-16 h-1 bg-cta-500 mb-4 rounded-full" />
-        <h1 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-8">
+        <h1 className="text-2xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-6 md:mb-8">
           {isEditMode ? "Modifier le mémoire" : "Publier un mémoire"}
         </h1>
 
-        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 p-6 md:p-10 shadow-sm max-w-4xl">
-          <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 p-5 md:p-10 shadow-sm">
+          <p className="text-sm md:text-base text-neutral-600 dark:text-neutral-400 mb-6">
             {isEditMode ? "Modifiez les informations de votre mémoire." : "Renseignez les informations descriptives. Le PDF complet n'est pas stocké."}
           </p>
 
           <div className="flex items-start gap-3 rounded-2xl border border-cta-500/30 bg-cta-50 dark:bg-primary-950 p-4 mb-8">
             <Info className="w-5 h-5 text-cta-600 shrink-0 mt-0.5" />
-            <p className="text-sm text-primary-900 dark:text-white">La conservation des documents reste assurée par la BAU.</p>
+            <p className="text-xs md:text-sm text-primary-900 dark:text-white">La conservation des documents reste assurée par la BAU.</p>
           </div>
 
           {limiteAtteinte && (
             <div className="mb-6 rounded-2xl border border-error-500/40 bg-error-50 dark:bg-primary-950 p-4">
-              <p className="text-sm font-medium text-error-600 dark:text-error-400">
+              <p className="text-xs md:text-sm font-medium text-error-600 dark:text-error-400">
                 Vous avez atteint la limite de {MAX_PUBLICATIONS} publications. Supprimez une publication existante pour en créer une nouvelle.
               </p>
-              <Link href="/publication" className="inline-block mt-2 text-sm font-semibold text-error-700 dark:text-error-300 hover:underline">Voir mes publications</Link>
+              <Link href="/publication" className="inline-block mt-2 text-xs md:text-sm font-semibold text-error-700 dark:text-error-300 hover:underline">Voir mes publications</Link>
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-5 md:space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className={labelClass}>Photo de couverture</label>
               <label className="group relative flex flex-col items-center justify-center gap-2 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl p-6 cursor-pointer hover:border-cta-500 transition-colors overflow-hidden bg-neutral-50 dark:bg-primary-800/30">
@@ -282,13 +250,13 @@ export default function PublierClient() {
                     <img src={photo} alt="Aperçu" className="w-full max-h-48 object-cover rounded-lg" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
                       <ImageIcon className="w-7 h-7 text-white" />
-                      <span className="text-sm font-medium text-white">Modifier la photo de couverture</span>
+                      <span className="text-xs md:text-sm font-medium text-white">Modifier la photo</span>
                     </div>
                   </>
                 ) : (
                   <>
                     <Upload className="w-6 h-6 text-neutral-400" />
-                    <span className="text-sm text-neutral-500">Cliquez pour choisir une image (max 500 Ko)</span>
+                    <span className="text-xs md:text-sm text-neutral-500 text-center px-4">Cliquez pour choisir une image (max 500 Ko)</span>
                   </>
                 )}
                 <input type="file" accept="image/*" onChange={onPhotoChange} disabled={isSubmitting || limiteAtteinte} className="hidden" />
@@ -300,20 +268,16 @@ export default function PublierClient() {
               <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSubmitting || limiteAtteinte} className={textInputClass} />
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-6">
+            {/* Grille : 1 colonne sur mobile, 2 sur PC */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
               <div>
                 <label className={labelClass}>Filière *</label>
-                <select 
-                  value={filiereCode} 
-                  onChange={(e) => { setFiliereCode(e.target.value); setDomaine(""); }} 
-                  disabled={isSubmitting || limiteAtteinte || !!myProfile?.filiereCode} 
-                  className={inputClass}
-                >
+                <select value={filiereCode} onChange={(e) => { setFiliereCode(e.target.value); setDomaine(""); }} disabled={isSubmitting || limiteAtteinte || !!myProfile?.filiereCode} className={inputClass}>
                   <option value="">Sélectionner…</option>
                   {filieres.map((f) => <option key={f.id} value={f.code}>{f.code} — {f.name}</option>)}
                 </select>
                 {myProfile?.filiereCode && (
-                  <p className="text-xs text-cta-600 dark:text-cta-400 mt-1 flex items-center gap-1">
+                  <p className="text-[10px] md:text-xs text-cta-600 dark:text-cta-400 mt-1 flex items-center gap-1">
                     <Info className="w-3 h-3" /> Filière liée à votre profil
                   </p>
                 )}
@@ -329,13 +293,7 @@ export default function PublierClient() {
 
               <div>
                 <label className={labelClass}>Parcours *</label>
-                <input 
-                  type="text" value={parcours} onChange={(e) => setParcours(e.target.value)} 
-                  onFocus={() => { if (!parcours && myProfile?.parcours) setParcours(myProfile.parcours); }}
-                  disabled={isSubmitting || limiteAtteinte} 
-                  placeholder={myProfile?.parcours ? "Cliquez pour utiliser le profil" : "Ex: STI, RS, RC…"} 
-                  className={textInputClass} 
-                />
+                <input type="text" value={parcours} onChange={(e) => setParcours(e.target.value)} onFocus={() => { if (!parcours && myProfile?.parcours) setParcours(myProfile.parcours); }} disabled={isSubmitting || limiteAtteinte} placeholder={myProfile?.parcours ? "Utiliser le profil" : "Ex: STI, RS…"} className={textInputClass} />
               </div>
 
               <div>
@@ -360,14 +318,14 @@ export default function PublierClient() {
             <div>
               <label className={labelClass}>Description * (max {MAX_WORDS} mots)</label>
               <textarea value={summary} onChange={(e) => setSummary(e.target.value)} disabled={isSubmitting || limiteAtteinte} rows={5} className={textInputClass} />
-              <p className="text-xs text-neutral-500 mt-1">{wordCount} / {MAX_WORDS} mots</p>
+              <p className="text-[10px] md:text-xs text-neutral-500 mt-1">{wordCount} / {MAX_WORDS} mots</p>
             </div>
 
             <div>
               <label className={labelClass}>Mots-clés</label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {keywords.map((k) => (
-                  <span key={k} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-900 text-white text-xs">
+                  <span key={k} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-900 text-white text-[10px] md:text-xs">
                     {k}
                     <button type="button" onClick={() => removeKeyword(k)} className="opacity-70 hover:opacity-100"><X className="w-3 h-3" /></button>
                   </span>
@@ -377,8 +335,9 @@ export default function PublierClient() {
             </div>
 
             <div className="border-t border-neutral-200 dark:border-neutral-700 pt-6">
-              <h3 className="text-lg font-semibold text-primary-900 dark:text-white mb-4">Contacts de l'auteur (facultatif et optionnel)</h3>
-              <div className="grid sm:grid-cols-3 gap-4">
+              <h3 className="text-base md:text-lg font-bold text-primary-900 dark:text-white mb-4">Contacts de l'auteur (optionnel)</h3>
+              {/* Grille : 1 colonne sur mobile, 3 sur PC */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="relative">
                   <FacebookIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#1877F2]" />
                   <input type="text" value={facebook} onChange={(e) => setFacebook(e.target.value)} onFocus={() => { if (!facebook && myProfile?.facebook) setFacebook(myProfile.facebook); }} disabled={isSubmitting || limiteAtteinte} placeholder={myProfile?.facebook ? "Utiliser le profil" : "Lien Facebook"} className={iconInputClass} />
@@ -389,33 +348,26 @@ export default function PublierClient() {
                 </div>
                 <div className="relative">
                   <WhatsappIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#25D366]" />
-                  <span className="absolute left-10 top-1/2 -translate-y-1/2 text-sm text-neutral-500 font-medium">+261</span>
-                  <input 
-                    type="text" 
-                    value={whatsapp} 
-                    onChange={(e) => setWhatsapp(formatWhatsAppInput(e.target.value))} 
-                    onFocus={() => { if (!whatsapp && myProfile?.whatsapp) setWhatsapp(formatWhatsAppInput(myProfile.whatsapp)); }} 
-                    disabled={isSubmitting || limiteAtteinte} 
-                    placeholder={myProfile?.whatsapp ? "Utiliser le profil" : "-- -- --- --"} 
-                    className="w-full pl-[5.5rem] pr-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 disabled:opacity-60 shadow-sm" 
-                  />
+                  <span className="absolute left-10 top-1/2 -translate-y-1/2 text-xs md:text-sm text-neutral-500 font-medium">+261</span>
+                  <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(formatWhatsAppInput(e.target.value))} onFocus={() => { if (!whatsapp && myProfile?.whatsapp) setWhatsapp(formatWhatsAppInput(myProfile.whatsapp)); }} disabled={isSubmitting || limiteAtteinte} placeholder={myProfile?.whatsapp ? "Utiliser le profil" : "-- -- --- --"} className="w-full pl-[5.5rem] pr-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-primary-800/50 text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-cta-500 disabled:opacity-60 shadow-sm" />
                 </div>
               </div>
             </div>
 
-            {feedback && <p className="text-sm text-error-500 text-center font-medium bg-error-50 dark:bg-error-900/20 py-2 rounded-lg">{feedback}</p>}
+            {feedback && <p className="text-xs md:text-sm text-error-500 text-center font-medium bg-error-50 dark:bg-error-900/20 py-2 rounded-lg">{feedback}</p>}
 
-            <div className="flex flex-wrap justify-end gap-3 pt-4">
-              <button type="button" onClick={() => router.push(isEditMode ? "/publication" : "/tableau-de-bord")} disabled={isSubmitting} className="inline-flex items-center gap-2 border-2 border-neutral-300 dark:border-neutral-600 text-primary-900 dark:text-white font-semibold rounded-full px-6 py-3 hover:border-cta-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
+            {/* Boutons : Empilés sur mobile, alignés à droite sur PC */}
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
+              <button type="button" onClick={() => router.push(isEditMode ? "/publication" : "/tableau-de-bord")} disabled={isSubmitting} className="w-full sm:w-auto inline-flex justify-center items-center gap-2 border-2 border-neutral-300 dark:border-neutral-600 text-primary-900 dark:text-white font-bold rounded-full px-6 py-3 hover:border-cta-500 disabled:opacity-60 transition-colors text-sm md:text-base">
                 <X className="w-4 h-4" /> Annuler
               </button>
-              <button type="submit" disabled={isSubmitting || limiteAtteinte} className="bg-cta-500 hover:bg-cta-400 disabled:bg-neutral-300 dark:disabled:bg-primary-800 disabled:text-neutral-500 dark:disabled:text-neutral-500 disabled:cursor-not-allowed text-primary-900 font-semibold rounded-full px-8 py-3 transition-colors">
-                {isSubmitting ? (isEditMode ? "Modification…" : "Publication…") : limiteAtteinte ? "Limite atteinte (3 max)" : isEditMode ? "Enregistrer les modifications" : "Publier le mémoire"}
+              <button type="submit" disabled={isSubmitting || limiteAtteinte} className="w-full sm:w-auto bg-cta-500 hover:bg-cta-400 disabled:bg-neutral-300 dark:disabled:bg-primary-800 disabled:text-neutral-500 dark:disabled:text-neutral-500 disabled:cursor-not-allowed text-primary-900 font-bold rounded-full px-8 py-3 transition-colors text-sm md:text-base shadow-md">
+                {isSubmitting ? (isEditMode ? "Modification…" : "Publication…") : limiteAtteinte ? "Limite atteinte" : isEditMode ? "Enregistrer" : "Publier le mémoire"}
               </button>
             </div>
           </form>
         </div>
-      </Container>
+      </div>
     </>
   );
 }

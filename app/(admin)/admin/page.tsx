@@ -31,11 +31,11 @@ export default function AdminDashboardPage() {
   const formattedDate = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div className="space-y-8 max-w-[1400px] mx-auto relative pb-10">
+    <div className="space-y-6 md:space-y-8 max-w-[1400px] mx-auto relative pb-10">
       
       {/* MODAL DE SUPPRESSION */}
       {memoireToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A1E1E]/40 dark:bg-black/60 backdrop-blur-md">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0A1E1E]/40 dark:bg-black/60 backdrop-blur-md">
           <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-6 md:p-8 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 animate-in zoom-in-95">
             <h3 className="text-xl font-bold text-center text-[#0A1E1E] dark:text-white mb-2">Supprimer ?</h3>
             <p className="text-sm text-center text-neutral-500 mb-6">Supprimer définitivement "{memoireToDelete.title}" ?</p>
@@ -47,81 +47,83 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      <div className="flex justify-end pt-2 pb-2">
+      <div className="flex justify-end pt-2 pb-2 hidden md:flex">
         <p className="text-sm font-medium text-neutral-400 capitalize">{formattedDate}</p>
       </div>
 
-      {/* CARTES */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-[#0A1E1E] rounded-[2rem] p-6 text-white relative overflow-hidden flex flex-col justify-between h-44 shadow-lg hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 cursor-pointer">
+      {/* 👇 CARTES : 2x2 sur mobile (grid-cols-2), 4 sur PC (lg:grid-cols-4) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+        <div className="bg-[#0A1E1E] rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 text-white relative overflow-hidden flex flex-col justify-between h-32 md:h-44 shadow-lg">
           <div className="relative z-10">
-            <p className="text-sm font-medium text-white/60 mb-1">Mémoires publiés</p>
-            <p className="text-4xl font-black">{stats?.totalMemoires || 0}</p>
-            <p className="text-xs font-medium text-[#CEEC22] mt-1 flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5" /> +3% ce mois-ci</p>
+            <p className="text-[11px] md:text-sm font-medium text-white/60 mb-1">Mémoires publiés</p>
+            <p className="text-2xl md:text-4xl font-black">{stats?.totalMemoires || 0}</p>
+            <p className="text-[9px] md:text-xs font-medium text-[#CEEC22] mt-1 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +3%</p>
           </div>
-          <div className="absolute bottom-0 right-0 w-3/4 h-2/3 opacity-90 pointer-events-none">
+          <div className="absolute bottom-0 right-0 w-3/4 h-2/3 opacity-90 pointer-events-none hidden md:block">
             <svg viewBox="0 0 100 50" className="w-full h-full" preserveAspectRatio="none"><path d="M0 40 C 20 40, 30 15, 50 25 C 70 35, 80 5, 100 15" fill="none" stroke="#C6F432" strokeWidth="2.5" strokeLinecap="round"/></svg>
           </div>
         </div>
 
-        <div className="bg-[#F4F5F7] dark:bg-[#0A1E1E] rounded-[2rem] p-6 flex flex-col justify-between h-44 shadow-sm border border-transparent dark:border-neutral-800 hover:scale-[1.02] hover:shadow-lg transition-all duration-300 cursor-pointer">
+        <div className="bg-[#F4F5F7] dark:bg-[#0A1E1E] rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 flex flex-col justify-between h-32 md:h-44 shadow-sm border border-transparent dark:border-neutral-800">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-medium text-neutral-500">Utilisateurs inscrits</p>
-            <div className="w-9 h-9 rounded-full bg-primary-50 dark:bg-[#184F53] flex items-center justify-center border border-primary-100 dark:border-[#184F53]"><Users className="w-4 h-4 text-[#184F53] dark:text-[#CEEC22]" /></div>
+            <p className="text-[11px] md:text-sm font-medium text-neutral-500">Utilisateurs</p>
+            <div className="w-6 h-6 md:w-9 md:h-9 rounded-full bg-primary-50 dark:bg-[#184F53] flex items-center justify-center border border-primary-100 dark:border-[#184F53]"><Users className="w-3 h-3 md:w-4 md:h-4 text-[#184F53] dark:text-[#CEEC22]" /></div>
           </div>
           <div>
-            <p className="text-4xl font-black text-[#0A1E1E] dark:text-white mb-1">{stats?.totalUsers || 0}</p>
-            <p className="text-xs font-medium text-green-600 flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5" /> +12% ce mois-ci</p>
+            <p className="text-2xl md:text-4xl font-black text-[#0A1E1E] dark:text-white mb-1">{stats?.totalUsers || 0}</p>
+            <p className="text-[9px] md:text-xs font-medium text-green-600 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +12%</p>
           </div>
         </div>
 
-        <div className="bg-[#F4F5F7] dark:bg-[#0A1E1E] rounded-[2rem] p-6 flex flex-col justify-between h-44 shadow-sm border border-transparent dark:border-neutral-800 hover:scale-[1.02] hover:shadow-lg transition-all duration-300 cursor-pointer">
+        <div className="bg-[#F4F5F7] dark:bg-[#0A1E1E] rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 flex flex-col justify-between h-32 md:h-44 shadow-sm border border-transparent dark:border-neutral-800">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-medium text-neutral-500">Filières actives</p>
-            <div className="w-9 h-9 rounded-full bg-neutral-200/50 dark:bg-neutral-800 flex items-center justify-center"><Layers className="w-4 h-4 text-neutral-600 dark:text-neutral-400" /></div>
+            <p className="text-[11px] md:text-sm font-medium text-neutral-500">Filières</p>
+            <div className="w-6 h-6 md:w-9 md:h-9 rounded-full bg-neutral-200/50 dark:bg-neutral-800 flex items-center justify-center"><Layers className="w-3 h-3 md:w-4 md:h-4 text-neutral-600 dark:text-neutral-400" /></div>
           </div>
           <div>
-            {/* 👇 MODIFICATION ICI : Utilisation de totalFilieres */}
-            <p className="text-4xl font-black text-[#0A1E1E] dark:text-white mb-1">{stats?.totalFilieres || 0}</p>
-            <p className="text-xs font-medium text-neutral-400">Toutes configurées</p>
+            <p className="text-2xl md:text-4xl font-black text-[#0A1E1E] dark:text-white mb-1">{stats?.totalFilieres || 0}</p>
+            <p className="text-[9px] md:text-xs font-medium text-neutral-400">Configurées</p>
           </div>
         </div>
 
-        <div className="bg-[#F4F5F7] dark:bg-[#0A1E1E] rounded-[2rem] p-6 flex flex-col justify-between h-44 shadow-sm border border-transparent dark:border-neutral-800 hover:scale-[1.02] hover:shadow-lg transition-all duration-300 cursor-pointer">
+        <div className="bg-[#F4F5F7] dark:bg-[#0A1E1E] rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 flex flex-col justify-between h-32 md:h-44 shadow-sm border border-transparent dark:border-neutral-800">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-medium text-neutral-500">Croissance (30j)</p>
-            <div className="w-9 h-9 rounded-full bg-success-50 dark:bg-success-950 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-success-600 dark:text-success-400" /></div>
+            <p className="text-[11px] md:text-sm font-medium text-neutral-500">Croissance</p>
+            <div className="w-6 h-6 md:w-9 md:h-9 rounded-full bg-success-50 dark:bg-success-950 flex items-center justify-center"><TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-success-600 dark:text-success-400" /></div>
           </div>
           <div>
-            <p className="text-4xl font-black text-[#0A1E1E] dark:text-white mb-1">+24%</p>
-            <p className="text-xs font-medium text-success-600 flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" /> Excellente dynamique</p>
+            <p className="text-2xl md:text-4xl font-black text-[#0A1E1E] dark:text-white mb-1">+24%</p>
+            <p className="text-[9px] md:text-xs font-medium text-success-600 flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Dynamique</p>
           </div>
         </div>
       </div>
 
       {/* LISTE PUBLICATIONS */}
-      <div className="pt-4">
-        <div className="flex items-center gap-4 mb-6">
-          <h3 className="text-xl font-bold text-[#0A1E1E] dark:text-white mr-2">Publications récentes</h3>
+      <div className="pt-2 md:pt-4">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h3 className="text-lg md:text-xl font-bold text-[#0A1E1E] dark:text-white">Publications récentes</h3>
+          <Link href="/admin/memoires" className="text-xs md:text-sm font-bold text-[#184F53] dark:text-[#CEEC22] hover:underline">
+            Voir tout
+          </Link>
         </div>
 
         <div className="space-y-3">
           {stats?.recentMemoires.map((m) => (
-            <div key={m.id} className="group flex items-center justify-between bg-[#F4F5F7] dark:bg-[#0A1E1E] hover:bg-white dark:hover:bg-[#184F53] transition-all duration-200 rounded-full px-4 py-3 sm:px-6 border border-transparent hover:border-[#184F53]/20 dark:hover:border-[#CEEC22]/30 hover:shadow-md">
+            <div key={m.id} className="group flex flex-col sm:flex-row sm:items-center justify-between bg-white md:bg-[#F4F5F7] dark:bg-[#0A1E1E] hover:bg-white dark:hover:bg-[#184F53] transition-all duration-200 rounded-2xl md:rounded-full p-4 sm:px-6 border border-neutral-200 md:border-transparent dark:border-neutral-800 hover:border-[#184F53]/20 dark:hover:border-[#CEEC22]/30 hover:shadow-md gap-3 sm:gap-0">
               
-              <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
                 <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0 hidden sm:block" />
                 <div className="w-10 h-10 rounded-full bg-primary-200 dark:bg-[#184F53]/20 flex items-center justify-center shrink-0 border-2 border-white dark:border-[#0A1E1E]">
                   <span className="text-[#184F53] dark:text-[#CEEC22] font-bold text-sm">{m.authorName?.charAt(0) || "A"}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-[#0A1E1E] dark:text-white text-sm truncate pr-4 group-hover:text-[#184F53] dark:group-hover:text-white transition-colors">{m.title}</p>
+                  <p className="font-semibold text-[#0A1E1E] dark:text-white text-sm truncate group-hover:text-[#184F53] dark:group-hover:text-white transition-colors">{m.title}</p>
                   <p className="text-xs text-neutral-500 dark:text-white/70 truncate">Par {m.authorName || "Auteur inconnu"}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 shrink-0">
-                <span className="hidden md:inline-block text-[11px] font-extrabold text-[#0A1E1E] bg-[#CEEC22] px-3 py-1.5 rounded-full shadow-sm">{m.filiereName || "Non définie"}</span>
+              <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-neutral-100 dark:border-neutral-800">
+                <span className="inline-block text-[10px] md:text-[11px] font-extrabold text-[#0A1E1E] bg-[#CEEC22] px-3 py-1.5 rounded-full shadow-sm">{m.filiereName || "Non définie"}</span>
                 
                 <div className="relative group/menu">
                   <button className="p-2 text-neutral-400 dark:text-white/50 hover:bg-neutral-200 dark:hover:bg-black/20 rounded-full transition-colors"><MoreHorizontal className="w-5 h-5" /></button>
