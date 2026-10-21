@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-// Initialisation de Resend avec la clé API
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
   try {
+    // ✅ On initialise Resend ICI (à l'intérieur de la requête) 
+    // Cela empêche Next.js de planter lors du "build" sur Vercel
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
     const { name, email, subject, message } = await request.json();
 
     // Validation basique
