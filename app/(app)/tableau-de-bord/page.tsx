@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react"; // 👈 Ajout de useEffect
+import { useState, useRef, useEffect } from "react"; // Ajout de useEffect
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";

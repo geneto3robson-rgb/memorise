@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, MoreHorizontal, ShieldCheck, GraduationCap, Eye, Ban, Trash2 } from "lucide-react";
+import { Search, MoreHorizontal, ShieldCheck, GraduationCap, Eye, Trash2, AlertTriangle } from "lucide-react";
 import { trpc } from "@/trpc/client";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
@@ -10,10 +10,26 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<"tous" | "etudiant" | "admin">("tous");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  
+  // 👇 État pour gérer la modale de suppression 👇
+  const [userToDelete, setUserToDelete] = useState<{ id: string; name: string } | null>(null);
 
+  const utils = trpc.useUtils();
   const { data: users, isLoading } = trpc.admin.listUsers.useQuery();
 
-  // 👇 CORRECTION CLIC EXTÉRIEUR AVEC CLOSEST 👇
+  // 👇 Mutation pour supprimer un utilisateur 👇
+  const deleteMutation = trpc.admin.deleteUser.useMutation({
+    onSuccess: () => {
+      utils.admin.listUsers.invalidate();
+      utils.admin.getStats.invalidate();
+      setUserToDelete(null);
+    },
+    onError: (err) => {
+      alert("Erreur lors de la suppression : " + err.message);
+      setUserToDelete(null);
+    }
+  });
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (!(event.target as Element).closest('.dropdown-menu-wrapper')) {
@@ -35,8 +51,29 @@ export default function AdminUsersPage() {
   });
 
   return (
-    <div className="space-y-6 md:space-y-8 max-w-[1400px] mx-auto pb-10">
+    <div className="space-y-6 md:space-y-8 max-w-[1400px] mx-auto pb-10 relative">
       
+      {/* 👇 MODALE DE SUPPRESSION D'UTILISATEUR 👇 */}
+      {userToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0A1E1E]/40 dark:bg-black/60 backdrop-blur-md">
+          <div className="bg-white dark:bg-[#0A1E1E] rounded-[2rem] p-6 md:p-8 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 animate-in zoom-in-95">
+            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 md:mb-6">
+              <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+            </div>
+            <h3 className="text-lg md:text-xl font-bold text-center text-[#0A1E1E] dark:text-white mb-2">Supprimer cet utilisateur ?</h3>
+            <p className="text-xs md:text-sm text-center text-neutral-500 dark:text-neutral-400 mb-6">
+              Êtes-vous sûr de vouloir supprimer définitivement <span className="font-bold text-[#0A1E1E] dark:text-white">"{userToDelete.name}"</span> ? Toutes ses publications seront également supprimées.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setUserToDelete(null)} className="flex-1 px-4 py-2.5 md:py-3 rounded-full border-2 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm md:text-base">Annuler</button>
+              <button onClick={() => deleteMutation.mutate({ id: userToDelete.id })} disabled={deleteMutation.isPending} className="flex-1 px-4 py-2.5 md:py-3 rounded-full bg-red-500 text-white font-bold hover:bg-red-600 transition-colors shadow-md disabled:opacity-50 text-sm md:text-base">
+                {deleteMutation.isPending ? "Suppression..." : "Supprimer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div>
         <h2 className="text-2xl md:text-3xl font-bold text-[#0A1E1E] dark:text-white tracking-tight">Utilisateurs</h2>
         <p className="text-sm md:text-base text-neutral-500 mt-1">Gérez les comptes de la plateforme.</p>
@@ -102,7 +139,6 @@ export default function AdminUsersPage() {
                     </span>
                   )}
 
-                  {/* 👇 MENU 3 POINTS CORRIGÉ 👇 */}
                   <div className="relative dropdown-menu-wrapper">
                     <button 
                       onClick={(e) => { 
@@ -124,7 +160,8 @@ export default function AdminUsersPage() {
                           <Eye className="w-4 h-4" /> Voir les publications
                         </Link>
                         <div className="h-px bg-neutral-100 dark:bg-neutral-800 my-1" />
-                        <button onClick={() => alert("Fonctionnalité de suppression à venir")} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-left transition-colors">
+                        {/* 👇 MODIFICATION ICI : Appel de la modale 👇 */}
+                        <button onClick={() => { setUserToDelete({ id: user.id, name: user.name || "cet utilisateur" }); setOpenMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-left transition-colors">
                           <Trash2 className="w-4 h-4" /> Supprimer l'utilisateur
                         </button>
                       </div>

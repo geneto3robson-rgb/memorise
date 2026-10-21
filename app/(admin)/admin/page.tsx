@@ -51,16 +51,37 @@ export default function AdminDashboardPage() {
         <p className="text-sm font-medium text-neutral-400 capitalize">{formattedDate}</p>
       </div>
 
-      {/* 👇 CARTES : 2x2 sur mobile (grid-cols-2), 4 sur PC (lg:grid-cols-4) */}
+      {/* CARTES STATISTIQUES */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+        {/* CARTE 1 : Avec le nouveau graphique Pro */}
         <div className="bg-[#0A1E1E] rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 text-white relative overflow-hidden flex flex-col justify-between h-32 md:h-44 shadow-lg">
           <div className="relative z-10">
             <p className="text-[11px] md:text-sm font-medium text-white/60 mb-1">Mémoires publiés</p>
             <p className="text-2xl md:text-4xl font-black">{stats?.totalMemoires || 0}</p>
             <p className="text-[9px] md:text-xs font-medium text-[#CEEC22] mt-1 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +3%</p>
           </div>
-          <div className="absolute bottom-0 right-0 w-3/4 h-2/3 opacity-90 pointer-events-none hidden md:block">
-            <svg viewBox="0 0 100 50" className="w-full h-full" preserveAspectRatio="none"><path d="M0 40 C 20 40, 30 15, 50 25 C 70 35, 80 5, 100 15" fill="none" stroke="#C6F432" strokeWidth="2.5" strokeLinecap="round"/></svg>
+          
+          {/* 👇 NOUVEAU GRAPHIQUE SVG AREA CHART PROFESSIONNEL 👇 */}
+          <div className="absolute bottom-0 left-0 w-full h-24 md:h-32 opacity-80 pointer-events-none">
+            <svg viewBox="0 0 100 40" className="w-full h-full" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#CEEC22" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#CEEC22" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path 
+                d="M0 35 C 10 35, 20 15, 40 20 C 60 25, 75 10, 100 15 L 100 40 L 0 40 Z" 
+                fill="url(#chartGradient)" 
+              />
+              <path 
+                d="M0 35 C 10 35, 20 15, 40 20 C 60 25, 75 10, 100 15" 
+                fill="none" 
+                stroke="#CEEC22" 
+                strokeWidth="2.5" 
+                strokeLinecap="round"
+              />
+            </svg>
           </div>
         </div>
 

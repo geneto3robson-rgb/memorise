@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -26,11 +26,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // 👇 AJOUT D'UN REF POUR LE MENU PROFIL 👇
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  // 👇 EFFET POUR FERMER LE MENU AU CLIC EXTÉRIEUR 👇
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!isPending && !isLoading) {
@@ -65,7 +79,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMenuOpen(false)} />
       )}
 
-      {/* 👇 CHANGEMENT DE COULEUR ICI : bg-[#184F53] 👇 */}
       <aside className={`fixed top-4 bottom-4 left-4 z-50 w-64 bg-[#184F53] flex flex-col rounded-[2rem] shadow-2xl border border-white/10 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
         <div className="p-6 flex items-center justify-between">
@@ -94,7 +107,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <div className="p-4 mt-auto relative">
+        {/* 👇 ON APPLIQUE LE REF ICI 👇 */}
+        <div className="p-4 mt-auto relative" ref={profileMenuRef}>
           {isProfileMenuOpen && (
             <div className="absolute bottom-full left-4 right-4 mb-2 bg-[#0A1E1E] rounded-2xl shadow-xl overflow-hidden z-50 border border-white/10">
               <div className="p-2 space-y-1">
