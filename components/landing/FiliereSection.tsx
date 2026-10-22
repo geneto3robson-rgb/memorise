@@ -14,17 +14,17 @@ export function FiliereSection() {
           <div>
             <div className="w-16 h-1 bg-cta-500 mb-4 rounded-full" />
             <h2 className="text-3xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-3">
-              Explorer par filière
+              Explorer par mention
             </h2>
             <p className="text-neutral-600 dark:text-neutral-400">
-              Parcourez les travaux par filière qui vous intéressent.
+              Parcourez les travaux par mention qui vous intéressent.
             </p>
           </div>
           <Link
             href="/explorer"
             className="inline-flex items-center gap-2 text-sm font-medium text-primary-900 dark:text-white border-2 border-primary-900 dark:border-white rounded-full px-5 py-2 hover:bg-cta-500 hover:text-white hover:border-white transition-colors self-start md:self-end"
           >
-            Voir toutes les filières
+            Voir toutes les mentions
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

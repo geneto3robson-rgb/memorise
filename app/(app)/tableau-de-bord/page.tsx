@@ -110,7 +110,7 @@ export default function TableauDeBordPage() {
         <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-10 relative">
           <input
             type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher un mémoire, une filière..."
+            placeholder="Rechercher un mémoire, une mention..."
             className="w-full h-12 md:h-14 pl-6 pr-14 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#184F53] shadow-sm text-base"
           />
           <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 bg-[#CEEC22] rounded-full flex items-center justify-center hover:bg-[#b5d11b] transition-colors">
@@ -128,7 +128,7 @@ export default function TableauDeBordPage() {
             <div className="relative z-20 pointer-events-none flex flex-col h-full">
               <div className="pointer-events-auto mb-4">
                 <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] md:text-xs font-bold mb-3">Explorer</span>
-                <h2 className="text-xl md:text-2xl font-bold leading-tight mb-4">Parcourez les travaux de votre filière</h2>
+                <h2 className="text-xl md:text-2xl font-bold leading-tight mb-4">Parcourez les travaux de votre mention</h2>
               </div>
               
               <div className="mt-auto pt-6 pointer-events-auto">

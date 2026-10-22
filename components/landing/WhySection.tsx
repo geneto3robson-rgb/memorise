@@ -29,7 +29,7 @@ export function WhySection() {
               <Feature
                 icon={Search}
                 title="Accès rapide aux travaux"
-                description="Retrouvez en quelques secondes des milliers de mémoires classés par filière, domaine et année"
+                description="Retrouvez en quelques secondes des milliers de mémoires classés par mention, domaine et année"
               />
               <Feature
                 icon={Lightbulb}

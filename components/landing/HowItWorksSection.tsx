@@ -37,12 +37,12 @@ export function HowItWorksSection() {
               <Step
                 icon={Search}
                 title="Je recherche"
-                description="Entrez un mot-clé, une filière, un domaine ou le nom d'un auteur dans la barre de recherche."
+                description="Entrez un mot-clé, une mention, un domaine ou le nom d'un auteur dans la barre de recherche."
               />
               <Step
                 icon={Filter}
                 title="Je filtre"
-                description="Affinez les résultats par filière, niveau, année ou domaine pour trouver exactement ce que vous cherchez."
+                description="Affinez les résultats par mention, niveau, année ou domaine pour trouver exactement ce que vous cherchez."
               />
               <Step
                 icon={BookOpen}
@@ -62,7 +62,7 @@ export function HowItWorksSection() {
               <Step
                 icon={FileText}
                 title="Je renseigne les informations"
-                description="Titre, résumé, filière, domaine, mots-clés, auteur, année de soutenance."
+                description="Titre, résumé, mention, domaine, mots-clés, auteur, année de soutenance."
               />
               <Step
                 icon={Globe}

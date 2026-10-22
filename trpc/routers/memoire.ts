@@ -11,7 +11,7 @@ function slugify(text: string) {
 }
 
 export const memoireRouter = router({
-  // 👇 CORRECTION 1 : On renvoie le filiereCode pour le frontend
+  // CORRECTION 1 : On renvoie le filiereCode pour le frontend
   myProfile: protectedProcedure.query(async ({ ctx }) => {
     const [row] = await db.select({ 
       profile: profiles, 
@@ -109,7 +109,7 @@ export const memoireRouter = router({
       return { ...row, keywords: kws.map((k) => k.name ?? "").filter(Boolean) };
     }),
 
-  // 👇 CORRECTION 2 : Sécurité à la création
+  // CORRECTION 2 : Sécurité à la création
   create: protectedProcedure.input(z.object({
         title: z.string().min(3), summary: z.string().min(10), filiereCode: z.string().min(1),
         domaine: z.string().optional(), parcours: z.string().optional(), niveau: z.string().min(1),
@@ -123,12 +123,12 @@ export const memoireRouter = router({
       
       let finalFiliereId: number;
 
-      // Si le profil a une filière, on l'impose. Sinon, on utilise celle du formulaire.
+      // Si le profil a une mention, on l'impose. Sinon, on utilise celle du formulaire.
       if (userProfile && userProfile.filiereId) {
         finalFiliereId = userProfile.filiereId;
       } else {
         const [filiere] = await db.select().from(filieres).where(eq(filieres.code, input.filiereCode));
-        if (!filiere) throw new TRPCError({ code: "BAD_REQUEST", message: "Filière introuvable." });
+        if (!filiere) throw new TRPCError({ code: "BAD_REQUEST", message: "Mention introuvable." });
         finalFiliereId = filiere.id;
       }
 
@@ -141,7 +141,7 @@ export const memoireRouter = router({
           annee: input.annee, niveau: input.niveau, encadreur: input.encadreur,
           domaine: input.domaine ?? null, parcours: input.parcours ?? null,
           facebook: input.facebook ?? null, linkedin: input.linkedin ?? null, whatsapp: input.whatsapp ?? null,
-          userId: ctx.session.user.id, filiereId: finalFiliereId, // Utilisation de la filière sécurisée
+          userId: ctx.session.user.id, filiereId: finalFiliereId, // Utilisation de la mention sécurisée
         }).returning();
 
       for (const raw of input.keywords) {
@@ -152,11 +152,17 @@ export const memoireRouter = router({
         if (!kwId) { const [found] = await db.select().from(keywords).where(eq(keywords.name, name)); kwId = found?.id; }
         if (kwId) await db.insert(memoireKeywords).values({ memoireId: memoire.id, keywordId: kwId }).onConflictDoNothing();
       }
-      await db.insert(notifications).values({ userId: ctx.session.user.id, message: "Votre publication a bien été publiée avec succès.", link: `/memoires/${slug}`, isRead: false, createdAt: new Date() });
+      await db.insert(notifications).values({ 
+     userId: ctx.session.user.id, 
+    message: `Votre publication "${input.title}" a bien été publiée.`, 
+    link: `/memoires/${slug}`, 
+    isRead: false, 
+    createdAt: new Date() 
+    });
       return memoire;
     }),
 
-  // 👇 CORRECTION 3 : Sécurité à la modification
+  // CORRECTION 3 : Sécurité à la modification
   update: protectedProcedure.input(z.object({
         slug: z.string(), title: z.string().min(3), summary: z.string().min(10), filiereCode: z.string().min(1),
         domaine: z.string().optional(), parcours: z.string().optional(), niveau: z.string().min(1),
@@ -175,7 +181,7 @@ export const memoireRouter = router({
         finalFiliereId = userProfile.filiereId;
       } else {
         const [filiere] = await db.select().from(filieres).where(eq(filieres.code, input.filiereCode));
-        if (!filiere) throw new TRPCError({ code: "BAD_REQUEST", message: "Filière introuvable." });
+        if (!filiere) throw new TRPCError({ code: "BAD_REQUEST", message: "Mention introuvable." });
         finalFiliereId = filiere.id;
       }
 
@@ -196,7 +202,14 @@ export const memoireRouter = router({
         if (!kwId) { const [found] = await db.select().from(keywords).where(eq(keywords.name, name)); kwId = found?.id; }
         if (kwId) await db.insert(memoireKeywords).values({ memoireId: row.id, keywordId: kwId }).onConflictDoNothing();
       }
-      await db.insert(notifications).values({ userId: ctx.session.user.id, message: "Votre publication a bien été modifiée avec succès.", link: `/memoires/${input.slug}`, isRead: false, createdAt: new Date() });
+      await db.insert(notifications).values({ 
+      userId: ctx.session.user.id, 
+      message: `Votre publication "${input.title}" a bien été modifiée.`, 
+      link: `/memoires/${input.slug}`, 
+      isRead: false, 
+      createdAt: new Date() 
+      });
+
       return { success: true };
     }),
 

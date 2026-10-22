@@ -12,7 +12,6 @@ export const auth = betterAuth({
   }),
   emailAndPassword: { enabled: true },
   
-  // CORRECTION ICI : Ajout des domaines de production et de prévisualisation Vercel
   trustedOrigins: [
     "http://localhost:3000", 
     "http://localhost:3001",

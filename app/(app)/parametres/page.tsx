@@ -243,7 +243,7 @@ export default function ParametresPage() {
                 </div>
                 
                 <div>
-                  <label className={labelClass}>Filière</label>
+                  <label className={labelClass}>Mention</label>
                   <div className="relative">
                     <select value={filiereCode} onChange={(e) => setFiliereCode(e.target.value)} className={inputClass + " appearance-none pr-10"}>
                       <option value="" className="bg-white dark:bg-[#0A1E1E] text-[#0A1E1E] dark:text-white">Sélectionner...</option>

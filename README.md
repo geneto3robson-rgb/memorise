@@ -12,12 +12,12 @@ La plateforme ne stocke pas les fichiers PDF des mémoires. Elle constitue une c
 
 - Catalogue public consultable sans connexion
 - Recherche par titre, auteur, mots-clés
-- Filtres par filière, domaine, niveau et année
+- Filtres par Mention, domaine, niveau et année
 - Pagination automatique du catalogue
 - Consultation détaillée d'une notice (résumé, encadreur, contacts de l'auteur)
 - Publication volontaire de métadonnées par les membres connectés (limite : 3 par compte)
 - Enregistrement de mémoires dans une liste de favoris personnelle
-- Gestion du profil : filière, parcours, statut, contacts
+- Gestion du profil : Mention, parcours, statut, contacts
 - Authentification par email/mot de passe et Google
 - Interface responsive (mobile, tablette, ordinateur)
 - Thème clair et sombre
@@ -64,7 +64,7 @@ components/          Composants React réutilisables
 └─ ui/               Composants d'interface de base
 
 db/                  Schéma et accès base de données
-├─ schema.ts         Tables métier (filières, mémoires, profils…)
+├─ schema.ts         Tables métier (Mentions, mémoires, profils…)
 ├─ auth-schema.ts    Tables Better Auth (user, session, account…)
 ├─ index.ts          Connexion Drizzle
 └─ seed.ts           Données initiales
@@ -73,7 +73,7 @@ lib/                 Utilitaires
 ├─ auth.ts           Configuration Better Auth
 ├─ auth-client.ts    Client d'authentification
 ├─ theme-context.tsx Gestion du thème clair/sombre
-└─ data/             Référentiels statiques (filières, domaines…)
+└─ data/             Référentiels statiques (Mentions, domaines…)
 
 trpc/                Configuration tRPC
 ├─ init.ts           Initialisation + procédures (public, protégé)

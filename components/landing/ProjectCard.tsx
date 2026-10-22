@@ -83,7 +83,7 @@ export function ProjectCard({ project, onOpen }: ProjectCardProps) {
         {/* Dégradé sombre pour lire le texte */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A1E1E] via-[#0A1E1E]/40 to-transparent opacity-90" />
 
-        {/* Badge Filière en haut à gauche */}
+        {/* Badge mention en haut à gauche */}
         <div className="absolute top-4 left-4 z-10 max-w-[80%]"> {/*Ajout de max-w-[80%] */}
           <span className={`block truncate px-3 py-1 text-[10px] font-bold text-white rounded-full bg-black/40 backdrop-blur-md border border-white/20`}>
             {/*Ajout de block et truncate */}
