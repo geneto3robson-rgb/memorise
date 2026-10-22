@@ -43,12 +43,9 @@ export default function AdminDashboardPage() {
   const formattedDate = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    // 👇 CORRECTION : max-w-[1400px] devient max-w-350 👇
     <div className="space-y-6 md:space-y-8 max-w-350 mx-auto relative pb-10">
       
-      {/* MODAL DE SUPPRESSION */}
       {memoireToDelete && (
-        // 👇 CORRECTION : z-[100] devient z-100 👇
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-primary-950/40 dark:bg-black/60 backdrop-blur-md">
           <div className="bg-white dark:bg-primary-950 rounded-[2rem] p-6 md:p-8 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 animate-in zoom-in-95">
             <h3 className="text-xl font-bold text-center text-primary-900 dark:text-white mb-2">Supprimer ?</h3>

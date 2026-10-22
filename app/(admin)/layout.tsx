@@ -8,11 +8,10 @@ import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
 import { 
   LayoutDashboard, Users, BookOpen, LogOut,
-  ShieldCheck, GraduationCap, Menu, X, ChevronUp, UserCircle // 👈 UserCircle ajouté
+  ShieldCheck, GraduationCap, Menu, X, ChevronUp, UserCircle
 } from "lucide-react";
 import { ConfirmModal } from "@/components/ConfirmModal";
 
-// 👇 1. SEULEMENT 3 LIENS DANS LA SIDEBAR (Pas de "Profils" ici) 👇
 const adminLinks = [
   { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
   { href: "/admin/utilisateurs", label: "Utilisateurs", icon: Users },
@@ -90,7 +89,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
         </div>
 
-        {/* NAVIGATION PRINCIPALE */}
         <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
           {adminLinks.map((link) => {
             const Icon = link.icon;
@@ -107,7 +105,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        {/* MENU PROFIL EN BAS */}
         <div className="p-4 mt-auto relative" ref={profileMenuRef}>
           {isProfileMenuOpen && (
             <div className="absolute bottom-full left-4 right-4 mb-2 bg-primary-950 rounded-2xl shadow-xl overflow-hidden z-50 border border-white/10">
@@ -116,18 +113,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <GraduationCap className="w-4 h-4" /> Mode Étudiant
                 </button>
                 
-                {/* 2. LE LIEN "PROFIL" EST ICI */}
                 <Link 
-                 href="/admin/parametres" 
+                  href="/admin/parametres" 
                   onClick={() => setIsProfileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  pathname === "/admin/parametres" 
-                ? "bg-white/10 text-white" 
-              : "text-white/80 hover:bg-white/10 hover:text-white"
-              }`}
-              >
-              <UserCircle className="w-4 h-4" /> Profil
-              </Link>
+                    pathname === "/admin/parametres" 
+                      ? "bg-white/10 text-white" 
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <UserCircle className="w-4 h-4" /> Profil
+                </Link>
                 
                 <div className="h-px bg-white/10 my-1" />
                 <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors text-left">

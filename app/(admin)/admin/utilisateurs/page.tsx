@@ -38,7 +38,6 @@ export default function AdminUsersPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 👇 CORRECTION LIGNE 44 👇
   if (isLoading) {
     return <div className="p-8 text-primary-500 dark:text-cta-500 font-medium">Chargement des utilisateurs...</div>;
   }
@@ -50,12 +49,9 @@ export default function AdminUsersPage() {
   });
 
   return (
-    // 👇 CORRECTION LIGNE 54 (max-w-[1400px] -> max-w-350) 👇
     <div className="space-y-6 md:space-y-8 max-w-350 mx-auto pb-10 relative">
       
-      {/* MODALE DE SUPPRESSION */}
       {userToDelete && (
-        // 👇 CORRECTION LIGNE 58 (z-[100] -> z-100) 👇
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-primary-950/40 dark:bg-black/60 backdrop-blur-md">
           <div className="bg-white dark:bg-primary-950 rounded-[2rem] p-6 md:p-8 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 animate-in zoom-in-95">
             <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4 md:mb-6">
@@ -87,7 +83,6 @@ export default function AdminUsersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher par nom ou email..."
-            // 👇 CORRECTION LIGNE 89 👇
             className="w-full h-10 md:h-12 pl-10 md:pl-12 pr-4 bg-neutral-50 dark:bg-primary-950 border border-transparent focus:border-primary-500 dark:focus:border-cta-500 rounded-full text-sm text-primary-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 shadow-sm transition-all"
           />
           <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-neutral-400 group-focus-within:text-primary-500 dark:group-focus-within:text-cta-500 transition-colors" />
