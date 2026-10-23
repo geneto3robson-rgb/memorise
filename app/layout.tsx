@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next"; //  Ajout de Viewport
+import type { Metadata, Viewport } from "next";
 import { Sora, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-context";
@@ -16,12 +16,56 @@ const inter = Inter({
   display: "swap",
 });
 
+// 👇 MÉTADONNÉES SEO COMPLÈTES 👇
 export const metadata: Metadata = {
-  title: "MemoRise — Les mémoires de l'ESPA",
-  manifest: "/manifest.json",
+  title: {
+    default: "MemoRise — Les mémoires de l'ESPA",
+    template: "%s | MemoRise", // Permet d'avoir "Nom de la page | MemoRise"
+  },
   description:
-    "Découvrez et explorez les mémoires de fin d'études réalisés à l'École Supérieure Polytechnique d'Antananarivo.",
-  // 👇 AJOUT POUR IOS (iPhone)
+    "Découvrez, recherchez et explorez les mémoires de fin d'études réalisés par les étudiants de l'École Supérieure Polytechnique d'Antananarivo (ESPA).",
+  keywords: [
+    "ESPA", 
+    "mémoire", 
+    "Antananarivo", 
+    "Madagascar", 
+    "recherche académique", 
+    "étudiants", 
+    "MemoRise",
+    "télécommunication",
+    "génie"
+  ],
+  authors: [{ name: "RAVELOTIARAY Jacsilin Geneto Robson" }],
+  creator: "MemoRise",
+  
+  // 👇 AJOUT DU FAVICON (Utilise votre logo.svg existant) 👇
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
+
+  // 👇 PARTAGE SUR LES RÉSEAUX SOCIAUX (Open Graph) 👇
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    url: "https://memorise-roan.vercel.app",
+    title: "MemoRise — Découvrez les mémoires de l'ESPA",
+    description: "Explorez les travaux de fin d'études réalisés à l'ESPA.",
+    siteName: "MemoRise",
+    images: [
+      {
+        // Si vous avez une image de présentation, mettez son chemin ici (ex: /images/og-image.jpg)
+        // Sinon, on utilise le logo pour l'instant
+        url: "/logo.svg", 
+        width: 800,
+        height: 600,
+        alt: "MemoRise Logo",
+      },
+    ],
+  },
+
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -29,7 +73,6 @@ export const metadata: Metadata = {
   },
 };
 
-// AJOUT DE LA COULEUR DE LA BARRE D'ÉTAT (Android & iOS)
 export const viewport: Viewport = {
   themeColor: "#184F53",
 };
