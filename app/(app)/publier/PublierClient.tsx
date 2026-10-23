@@ -271,14 +271,14 @@ export default function PublierClient() {
             {/* Grille : 1 colonne sur mobile, 2 sur PC */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
               <div>
-                <label className={labelClass}>Filière *</label>
+                <label className={labelClass}>Mention *</label>
                 <select value={filiereCode} onChange={(e) => { setFiliereCode(e.target.value); setDomaine(""); }} disabled={isSubmitting || limiteAtteinte || !!myProfile?.filiereCode} className={inputClass}>
                   <option value="">Sélectionner…</option>
                   {filieres.map((f) => <option key={f.id} value={f.code}>{f.code} — {f.name}</option>)}
                 </select>
                 {myProfile?.filiereCode && (
                   <p className="text-[10px] md:text-xs text-cta-600 dark:text-cta-400 mt-1 flex items-center gap-1">
-                    <Info className="w-3 h-3" /> Filière liée à votre profil
+                    <Info className="w-3 h-3" /> Mention liée à votre profil
                   </p>
                 )}
               </div>
@@ -286,7 +286,7 @@ export default function PublierClient() {
               <div>
                 <label className={labelClass}>Domaine</label>
                 <select value={domaine} onChange={(e) => setDomaine(e.target.value)} disabled={isSubmitting || limiteAtteinte || !filiereCode || domainesDisponibles.length === 0} className={inputClass}>
-                  <option value="">{!filiereCode ? "Choisir une filière d'abord" : domainesDisponibles.length === 0 ? "Aucun domaine disponible" : "Sélectionner…"}</option>
+                  <option value="">{!filiereCode ? "Choisir une mention d'abord" : domainesDisponibles.length === 0 ? "Aucun domaine disponible" : "Sélectionner…"}</option>
                   {domainesDisponibles.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>

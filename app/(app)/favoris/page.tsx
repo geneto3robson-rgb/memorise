@@ -4,11 +4,30 @@ import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 import { trpc } from "@/trpc/client";
-import { Bookmark, Compass } from "lucide-react";
+import { Bookmark } from "lucide-react";
 
 const filiereColorMap: Record<string, string> = {
   TCO: "bg-primary-500", EN: "bg-warning-500", GE: "bg-success-500", BTP: "bg-purple-600",
 };
+
+function FavorisSkeleton() {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+        <div key={i} className="flex flex-col bg-white dark:bg-primary-900 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-sm border border-neutral-100 dark:border-neutral-800 animate-pulse">
+          {/* 👇 CORRECTION ICI : suppression des crochets [ ] 👇 */}
+          <div className="aspect-4/5 md:aspect-3/4 w-full bg-neutral-200 dark:bg-neutral-800" />
+          <div className="p-4 md:p-5 space-y-3">
+            <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded-full w-1/3" />
+            <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded-full w-full" />
+            <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded-full w-2/3" />
+            <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded-full w-1/2 mt-4" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function FavorisPage() {
   const { data: memoires = [], isLoading } = trpc.favori.list.useQuery();
@@ -35,26 +54,24 @@ export default function FavorisPage() {
   return (
     <div className="pt-8 md:pt-12 pb-24">
       <Container>
-        
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
             <div className="w-16 h-1 bg-cta-500 mb-4 rounded-full" />
             <h1 className="text-2xl md:text-4xl font-bold text-primary-900 dark:text-white font-heading mb-2">
               Mes favoris
             </h1>
-            <p className="text-sm md:text-base text-neutral-500 dark:text-neutral-400">
-              {formatted.length} mémoire{formatted.length > 1 ? "s" : ""} enregistré{formatted.length > 1 ? "s" : ""}
-            </p>
+            {!isLoading && (
+              <p className="text-sm md:text-base text-neutral-500 dark:text-neutral-400">
+                {formatted.length} mémoire{formatted.length > 1 ? "s" : ""} enregistré{formatted.length > 1 ? "s" : ""}
+              </p>
+            )}
           </div>
         </div>
 
         {isLoading ? (
-          <div className="py-20 text-center flex flex-col items-center">
-            <div className="w-8 h-8 rounded-full border-4 border-[#184F53] border-t-[#CEEC22] animate-spin mb-4" />
-            <p className="text-neutral-500 text-sm">Chargement de vos favoris...</p>
-          </div>
+          <FavorisSkeleton />
         ) : formatted.length === 0 ? (
-          <div className="rounded-[2rem] border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-white dark:bg-[#0A1E1E] p-10 md:p-16 text-center max-w-2xl mx-auto mt-10">
+          <div className="rounded-[2rem] border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-white dark:bg-primary-950 p-10 md:p-16 text-center max-w-2xl mx-auto mt-10">
             <div className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-6">
               <Bookmark className="w-10 h-10 text-neutral-400" />
             </div>
@@ -72,8 +89,7 @@ export default function FavorisPage() {
             </Link>
           </div>
         ) : (
-          /* Grille : 1 colonne sur mobile (images en grand), 4 sur PC */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
             {formatted.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}

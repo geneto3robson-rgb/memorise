@@ -6,7 +6,7 @@ import { ChevronDown, Send, ArrowLeft } from "lucide-react"; // 👈 Ajout de Ar
 import { Footer } from "@/components/layout/Footer"; // 👈 Ajout du Footer
 
 const faqs = [
-  { question: "Qu'est-ce que MemoRise ?", answer: "MemoRise est un catalogue en ligne qui référence les mémoires de fin d'études de l'ESPA. Il vous permet de trouver facilement un travail par filière, année ou auteur." },
+  { question: "Qu'est-ce que MemoRise ?", answer: "MemoRise est un catalogue en ligne qui référence les mémoires de fin d'études de l'ESPA. Il vous permet de trouver facilement un travail par mention, année ou auteur." },
   { question: "Puis-je télécharger les fichiers PDF des mémoires ?", answer: "Non, MemoRise est un catalogue de métadonnées. La conservation et la distribution des documents physiques restent assurées par la BAU (Bibliothèque)." },
   { question: "Comment publier mon propre mémoire ?", answer: "Il vous suffit de créer un compte étudiant, puis de vous rendre dans l'onglet 'Publier' de votre tableau de bord. Vous pourrez y renseigner toutes les informations relatives à votre travail." },
   { question: "Puis-je contacter l'auteur d'un mémoire ?", answer: "Oui, si l'auteur a renseigné ses réseaux sociaux (Facebook, LinkedIn) ou son numéro WhatsApp sur la page de son mémoire, vous pourrez le contacter directement." },

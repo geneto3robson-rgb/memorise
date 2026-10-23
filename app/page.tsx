@@ -1,3 +1,6 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/landing/Hero";
@@ -9,7 +12,16 @@ import { FaqSection } from "@/components/landing/FaqSection";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { FadeIn } from "@/components/ui/FadeIn";
 
-export default function Home() {
+export default async function Home() {
+  // Vérification de la session côté serveur AVANT de charger la page
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  
+  if (session) {
+    redirect("/tableau-de-bord");
+  }
+
   return (
     <>
       <Navbar />

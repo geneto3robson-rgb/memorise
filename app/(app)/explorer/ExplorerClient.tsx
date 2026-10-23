@@ -165,7 +165,7 @@ export default function ExplorerClient() {
 
           <div className="flex overflow-x-auto gap-2 mt-4 pb-2 scrollbar-hide">
             <button onClick={() => changeFiliere("")} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filiereCode === "" ? "bg-[#0A1E1E] text-white dark:bg-[#CEEC22] dark:text-[#0A1E1E]" : "bg-white dark:bg-[#0A1E1E] text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800"}`}>
-              Toutes les filières
+              Toutes les mentions
             </button>
             {filieres.map((f) => (
               <button key={f.id} onClick={() => changeFiliere(f.code)} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filiereCode === f.code ? "bg-[#0A1E1E] text-white dark:bg-[#CEEC22] dark:text-[#0A1E1E]" : "bg-white dark:bg-[#0A1E1E] text-neutral-600 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-800"}`}>

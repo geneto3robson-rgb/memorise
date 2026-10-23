@@ -48,7 +48,7 @@ export function Hero() {
           <input
             type="text"
             name="q"
-            placeholder="Rechercher un mémoire, une filière ou un auteur..."
+            placeholder="Rechercher un mémoire, une mention ou un auteur..."
             className="w-full px-6 py-4 pr-16 rounded-full bg-white text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-cta-500 shadow-2xl"
           />
           <button

@@ -53,7 +53,7 @@ function ConnexionForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("idle");
+    setStatus("idle"); 
     setMessage("");
 
     if (!email || !password || (!isLogin && (!name || !confirm))) {
@@ -62,7 +62,7 @@ function ConnexionForm() {
       return;
     }
 
-    // 👇 LOGIQUE POUR GÉRER L'EMAIL OU LE NOM D'UTILISATEUR
+    // LOGIQUE POUR GÉRER L'EMAIL OU LE NOM D'UTILISATEUR
     const isEmailInput = email.includes("@");
     
     // Si c'est un email, on le valide. Si c'est un username, on ne valide pas le format email.
@@ -72,13 +72,13 @@ function ConnexionForm() {
       return;
     }
 
-    // On crée un email virtuel si l'utilisateur a tapé un nom d'utilisateur
+    // Création d'un email virtuel si l'utilisateur a tapé un nom d'utilisateur
     let finalEmail = email.trim();
     if (!isEmailInput) {
-      // On nettoie le pseudo (pas d'espaces, pas de majuscules)
+      // Nettoie le pseudo (pas d'espaces, pas de majuscules)
       finalEmail = `${finalEmail.toLowerCase().replace(/\s+/g, '')}@memorise.app`;
     }
-    // 👆 FIN DE LA LOGIQUE
+    // FIN DE LA LOGIQUE
 
     if (password.length < 6) {
       setStatus("error");

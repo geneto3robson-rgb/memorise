@@ -32,11 +32,13 @@ export function MemoireModal({ slug, onClose }: MemoireModalProps) {
   if (!slug) return null;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center p-0 md:p-6">
+    /* 👇 CORRECTION : z-[80] devient z-80 👇 */
+    <div className="fixed inset-0 z-80 flex items-center justify-center p-0 md:p-6">
       <div
         className="absolute inset-0 bg-primary-950/60 backdrop-blur-md"
         onClick={onClose}
       />
+      {/* MODIFICATION : w-full h-full sur mobile pour prendre tout l'écran */}
       <div className="relative bg-white dark:bg-primary-950 w-full h-full md:h-auto md:max-w-5xl md:max-h-[92vh] md:rounded-3xl shadow-2xl overflow-y-auto">
         <button
           onClick={onClose}

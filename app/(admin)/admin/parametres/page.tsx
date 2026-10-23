@@ -1,141 +1,367 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Search, MoreHorizontal, ShieldCheck, GraduationCap, Eye, Ban, Trash2 } from "lucide-react";
-import { trpc } from "@/trpc/client";
+import { useState, useEffect, useRef } from "react";
+import { User, Camera, CheckCircle2, ShieldAlert, Lock, Bell, Save, Eye, EyeOff, UserPlus } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 import { UserAvatar } from "@/components/ui/UserAvatar";
+import { trpc } from "@/trpc/client";
 
-export default function AdminUsersPage() {
-  const [search, setSearch] = useState("");
-  const [filterRole, setFilterRole] = useState<"tous" | "etudiant" | "admin">("tous");
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+export default function AdminParametresPage() {
+  const { data: session, isPending } = authClient.useSession();
+  
+  // Onglets
+  const [activeTab, setActiveTab] = useState<"informations" | "securite" | "notifications" | "moderateurs">("informations");
 
-  const { data: users, isLoading } = trpc.admin.listUsers.useQuery();
+  // --- ÉTATS INFORMATIONS ---
+  const [name, setName] = useState("");
+  const [isSavingInfo, setIsSavingInfo] = useState(false);
+  const [messageInfo, setMessageInfo] = useState({ type: "", text: "" });
 
-  //  CORRECTION CLIC EXTÉRIEUR AVEC CLOSEST 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // --- ÉTATS SÉCURITÉ ---
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isSavingSec, setIsSavingSec] = useState(false);
+  const [messageSec, setMessageSec] = useState({ type: "", text: "" });
+
+  // --- ÉTATS NOTIFICATIONS ---
+  const [notifyNewMemos, setNotifyNewMemos] = useState(true);
+  const [notifySystem, setNotifySystem] = useState(false);
+  const [isSavingNotif, setIsSavingNotif] = useState(false);
+  const [messageNotif, setMessageNotif] = useState({ type: "", text: "" });
+
+  // --- ÉTATS MODÉRATEURS ---
+  const [modEmail, setModEmail] = useState("");
+  const [isPromoting, setIsPromoting] = useState(false);
+  const [messageMod, setMessageMod] = useState({ type: "", text: "" });
+  
+  const promoteMutation = trpc.admin.promoteModerator.useMutation();
+
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (!(event.target as Element).closest('.dropdown-menu-wrapper')) {
-        setOpenMenuId(null);
-      }
+    if (session?.user) {
+      setName(session.user.name || "");
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [session]);
 
-  if (isLoading) {
-    return <div className="p-8 text-[#184F53] dark:text-[#CEEC22] font-medium">Chargement des utilisateurs...</div>;
+  // --- LOGIQUE INFORMATIONS ---
+  const handleSaveInfo = async () => {
+    setIsSavingInfo(true);
+    setMessageInfo({ type: "", text: "" });
+    try {
+      await authClient.updateUser({ name });
+      setMessageInfo({ type: "success", text: "Informations mises à jour avec succès." });
+    } catch (error) {
+      setMessageInfo({ type: "error", text: "Erreur lors de la mise à jour." });
+    } finally {
+      setIsSavingInfo(false);
+      setTimeout(() => setMessageInfo({ type: "", text: "" }), 3000);
+    }
+  };
+
+  // --- LOGIQUE UPLOAD PHOTO ---
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setMessageInfo({ type: "error", text: "L'image ne doit pas dépasser 2MB." });
+      return;
+    }
+
+    setIsSavingInfo(true);
+    const reader = new FileReader();
+    
+    reader.onloadend = async () => {
+      const base64String = reader.result as string;
+      try {
+        await authClient.updateUser({ image: base64String });
+        setMessageInfo({ type: "success", text: "Photo de profil mise à jour avec succès." });
+        window.location.reload(); // Rafraîchir pour voir l'image
+      } catch (error) {
+        setMessageInfo({ type: "error", text: "Erreur lors de la mise à jour de la photo." });
+      } finally {
+        setIsSavingInfo(false);
+        setTimeout(() => setMessageInfo({ type: "", text: "" }), 3000);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // --- LOGIQUE SÉCURITÉ ---
+  const handleSaveSecurite = async () => {
+    if (newPassword !== confirmPassword) {
+      setMessageSec({ type: "error", text: "Les nouveaux mots de passe ne correspondent pas." });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setMessageSec({ type: "error", text: "Le mot de passe doit faire au moins 6 caractères." });
+      return;
+    }
+
+    setIsSavingSec(true);
+    setMessageSec({ type: "", text: "" });
+    try {
+      await authClient.changePassword({
+        currentPassword,
+        newPassword,
+        revokeOtherSessions: true,
+      });
+      setMessageSec({ type: "success", text: "Mot de passe modifié avec succès." });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      setMessageSec({ type: "error", text: error.message || "Erreur lors du changement de mot de passe." });
+    } finally {
+      setIsSavingSec(false);
+      setTimeout(() => setMessageSec({ type: "", text: "" }), 3000);
+    }
+  };
+
+  // --- LOGIQUE NOTIFICATIONS ---
+  const handleSaveNotif = () => {
+    setIsSavingNotif(true);
+    setTimeout(() => {
+      setIsSavingNotif(false);
+      setMessageNotif({ type: "success", text: "Préférences de notification enregistrées." });
+      setTimeout(() => setMessageNotif({ type: "", text: "" }), 3000);
+    }, 800);
+  };
+
+  // --- LOGIQUE MODÉRATEURS ---
+  const handlePromoteModerator = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modEmail) return;
+    
+    setIsPromoting(true);
+    setMessageMod({ type: "", text: "" });
+    
+    try {
+      await promoteMutation.mutateAsync({ email: modEmail });
+      setMessageMod({ type: "success", text: "Utilisateur promu modérateur avec succès." });
+      setModEmail("");
+    } catch (error: any) {
+      setMessageMod({ type: "error", text: error.message || "Erreur lors de la promotion." });
+    } finally {
+      setIsPromoting(false);
+      setTimeout(() => setMessageMod({ type: "", text: "" }), 5000);
+    }
+  };
+
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 rounded-full border-4 border-primary-500 border-t-cta-500 animate-spin" />
+      </div>
+    );
   }
 
-  const filteredUsers = users?.filter((u) => {
-    const matchesSearch = (u.name?.toLowerCase() || "").includes(search.toLowerCase()) || (u.email?.toLowerCase() || "").includes(search.toLowerCase());
-    const matchesRole = filterRole === "tous" || u.role === filterRole;
-    return matchesSearch && matchesRole;
-  });
-
   return (
-    <div className="space-y-6 md:space-y-8 max-w-[1400px] mx-auto pb-10">
+    <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 pb-10">
       
       <div>
-        <h2 className="text-2xl md:text-3xl font-bold text-[#0A1E1E] dark:text-white tracking-tight">Utilisateurs</h2>
-        <p className="text-sm md:text-base text-neutral-500 mt-1">Gérez les comptes de la plateforme.</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-primary-900 dark:text-white tracking-tight">Paramètres</h2>
+        <p className="text-sm md:text-base text-neutral-500 mt-1">Gérez votre compte et vos préférences.</p>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4">
-        <div className="relative w-full sm:max-w-md group">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par nom ou email..."
-            className="w-full h-10 md:h-12 pl-10 md:pl-12 pr-4 bg-[#F4F5F7] dark:bg-[#0A1E1E] border border-transparent focus:border-[#184F53] dark:focus:border-[#CEEC22] rounded-full text-sm text-[#0A1E1E] dark:text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#184F53]/20 shadow-sm transition-all"
-          />
-          <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-neutral-400 group-focus-within:text-[#184F53] dark:group-focus-within:text-[#CEEC22] transition-colors" />
-        </div>
-
-        <div className="flex bg-[#F4F5F7] dark:bg-[#0A1E1E] p-1 rounded-full border border-neutral-200 dark:border-neutral-800 w-full sm:w-auto overflow-x-auto">
-          {["tous", "etudiant", "admin"].map((role) => (
-            <button
-              key={role}
-              onClick={() => setFilterRole(role as any)}
-              className={`flex-1 sm:flex-none px-3 md:px-5 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold transition-all capitalize ${
-                filterRole === role ? "bg-[#184F53] text-white shadow-md" : "text-neutral-500 hover:text-[#184F53] dark:text-neutral-400 dark:hover:bg-white/10"
-              }`}
-            >
-              {role === "etudiant" ? "Étudiants" : role === "admin" ? "Admins" : "Tous"}
-            </button>
-          ))}
-        </div>
+      {/* BARRE D'ONGLETS */}
+      <div className="flex bg-white dark:bg-primary-950 p-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 w-full overflow-x-auto shadow-sm">
+        <button onClick={() => setActiveTab("informations")} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap ${activeTab === "informations" ? "bg-cta-500 text-primary-900 shadow-md" : "text-neutral-500 hover:text-primary-500 dark:text-neutral-400 dark:hover:bg-white/5"}`}>
+          <User className="w-4 h-4" /> <span className="hidden sm:inline">Informations</span>
+        </button>
+        <button onClick={() => setActiveTab("securite")} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap ${activeTab === "securite" ? "bg-cta-500 text-primary-900 shadow-md" : "text-neutral-500 hover:text-primary-500 dark:text-neutral-400 dark:hover:bg-white/5"}`}>
+          <Lock className="w-4 h-4" /> <span className="hidden sm:inline">Sécurité</span>
+        </button>
+        <button onClick={() => setActiveTab("notifications")} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap ${activeTab === "notifications" ? "bg-cta-500 text-primary-900 shadow-md" : "text-neutral-500 hover:text-primary-500 dark:text-neutral-400 dark:hover:bg-white/5"}`}>
+          <Bell className="w-4 h-4" /> <span className="hidden sm:inline">Notifications</span>
+        </button>
+        <button onClick={() => setActiveTab("moderateurs")} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap ${activeTab === "moderateurs" ? "bg-cta-500 text-primary-900 shadow-md" : "text-neutral-500 hover:text-primary-500 dark:text-neutral-400 dark:hover:bg-white/5"}`}>
+          <UserPlus className="w-4 h-4" /> <span className="hidden sm:inline">Modérateurs</span>
+        </button>
       </div>
 
-      <div className="space-y-3">
-        {!filteredUsers || filteredUsers.length === 0 ? (
-          <p className="text-neutral-500 text-sm text-center py-10">Aucun utilisateur trouvé.</p>
-        ) : (
-          filteredUsers.map((user) => {
-            const isAdmin = user.role === "admin";
-            
-            return (
-              <div key={user.id} className="group flex flex-col sm:flex-row sm:items-center justify-between bg-white md:bg-[#F4F5F7] dark:bg-[#0A1E1E] hover:bg-white dark:hover:bg-[#184F53] transition-all duration-200 rounded-2xl md:rounded-full p-4 sm:px-6 border border-neutral-200 md:border-transparent dark:border-neutral-800 hover:border-[#184F53]/20 dark:hover:border-[#CEEC22]/30 hover:shadow-md gap-3 sm:gap-0 relative">
-                
-                <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-                  <UserAvatar name={user.name} image={user.image} className={`w-10 h-10 text-sm border-2 ${isAdmin ? "border-[#CEEC22]" : "border-white dark:border-[#0A1E1E]"}`} />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-[#0A1E1E] dark:text-white text-sm truncate pr-4">{user.name || "Nom inconnu"}</p>
-                    <p className="text-xs font-medium text-neutral-500 dark:text-white/70 truncate">{user.email}</p>
-                  </div>
-                </div>
+      {/* CONTENU : INFORMATIONS */}
+      {activeTab === "informations" && (
+        <div className="bg-white dark:bg-primary-950 rounded-[2rem] p-6 md:p-10 border border-neutral-200 dark:border-neutral-800 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <h3 className="text-xl font-bold text-primary-900 dark:text-white mb-8">Informations personnelles</h3>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 md:gap-4 shrink-0 mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-neutral-100 dark:border-neutral-800">
-                  <span className="hidden md:inline-block text-[11px] font-bold text-[#184F53] dark:text-[#CEEC22]">
-                    {user.filiereCode ? `${user.filiereCode} — ${user.filiereName}` : "Non définie"}
-                  </span>
+          {messageInfo.text && (
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium ${messageInfo.type === "success" ? "bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400" : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"}`}>
+              <CheckCircle2 className="w-5 h-5" /> {messageInfo.text}
+            </div>
+          )}
 
-                  {isAdmin ? (
-                    <span className="inline-flex items-center gap-1.5 text-[10px] md:text-[11px] font-extrabold text-[#0A1E1E] bg-[#CEEC22] px-3 py-1.5 rounded-full shadow-sm">
-                      <ShieldCheck className="w-3.5 h-3.5" /> Admin
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold text-[#184F53] dark:text-[#CEEC22] bg-white dark:bg-[#184F53]/20 px-3 py-1.5 rounded-full border border-[#184F53]/20 dark:border-[#CEEC22]/30">
-                      <GraduationCap className="w-3.5 h-3.5" /> Étudiant
-                    </span>
-                  )}
-
-                  {/* MENU 3 POINTS CORRIGÉ */}
-                  <div className="relative dropdown-menu-wrapper">
-                    <button 
-                      onClick={(e) => { 
-                        e.preventDefault();
-                        e.stopPropagation(); 
-                        setOpenMenuId(openMenuId === user.id ? null : user.id); 
-                      }}
-                      className="p-2 text-neutral-400 dark:text-white/50 hover:bg-neutral-200 dark:hover:bg-black/20 rounded-full transition-colors"
-                    >
-                      <MoreHorizontal className="w-5 h-5" />
-                    </button>
-                    
-                    {openMenuId === user.id && (
-                      <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-[#0A1E1E] rounded-xl shadow-2xl border border-neutral-100 dark:border-neutral-800 z-50 overflow-hidden animate-in fade-in zoom-in-95">
-                        <Link 
-                          href={`/explorer?q=${encodeURIComponent(user.name || "")}`} 
-                          className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:bg-[#F4F5F7] dark:hover:bg-[#184F53] text-left transition-colors"
-                        >
-                          <Eye className="w-4 h-4" /> Voir les publications
-                        </Link>
-                        <div className="h-px bg-neutral-100 dark:bg-neutral-800 my-1" />
-                        <button onClick={() => alert("Fonctionnalité de suppression à venir")} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-left transition-colors">
-                          <Trash2 className="w-4 h-4" /> Supprimer l'utilisateur
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+          <div className="flex flex-col items-center mb-10">
+            <div className="relative group">
+              <UserAvatar name={session?.user?.name} image={session?.user?.image} className="w-28 h-28 text-3xl border-4 border-neutral-100 dark:border-neutral-800 shadow-lg" />
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <Camera className="w-8 h-8 text-white" />
               </div>
-            );
-          })
-        )}
-      </div>
+            </div>
+            
+            <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
+            
+            <button onClick={() => fileInputRef.current?.click()} className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-100 dark:bg-primary-500/20 border border-neutral-200 dark:border-neutral-700 text-sm font-bold text-primary-500 dark:text-cta-500 hover:bg-neutral-200 transition-colors">
+              <Camera className="w-4 h-4" /> Changer la photo
+            </button>
+            <p className="text-xs text-neutral-400 mt-2">JPG, PNG ou GIF. Max 2MB.</p>
+          </div>
+
+          <div className="space-y-6 max-w-2xl mx-auto">
+            <div>
+              <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 mb-2 ml-1 uppercase tracking-wider">Nom complet</label>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full h-14 px-5 bg-neutral-50 dark:bg-primary-950 border border-transparent focus:border-primary-500 dark:focus:border-cta-500 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary-500/20 transition-all" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 mb-2 ml-1 uppercase tracking-wider">Adresse e-mail</label>
+              <input type="email" value={session?.user?.email || ""} disabled className="w-full h-14 px-5 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl text-sm font-medium text-neutral-500 cursor-not-allowed" />
+              <p className="text-xs text-neutral-400 mt-2 ml-1 flex items-center gap-1"><ShieldAlert className="w-3 h-3" /> L'adresse e-mail ne peut pas être modifiée.</p>
+            </div>
+          </div>
+
+          <div className="mt-10 flex justify-end max-w-2xl mx-auto">
+            <button onClick={handleSaveInfo} disabled={isSavingInfo || name === session?.user?.name} className="px-8 py-3 rounded-full bg-cta-500 text-primary-900 font-bold text-sm hover:bg-cta-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center gap-2">
+              <Save className="w-4 h-4" /> {isSavingInfo ? "Enregistrement..." : "Enregistrer"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CONTENU : SÉCURITÉ */}
+      {activeTab === "securite" && (
+        <div className="bg-white dark:bg-primary-950 rounded-[2rem] p-6 md:p-10 border border-neutral-200 dark:border-neutral-800 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <h3 className="text-xl font-bold text-primary-900 dark:text-white mb-8">Sécurité du compte</h3>
+
+          {messageSec.text && (
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium ${messageSec.type === "success" ? "bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400" : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"}`}>
+              <CheckCircle2 className="w-5 h-5" /> {messageSec.text}
+            </div>
+          )}
+
+          <div className="space-y-6 max-w-2xl mx-auto">
+            <div>
+              <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 mb-2 ml-1 uppercase tracking-wider">Mot de passe actuel</label>
+              <div className="relative">
+                <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" className="w-full h-14 px-5 pr-14 bg-neutral-50 dark:bg-primary-950 border border-transparent focus:border-primary-500 dark:focus:border-cta-500 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary-500/20 transition-all" />
+                <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-primary-900 dark:hover:text-white transition-colors">
+                  {showCurrent ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 mb-2 ml-1 uppercase tracking-wider">Nouveau mot de passe</label>
+              <div className="relative">
+                <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full h-14 px-5 pr-14 bg-neutral-50 dark:bg-primary-950 border border-transparent focus:border-primary-500 dark:focus:border-cta-500 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary-500/20 transition-all" />
+                <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-primary-900 dark:hover:text-white transition-colors">
+                  {showNew ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 mb-2 ml-1 uppercase tracking-wider">Confirmer le nouveau mot de passe</label>
+              <div className="relative">
+                <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="w-full h-14 px-5 pr-14 bg-neutral-50 dark:bg-primary-950 border border-transparent focus:border-primary-500 dark:focus:border-cta-500 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary-500/20 transition-all" />
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-primary-900 dark:hover:text-white transition-colors">
+                  {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-10 flex justify-end max-w-2xl mx-auto">
+            <button onClick={handleSaveSecurite} disabled={isSavingSec || !currentPassword || !newPassword || !confirmPassword} className="px-8 py-3 rounded-full bg-cta-500 text-primary-900 font-bold text-sm hover:bg-cta-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center gap-2">
+              <Lock className="w-4 h-4" /> {isSavingSec ? "Mise à jour..." : "Modifier le mot de passe"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CONTENU : NOTIFICATIONS */}
+      {activeTab === "notifications" && (
+        <div className="bg-white dark:bg-primary-950 rounded-[2rem] p-6 md:p-10 border border-neutral-200 dark:border-neutral-800 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <h3 className="text-xl font-bold text-primary-900 dark:text-white mb-8">Préférences de notification</h3>
+
+          {messageNotif.text && (
+            <div className="mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400">
+              <CheckCircle2 className="w-5 h-5" /> {messageNotif.text}
+            </div>
+          )}
+
+          <div className="space-y-6 max-w-2xl mx-auto">
+            <div className="flex items-center justify-between p-5 bg-neutral-50 dark:bg-primary-900/50 rounded-2xl border border-neutral-100 dark:border-neutral-800">
+              <div>
+                <p className="font-bold text-primary-900 dark:text-white">Nouveaux mémoires</p>
+                <p className="text-sm text-neutral-500 mt-1">Recevoir une alerte quand un nouveau mémoire est publié.</p>
+              </div>
+              <button onClick={() => setNotifyNewMemos(!notifyNewMemos)} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${notifyNewMemos ? 'bg-cta-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}>
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${notifyNewMemos ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-5 bg-neutral-50 dark:bg-primary-900/50 rounded-2xl border border-neutral-100 dark:border-neutral-800">
+              <div>
+                <p className="font-bold text-primary-900 dark:text-white">Alertes système</p>
+                <p className="text-sm text-neutral-500 mt-1">Recevoir des notifications sur l'état de la plateforme.</p>
+              </div>
+              <button onClick={() => setNotifySystem(!notifySystem)} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${notifySystem ? 'bg-cta-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}>
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${notifySystem ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-10 flex justify-end max-w-2xl mx-auto">
+            <button onClick={handleSaveNotif} disabled={isSavingNotif} className="px-8 py-3 rounded-full bg-cta-500 text-primary-900 font-bold text-sm hover:bg-cta-400 transition-colors shadow-md flex items-center gap-2">
+              <Save className="w-4 h-4" /> {isSavingNotif ? "Enregistrement..." : "Enregistrer"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CONTENU : MODÉRATEURS */}
+      {activeTab === "moderateurs" && (
+        <div className="bg-white dark:bg-primary-950 rounded-[2rem] p-6 md:p-10 border border-neutral-200 dark:border-neutral-800 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <h3 className="text-xl font-bold text-primary-900 dark:text-white mb-2">Gestion des modérateurs</h3>
+          <p className="text-sm text-neutral-500 mb-8">Promouvez un utilisateur en modérateur. Il pourra modérer les mémoires, mais n'aura pas accès à la suppression des comptes.</p>
+
+          {messageMod.text && (
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm font-medium ${messageMod.type === "success" ? "bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400" : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"}`}>
+              <CheckCircle2 className="w-5 h-5" /> {messageMod.text}
+            </div>
+          )}
+
+          <form onSubmit={handlePromoteModerator} className="max-w-2xl mx-auto space-y-6">
+            <div>
+              <label className="block text-xs font-bold text-neutral-500 dark:text-neutral-400 mb-2 ml-1 uppercase tracking-wider">Adresse e-mail de l'utilisateur</label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input 
+                  type="email" 
+                  required
+                  value={modEmail} 
+                  onChange={(e) => setModEmail(e.target.value)} 
+                  placeholder="ex: etudiant@memorise.app" 
+                  className="w-full h-14 px-5 bg-neutral-50 dark:bg-primary-950 border border-transparent focus:border-primary-500 dark:focus:border-cta-500 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-primary-500/20 transition-all" 
+                />
+                <button 
+                  type="submit" 
+                  disabled={isPromoting || !modEmail} 
+                  className="h-14 px-8 shrink-0 rounded-full bg-cta-500 text-primary-900 font-bold text-sm hover:bg-cta-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center justify-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" /> {isPromoting ? "Promotion..." : "Promouvoir Modérateur"}
+                </button>
+              </div>
+              <p className="text-xs text-neutral-400 mt-3 ml-1">
+                Attention : Cette action donne à l'utilisateur un accès à la modération du catalogue.
+              </p>
+            </div>
+          </form>
+        </div>
+      )}
+
     </div>
   );
 }

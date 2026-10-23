@@ -191,7 +191,7 @@ export function MemoireDetail({ slug, compact = false }: MemoireDetailProps) {
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-primary-900 p-5 space-y-4">
             <Row icon={<Calendar className="w-4 h-4" />} label="Année" value={String(memoire.annee)} />
             <Row icon={<GraduationCap className="w-4 h-4" />} label="Niveau" value={memoire.niveau} />
-            <Row icon={<Building2 className="w-4 h-4" />} label="Filière" value={memoire.filiereName ?? ""} />
+            <Row icon={<Building2 className="w-4 h-4" />} label="Mention" value={memoire.filiereName ?? ""} />
             {memoire.domaine && <Row icon={<Bookmark className="w-4 h-4" />} label="Domaine" value={memoire.domaine} />}
             <Row icon={<User className="w-4 h-4" />} label="Encadreur" value={memoire.encadreur} />
           </div>

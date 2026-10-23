@@ -34,13 +34,13 @@ async function seed() {
       poleIdMap.set(p.code.toLowerCase(), p.id); 
     });
 
-    // 4. Insertion des Filières
-    console.log("📥 Insertion des filières...");
+    // 4. Insertion des Mentions
+    console.log("📥 Insertion des mentions...");
     const dataToInsert = filieres.map((f: any) => {
       const numericPoleId = poleIdMap.get(f.poleId.toLowerCase());
 
       if (!numericPoleId) {
-        throw new Error(`Le pôle avec le code "${f.poleId}" n'a pas été trouvé pour la filière ${f.code}`);
+        throw new Error(`Le pôle avec le code "${f.poleId}" n'a pas été trouvé pour la mention ${f.code}`);
       }
 
       return {
