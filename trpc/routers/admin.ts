@@ -86,13 +86,38 @@ export const adminRouter = router({
       return { success: true };
     }),
 
-  // 👇 NOUVELLE FONCTION POUR SUPPRIMER UN UTILISATEUR 👇
   deleteUser: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      // Supprime d'abord le profil (si pas de cascade), puis l'utilisateur
+      // Supprime d'abord le profil puis l'utilisateur
       await db.delete(profiles).where(eq(profiles.userId, input.id));
       await db.delete(user).where(eq(user.id, input.id));
       return { success: true };
+    }),
+
+  // Ajout de la fonction pour promouvoir un utilisateur en administrateur
+  promoteUser: adminProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      // Recherche de l'utilisateur par email
+      const [existingUser] = await db.select().from(user).where(eq(user.email, input.email));
+      
+      if (!existingUser) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Aucun utilisateur trouvé avec cette adresse e-mail." });
+      }
+
+      // Vérification du rôle actuel
+      const [profile] = await db.select().from(profiles).where(eq(profiles.userId, existingUser.id));
+      
+      if (profile?.role === "admin") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cet utilisateur est déjà administrateur." });
+      }
+
+      // Mise à jour du rôle
+      await db.update(profiles)
+        .set({ role: "admin" })
+        .where(eq(profiles.userId, existingUser.id));
+
+      return { success: true, message: "Utilisateur promu administrateur avec succès." };
     }),
 });

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { 
   User, Lock, Bell, Palette, Shield, Upload, Moon, Sun, 
-  ChevronDown, CheckCircle2, Loader2, Eye, EyeOff 
+  ChevronDown, CheckCircle2, Loader2, Eye, EyeOff, Save // Ajout de l'icône Save
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
@@ -73,11 +73,11 @@ export default function ParametresPage() {
   // Notifications
   const [notifyNews, setNotifyNews] = useState(true);
   const [notifyPublications, setNotifyPublications] = useState(true);
+  const [isSavingNotif, setIsSavingNotif] = useState(false); // Nouvel état pour le bouton Enregistrer
 
   const [isSuccess, setIsSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 👇 On ne bloque plus sur isLoadingProfile 👇
   const { data: profileData } = trpc.profile.get.useQuery(undefined, { enabled: !!session, staleTime: 5 * 60 * 1000 });
   
   const updateProfile = trpc.profile.update.useMutation({
@@ -104,7 +104,6 @@ export default function ParametresPage() {
     }
   }, [session, profileData]);
 
-  // 👇 On attend uniquement la session 👇
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7] dark:bg-[#051414]">
@@ -154,13 +153,19 @@ export default function ParametresPage() {
     }
   };
 
-  const handleToggleNotifications = (type: "news" | "pubs", value: boolean) => {
-    if (type === "news") setNotifyNews(value);
-    if (type === "pubs") setNotifyPublications(value);
-    
+  // Nouvelle fonction pour sauvegarder les paramètres de notification
+  const handleSaveNotifications = () => {
+    setIsSavingNotif(true);
     updateProfile.mutate({
-      notifyNews: type === "news" ? value : notifyNews,
-      notifyPublications: type === "pubs" ? value : notifyPublications,
+      notifyNews,
+      notifyPublications,
+    }, {
+      onSuccess: () => {
+        setIsSavingNotif(false);
+        setIsSuccess(true);
+        setTimeout(() => setIsSuccess(false), 3000);
+      },
+      onError: () => setIsSavingNotif(false)
     });
   };
 
@@ -336,34 +341,49 @@ export default function ParametresPage() {
             </div>
           )}
 
+          {/* ONGLET NOTIFICATIONS MIS À JOUR */}
           {activeTab === "notifications" && (
             <div className="space-y-6 animate-in fade-in">
               <h2 className="text-xl font-bold text-[#0A1E1E] dark:text-white mb-4">Préférences de notification</h2>
+              
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-[#F4F5F7] dark:bg-white/5 rounded-2xl border border-neutral-200 dark:border-neutral-800">
+                <div className="flex items-center justify-between p-5 bg-[#F4F5F7] dark:bg-white/5 rounded-2xl border border-neutral-200 dark:border-neutral-800">
                   <div>
                     <p className="font-bold text-sm text-[#0A1E1E] dark:text-white">Nouvelles publications</p>
                     <p className="text-xs text-neutral-500 mt-1">Recevoir un e-mail quand un nouveau mémoire est publié.</p>
                   </div>
-                  <input 
-                    type="checkbox" 
-                    checked={notifyNews} 
-                    onChange={(e) => handleToggleNotifications("news", e.target.checked)} 
-                    className="w-5 h-5 accent-[#184F53] cursor-pointer" 
-                  />
+                  <button 
+                    onClick={() => setNotifyNews(!notifyNews)} 
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${notifyNews ? 'bg-[#184F53] dark:bg-[#CEEC22]' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${notifyNews ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-[#F4F5F7] dark:bg-white/5 rounded-2xl border border-neutral-200 dark:border-neutral-800">
+
+                <div className="flex items-center justify-between p-5 bg-[#F4F5F7] dark:bg-white/5 rounded-2xl border border-neutral-200 dark:border-neutral-800">
                   <div>
                     <p className="font-bold text-sm text-[#0A1E1E] dark:text-white">Mises à jour de la plateforme</p>
                     <p className="text-xs text-neutral-500 mt-1">Recevoir des informations sur les nouvelles fonctionnalités.</p>
                   </div>
-                  <input 
-                    type="checkbox" 
-                    checked={notifyPublications} 
-                    onChange={(e) => handleToggleNotifications("pubs", e.target.checked)} 
-                    className="w-5 h-5 accent-[#184F53] cursor-pointer" 
-                  />
+                  <button 
+                    onClick={() => setNotifyPublications(!notifyPublications)} 
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${notifyPublications ? 'bg-[#184F53] dark:bg-[#CEEC22]' : 'bg-neutral-300 dark:bg-neutral-700'}`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${notifyPublications ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
                 </div>
+              </div>
+
+              <div className="pt-6 border-t border-neutral-100 dark:border-neutral-800 flex justify-end mt-6">
+                {isSuccess && <span className="text-green-600 text-sm font-medium flex items-center gap-1 animate-in fade-in mr-4"><CheckCircle2 className="w-4 h-4" /> Enregistré !</span>}
+                <button 
+                  onClick={handleSaveNotifications} 
+                  disabled={isSavingNotif}
+                  className="px-6 py-3 bg-[#CEEC22] hover:bg-[#b5d11b] text-[#0A1E1E] text-sm font-bold rounded-full transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSavingNotif ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {isSavingNotif ? "Enregistrement..." : "Enregistrer les préférences"}
+                </button>
               </div>
             </div>
           )}

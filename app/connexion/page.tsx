@@ -53,7 +53,7 @@ function ConnexionForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("idle");
+    setStatus("idle"); 
     setMessage("");
 
     if (!email || !password || (!isLogin && (!name || !confirm))) {

@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react"; // Ajout de useEffect
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Search, Plus, Bookmark, ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Plus, Bookmark, ArrowRight, ArrowUpRight } from "lucide-react"; // Chevrons retirés
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/trpc/client";
 import { Container } from "@/components/layout/Container";
 import { ProjectCard } from "@/components/landing/ProjectCard";
 
+// ... (Les constantes filiereImages, parcoursParFiliere, filiereColorMap restent inchangées) ...
 const filiereImages: Record<string, string> = {
   TCO: "/images/projects/telecom.jpg", EN: "/images/projects/energie.jpg", GE: "/images/projects/genie.jpg",
   BTP: "/images/projects/btp.jpg", ISA: "/images/projects/telecom.jpg", IMIN: "/images/projects/telecom.jpg", 
@@ -42,11 +43,9 @@ export default function TableauDeBordPage() {
     { enabled: !!session }
   );
 
-  // 👇 NOUVEAU : Mutation pour créer la notification de profil incomplet
   const notifyProfileIncomplete = trpc.memoire.notifyProfileIncomplete.useMutation();
-  const hasCheckedProfile = useRef(false); // Évite de lancer la requête en boucle
+  const hasCheckedProfile = useRef(false);
 
-  // 👇 Vérification au chargement de la page
   useEffect(() => {
     if (profileData?.profile && !hasCheckedProfile.current) {
       const isProfileIncomplete = !profileData.profile.parcours || !profileData.profile.whatsapp;
@@ -88,16 +87,10 @@ export default function TableauDeBordPage() {
     if (searchQuery.trim()) router.push(`/explorer?q=${encodeURIComponent(searchQuery)}`);
   };
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const { current } = scrollRef;
-      current.scrollBy({ left: direction === "left" ? -300 : 300, behavior: "smooth" });
-    }
-  };
-
   return (
     <div className="pt-8 md:pt-12 pb-24 lg:pb-16">
       <Container>
+        {/* ... (En-tête et Barre de recherche inchangés) ... */}
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-3xl md:text-5xl font-bold text-[#0A1E1E] dark:text-white mb-3 font-heading">
             Bonjour, {firstName} !
@@ -119,7 +112,7 @@ export default function TableauDeBordPage() {
         </form>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 mb-12 items-stretch">
-          
+          {/* ... (Cartes 1, 2 et 3 inchangées) ... */}
           <div className="relative rounded-[2rem] overflow-hidden bg-[#184F53] text-white flex flex-col p-6 md:p-8 shadow-lg group min-h-[350px]">
             <div className="absolute inset-0 bg-cover bg-center z-0 transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${bgImage})` }} />
             <div className="absolute inset-0 bg-gradient-to-b from-[#0A1E1E]/90 via-[#0A1E1E]/50 to-[#0A1E1E]/90 z-0" />
@@ -187,13 +180,13 @@ export default function TableauDeBordPage() {
           </div>
         </div>
 
+        {/* SECTION RÉCEMMENT PUBLIÉS SANS LES FLÈCHES */}
         <div className="mt-8 md:mt-16 relative">
           <div className="flex items-center justify-between mb-4 md:mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-[#0A1E1E] dark:text-white">Récemment publiés</h2>
             <div className="flex items-center gap-2">
-              <button onClick={() => scroll("left")} className="hidden lg:flex w-8 h-8 rounded-full bg-white dark:bg-neutral-800 shadow-sm items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50"><ChevronLeft className="w-5 h-5"/></button>
-              <button onClick={() => scroll("right")} className="hidden lg:flex w-8 h-8 rounded-full bg-white dark:bg-neutral-800 shadow-sm items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50"><ChevronRight className="w-5 h-5"/></button>
-              <Link href="/explorer" className="text-xs md:text-sm font-bold text-[#184F53] dark:text-[#CEEC22] flex items-center gap-1 hover:underline ml-2">
+              {/* 👇 Les boutons ChevronLeft et ChevronRight ont été supprimés ici 👇 */}
+              <Link href="/explorer" className="text-xs md:text-sm font-bold text-[#184F53] dark:text-[#CEEC22] flex items-center gap-1 hover:underline">
                 Voir tout <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
               </Link>
             </div>

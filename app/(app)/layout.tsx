@@ -33,7 +33,6 @@ export function Sidebar() {
   const pathname = usePathname();
   return (
     <>
-      {/* 👇 bg-[#184F53] corrigé en bg-primary-500 👇 */}
       <aside className="hidden lg:flex fixed top-4 bottom-4 left-4 w-64 flex-col bg-primary-500 border border-white/10 rounded-[2rem] shadow-2xl p-4 z-40">
         <Link href="/" className="flex items-center gap-2 px-2 py-3 mb-6">
           <Image src="/logo.svg" alt="MemoRise" width={32} height={32} unoptimized />
@@ -49,7 +48,6 @@ export function Sidebar() {
                 key={link.href}
                 href={link.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-colors ${
-                  // 👇 bg-[#CEEC22] corrigé en bg-cta-500 / text-[#0A1E1E] en text-primary-900 👇
                   active ? "bg-cta-500 text-primary-900 shadow-md font-bold" : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
               >
@@ -73,7 +71,6 @@ export function Sidebar() {
         </div>
       </aside>
       
-      {/* 👇 dark:bg-[#0A1E1E]/90 corrigé en dark:bg-primary-950/90 👇 */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/90 dark:bg-primary-950/90 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 flex justify-around py-2 pb-[env(safe-area-inset-bottom)]">
         {navLinks.map((link) => {
           const Icon = link.icon;
@@ -82,12 +79,10 @@ export function Sidebar() {
             <Link
               key={link.href}
               href={link.href}
-              // 👇 text-[#184F53] et dark:text-[#CEEC22] corrigés 👇
               className={`flex flex-col items-center gap-1 px-3 py-1 text-[10px] font-medium transition-colors ${
                 active ? "text-primary-500 dark:text-cta-500" : "text-neutral-500 dark:text-neutral-400 hover:text-primary-500"
               }`}
             >
-              {/* 👇 fill-[#184F53] corrigé en fill-primary-500 👇 */}
               <Icon className={`w-5 h-5 ${active ? "fill-primary-500/10 dark:fill-cta-500/10" : ""}`} />
               {link.short}
             </Link>
@@ -138,23 +133,28 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
         confirmText="Oui, basculer"
       />
 
-      {/* 👇 dark:bg-[#051414]/80 corrigé en dark:bg-primary-950/80 👇 */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-primary-950/80 backdrop-blur-lg border-b border-neutral-200/50 dark:border-neutral-800/50">
         <div className="flex items-center justify-end gap-3 px-4 md:px-8 py-3">
           
-          <div className="relative" ref={notifRef}>
-            {/* 👇 text-[#0A1E1E] corrigé en text-primary-900 👇 */}
+          {/* MENU NOTIFICATIONS */}
+          <div 
+            className="relative" 
+            ref={notifRef}
+            onMouseEnter={() => setIsNotifOpen(true)}
+            onMouseLeave={() => setIsNotifOpen(false)}
+          >
             <button 
               onClick={() => { setIsNotifOpen(!isNotifOpen); setIsUserOpen(false); }}
               aria-label="Notifications" 
               className="relative p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors text-primary-900 dark:text-white"
             >
               <Bell className="w-5 h-5" />
-              {/* 👇 ring-[#0A1E1E] corrigé en ring-primary-950 👇 */}
               {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-primary-950" />}
             </button>
+            
+            {/* pt-2 permet de combler le vide pour que le onMouseLeave ne se déclenche pas bêtement */}
             {isNotifOpen && (
-              <div className="absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)]">
+              <div className="absolute top-full right-0 pt-2 w-80 max-w-[calc(100vw-2rem)]">
                 <div className="bg-white dark:bg-primary-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-2xl overflow-hidden">
                    <div className="p-3 border-b border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-primary-900/50">
                       <p className="text-sm font-semibold text-primary-900 dark:text-white">Notifications</p>
@@ -184,7 +184,13 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
             )}
           </div>
 
-          <div className="relative" ref={menuRef}>
+          {/* MENU PROFIL */}
+          <div 
+            className="relative" 
+            ref={menuRef}
+            onMouseEnter={() => setIsUserOpen(true)}
+            onMouseLeave={() => setIsUserOpen(false)}
+          >
             <button 
               onClick={() => { setIsUserOpen(!isUserOpen); setIsNotifOpen(false); }}
               className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-neutral-200 dark:hover:border-neutral-800"
@@ -195,7 +201,7 @@ export function AppHeader({ isAdmin }: { isAdmin: boolean }) {
             </button>
 
             {isUserOpen && (
-              <div className="absolute top-full right-0 mt-2 w-56">
+              <div className="absolute top-full right-0 pt-2 w-56">
                 <div className="bg-white dark:bg-primary-950 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl overflow-hidden">
                   
                   {isAdmin && (
